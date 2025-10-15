@@ -1,31 +1,46 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Calendar, Users, CheckCircle, Clock, Download, Sparkles, MapPin } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { Calendar, Users, CheckCircle, Clock, Download, Sparkles, MapPin, AlertCircle } from 'lucide-react';
 
 const Participant = () => {
   const navigate = useNavigate();
+  const { eventId } = useParams(); // Récupère l'ID depuis l'URL
+  
   const [step, setStep] = useState(1);
   const [userName, setUserName] = useState('');
   const [selectedDate, setSelectedDate] = useState(null);
-  const [availabilities, setAvailabilities] = useState({
-    date1: null,
-    date2: null,
-    date3: null
-  });
+  const [availabilities, setAvailabilities] = useState({});
+  const [event, setEvent] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Données simulées (en prod, viendront de l'API)
-  const event = {
-    type: '🍽️ Dîner restaurant',
-    location: 'Restaurant Le Bistrot',
-    organizer: 'Thomas',
-    expectedParticipants: 6, // Si null, affichage absolu
-    dates: [
-      { id: 'date1', label: 'Ven 18 oct, 20:00', votes: 4, voters: ['Sarah', 'Marc', 'Julie', 'Paul'] },
-      { id: 'date2', label: 'Sam 19 oct, 20:00', votes: 2, voters: ['Marc', 'Sophie'] },
-      { id: 'date3', label: 'Ven 25 oct, 20:00', votes: 1, voters: ['Paul'] }
-    ],
-    totalResponded: 4
-  };
+  // 🔥 Charger l'événement depuis localStorage
+  useEffect(() => {
+    try {
+      const storedEvent = localStorage.getItem(`synkro_event_${eventId}`);
+      
+      if (!storedEvent) {
+        setError("Cet événement n'existe pas ou a expiré 😕");
+        setLoading(false);
+        return;
+      }
+
+      const eventData = JSON.parse(storedEvent);
+      setEvent(eventData);
+      
+      // Initialiser les availabilities avec null pour chaque date
+      const initialAvailabilities = {};
+      eventData.dates.forEach(date => {
+        initialAvailabilities[date.id] = null;
+      });
+      setAvailabilities(initialAvailabilities);
+      
+      setLoading(false);
+    } catch (err) {
+      setError("Erreur lors du chargement de l'événement 😕");
+      setLoading(false);
+    }
+  }, [eventId]);
 
   const handleAvailabilityToggle = (dateId) => {
     setAvailabilities(prev => {
@@ -98,15 +113,146 @@ const Participant = () => {
 
   const canSubmit = Object.values(availabilities).some(v => v !== null);
 
+  // 🔥 SAUVEGARDER les votes dans localStorage
   const handleSubmit = () => {
-    if (canSubmit && userName.trim()) {
+    if (!canSubmit || !userName.trim()) return;
+
+    try {
+      // 1. Récupérer l'événement actuel
+      const storedEvent = localStorage.getItem(`synkro_event_${eventId}`);
+      const eventData = JSON.parse(storedEvent);
+
+      // 2. Vérifier si le participant a déjà voté
+      const existingParticipantIndex = eventData.participants?.findIndex(
+        p => p.name.toLowerCase() === userName.trim().toLowerCase()
+      );
+
+      // 3. Mettre à jour ou ajouter le participant
+      if (!eventData.participants) {
+        eventData.participants = [];
+      }
+
+      const participantData = {
+        name: userName.trim(),
+        availabilities: availabilities,
+        votedAt: new Date().toISOString()
+      };
+
+      if (existingParticipantIndex !== -1) {
+        // Mettre à jour le participant existant
+        eventData.participants[existingParticipantIndex] = participantData;
+      } else {
+        // Ajouter nouveau participant
+        eventData.participants.push(participantData);
+      }
+
+      // 4. Recalculer les votes pour chaque date
+      eventData.dates.forEach(date => {
+        // Réinitialiser
+        date.votes = 0;
+        date.voters = [];
+
+        // Compter tous les participants disponibles pour cette date
+        eventData.participants.forEach(participant => {
+          if (participant.availabilities[date.id] === true) {
+            date.votes++;
+            date.voters.push(participant.name);
+          }
+        });
+      });
+
+      // 5. Mettre à jour totalResponded
+      eventData.totalResponded = eventData.participants.length;
+
+      // 6. Sauvegarder dans localStorage
+      localStorage.setItem(`synkro_event_${eventId}`, JSON.stringify(eventData));
+
+      // 7. Mettre à jour l'état local
+      setEvent(eventData);
+
+      // 8. Passer à l'étape suivante
       setStep(3);
+      
+      // 9. Trouver la meilleure date et afficher le résultat
       setTimeout(() => {
-        setSelectedDate(event.dates[0]);
+        const bestDate = eventData.dates.reduce((prev, current) => 
+          current.votes > prev.votes ? current : prev
+        );
+        setSelectedDate(bestDate);
         setStep(4);
       }, 1500);
+
+    } catch (err) {
+      console.error('Erreur lors de la sauvegarde:', err);
+      alert('Erreur lors de la sauvegarde de tes disponibilités 😕');
     }
   };
+
+  // 🔥 Écran de chargement
+  if (loading) {
+    return (
+      <div style={{ 
+        minHeight: '100vh', 
+        background: 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 50%, #06B6D4 100%)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '20px'
+      }}>
+        <div style={{ textAlign: 'center', color: 'white' }}>
+          <Clock size={48} />
+          <p style={{ marginTop: '20px', fontSize: '18px' }}>Chargement...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // 🔥 Écran d'erreur
+  if (error) {
+    return (
+      <div style={{ 
+        minHeight: '100vh', 
+        background: 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 50%, #06B6D4 100%)',
+        padding: '20px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}>
+        <div style={{
+          maxWidth: '500px',
+          background: 'white',
+          borderRadius: '24px',
+          padding: '40px',
+          textAlign: 'center',
+          boxShadow: '0 24px 60px rgba(139, 92, 246, 0.3)'
+        }}>
+          <AlertCircle size={64} color="#EF4444" style={{ margin: '0 auto 20px' }} />
+          <h2 style={{ fontSize: '24px', marginBottom: '12px', color: '#1E1B4B' }}>
+            {error}
+          </h2>
+          <p style={{ color: '#6B7280', marginBottom: '28px' }}>
+            Vérifie le lien ou demande à l'organisateur de t'en renvoyer un nouveau.
+          </p>
+          <button
+            onClick={() => navigate('/')}
+            style={{
+              padding: '16px 32px',
+              background: 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)',
+              color: 'white',
+              border: 'none',
+              borderRadius: '12px',
+              fontSize: '16px',
+              fontWeight: '700',
+              cursor: 'pointer',
+              boxShadow: '0 8px 20px rgba(139, 92, 246, 0.3)'
+            }}
+          >
+            Retour à l'accueil
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ 
@@ -188,7 +334,7 @@ const Participant = () => {
                 margin: 0,
                 fontSize: '14px'
               }}>
-                Organisé par <strong style={{ color: '#8B5CF6' }}>{event.organizer}</strong>
+                Organisé par <strong style={{ color: '#8B5CF6' }}>{event.organizerName || event.organizer}</strong>
               </p>
             </div>
 
@@ -282,7 +428,7 @@ const Participant = () => {
                 margin: 0,
                 fontSize: '13px'
               }}>
-                Organisé par <strong style={{ color: '#8B5CF6' }}>{event.organizer}</strong>
+                Organisé par <strong style={{ color: '#8B5CF6' }}>{event.organizerName || event.organizer}</strong>
               </p>
             </div>
 
@@ -299,8 +445,8 @@ const Participant = () => {
               <Users size={20} color="#8B5CF6" />
               <span style={{ fontSize: '14px', color: '#6B7280', fontWeight: '500' }}>
                 {event.expectedParticipants 
-                  ? `${event.totalResponded}/${event.expectedParticipants} participants ont répondu`
-                  : `${event.totalResponded} personnes ont répondu`
+                  ? `${event.totalResponded || 0}/${event.expectedParticipants} participants ont répondu`
+                  : `${event.totalResponded || 0} personne${(event.totalResponded || 0) > 1 ? 's ont' : ' a'} répondu`
                 }
               </span>
             </div>
@@ -554,7 +700,8 @@ const Participant = () => {
                   👥 Participants confirmés
                 </div>
                 <div style={{ fontSize: '15px', color: '#1E1B4B', fontWeight: '500' }}>
-                  {event.organizer}, {selectedDate.voters.join(', ')}, {userName}
+                  {event.organizerName || event.organizer}
+                  {selectedDate.voters.length > 0 && `, ${selectedDate.voters.join(', ')}`}
                 </div>
               </div>
             </div>
@@ -675,7 +822,7 @@ const Participant = () => {
         color: 'rgba(255,255,255,0.9)',
         fontSize: '14px'
       }}>
-        <p style={{ margin: '0 0 8px 0' }}>✨ Prototype Synkro v2.0 - Purple Dream</p>
+        <p style={{ margin: '0 0 8px 0' }}>✨ Synkro v2.0 - localStorage Edition</p>
       </div>
     </div>
   );

@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, Clock, Send, CheckCircle, Sparkles, ChevronLeft, ChevronRight, MapPin, Users as UsersIcon, Share2 } from 'lucide-react';
+import { Calendar, Clock, Send, CheckCircle, Sparkles, ChevronLeft, ChevronRight, MapPin, Users as UsersIcon, Share2, User } from 'lucide-react';
 
 const Organizer = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
+  const [organizerName, setOrganizerName] = useState('');
   const [eventType, setEventType] = useState('');
   const [customEvent, setCustomEvent] = useState('');
   const [location, setLocation] = useState('');
@@ -77,12 +78,10 @@ const Organizer = () => {
     );
 
     if (alreadySelected) {
-      // Désélectionner
       setSelectedDates(selectedDates.filter(selected => 
         selected.date.toDateString() !== date.toDateString()
       ));
     } else if (selectedDates.length < 3) {
-      // Sélectionner (max 3)
       const selectedEventType = eventTypes.find(e => e.id === eventType);
       setSelectedDates([...selectedDates, { 
         date: date, 
@@ -100,9 +99,9 @@ const Organizer = () => {
   const handleEventTypeSelect = (type) => {
     setEventType(type);
     if (type !== 'other') {
-      setStep(3); // Passer à la sélection de dates
+      setStep(3);
     } else {
-      setStep(2); // Demander le nom custom
+      setStep(2);
     }
   };
 
@@ -113,14 +112,40 @@ const Organizer = () => {
   };
 
   const generateLink = () => {
-    const randomId = Math.random().toString(36).substring(7);
-    const fullLink = `${window.location.origin}/respond?id=${randomId}`;
+    // Générer ID unique
+    const eventId = 'evt_' + Date.now() + '_' + Math.random().toString(36).substring(7);
+    
+    // Préparer les données
+    const selectedEventType = eventTypes.find(e => e.id === eventType);
+    const eventData = {
+      id: eventId,
+      organizer: organizerName,
+      type: eventType === 'other' ? customEvent : selectedEventType.label,
+      location: location,
+      expectedParticipants: expectedParticipants ? parseInt(expectedParticipants) : null,
+      dates: selectedDates.map(d => ({
+        date: d.date.toISOString(),
+        time: d.time,
+        label: `${formatDate(d.date)}, ${d.time}`,
+        votes: 0,
+        voters: []
+      })),
+      createdAt: new Date().toISOString()
+    };
+    
+    // Stocker dans localStorage
+    localStorage.setItem(`synkro_event_${eventId}`, JSON.stringify(eventData));
+    
+    // Créer le lien
+    const fullLink = `${window.location.origin}/respond?id=${eventId}`;
     setEventLink(fullLink);
-    setStep(5);
+    setStep(6);
   };
 
   const shareVia = (platform) => {
-    const text = `Synkro - ${selectedEventType?.label || customEvent}${location ? ` à ${location}` : ''}`;
+    const selectedEventType = eventTypes.find(e => e.id === eventType);
+    const eventName = eventType === 'other' ? customEvent : selectedEventType.label;
+    const text = `${organizerName} t'invite : ${eventName}${location ? ` à ${location}` : ''}`;
     const encodedLink = encodeURIComponent(eventLink);
     const encodedText = encodeURIComponent(text);
 
@@ -191,10 +216,84 @@ const Organizer = () => {
         boxShadow: '0 24px 60px rgba(139, 92, 246, 0.3), 0 0 0 1px rgba(139, 92, 246, 0.1)'
       }}>
         
-        {/* Step 1: Choose event type */}
+        {/* Step 1: Organizer name */}
         {step === 1 && (
           <div>
+            <h2 style={{ fontSize: '26px', marginBottom: '12px', color: '#1E1B4B', fontWeight: '700' }}>
+              👋 C'est toi qui organises ?
+            </h2>
+            <p style={{ 
+              color: '#6B7280', 
+              fontSize: '14px',
+              marginBottom: '24px'
+            }}>
+              Dis-nous comment t'appeler pour que tes invités te reconnaissent !
+            </p>
+
+            <div style={{ marginBottom: '24px' }}>
+              <label style={{ 
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                marginBottom: '10px', 
+                fontSize: '14px',
+                color: '#1E1B4B',
+                fontWeight: '600'
+              }}>
+                <User size={18} color="#8B5CF6" />
+                Ton prénom
+              </label>
+              <input
+                type="text"
+                value={organizerName}
+                onChange={(e) => setOrganizerName(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && organizerName.trim() && setStep(2)}
+                placeholder="Ex: Thomas"
+                autoFocus
+                style={{
+                  width: '100%',
+                  padding: '16px',
+                  fontSize: '16px',
+                  border: '2px solid #E9D5FF',
+                  borderRadius: '14px',
+                  boxSizing: 'border-box',
+                  outline: 'none',
+                  transition: 'all 0.3s'
+                }}
+                onFocus={(e) => e.target.style.borderColor = '#8B5CF6'}
+                onBlur={(e) => e.target.style.borderColor = '#E9D5FF'}
+              />
+            </div>
+
+            <button
+              onClick={() => organizerName.trim() && setStep(2)}
+              disabled={!organizerName.trim()}
+              style={{
+                width: '100%',
+                padding: '18px',
+                background: organizerName.trim() 
+                  ? 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)'
+                  : '#E9D5FF',
+                color: 'white',
+                border: 'none',
+                borderRadius: '14px',
+                fontSize: '16px',
+                fontWeight: '700',
+                cursor: organizerName.trim() ? 'pointer' : 'not-allowed',
+                boxShadow: organizerName.trim() ? '0 8px 20px rgba(139, 92, 246, 0.3)' : 'none',
+                transition: 'all 0.3s'
+              }}
+            >
+              C'est parti ! →
+            </button>
+          </div>
+        )}
+
+        {/* Step 2: Choose event type */}
+        {step === 2 && (
+          <div>
             <h2 style={{ fontSize: '26px', marginBottom: '24px', color: '#1E1B4B', fontWeight: '700' }}>
+              Salut {organizerName} ! 👋<br/>
               Quel événement organises-tu ?
             </h2>
             <div style={{ display: 'grid', gap: '12px' }}>
@@ -229,11 +328,27 @@ const Organizer = () => {
                 </button>
               ))}
             </div>
+            <button
+              onClick={() => setStep(1)}
+              style={{
+                width: '100%',
+                padding: '12px',
+                background: 'transparent',
+                color: '#8B5CF6',
+                border: 'none',
+                fontSize: '14px',
+                cursor: 'pointer',
+                marginTop: '16px',
+                fontWeight: '600'
+              }}
+            >
+              ← Retour
+            </button>
           </div>
         )}
 
-        {/* Step 2: Custom event name */}
-        {step === 2 && (
+        {/* Step 3: Custom event name */}
+        {step === 3 && eventType === 'other' && (
           <div>
             <h2 style={{ fontSize: '26px', marginBottom: '24px', color: '#1E1B4B', fontWeight: '700' }}>
               Nomme ton événement
@@ -281,268 +396,269 @@ const Organizer = () => {
           </div>
         )}
 
-        {/* Step 3: Calendar & Time Selection */}
-        {step === 3 && (
-          <div>
-            <div style={{ marginBottom: '24px' }}>
-              <h2 style={{ fontSize: '26px', marginBottom: '12px', color: '#1E1B4B', fontWeight: '700' }}>
-                {selectedEventType?.label || customEvent}
-              </h2>
-              {selectedEventType && selectedEventType.suggestion && (
-                <p style={{ 
-                  color: '#6B7280', 
-                  fontSize: '14px',
-                  background: 'linear-gradient(135deg, #F5F3FF 0%, #E9D5FF 100%)',
-                  padding: '14px',
-                  borderRadius: '12px',
-                  margin: '0 0 24px 0',
-                  border: '1px solid #E9D5FF'
-                }}>
-                  💡 {selectedEventType.suggestion}
-                </p>
-              )}
-            </div>
-
-            {/* Lieu (optionnel) */}
-            <div style={{ marginBottom: '24px' }}>
-              <label style={{ 
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                marginBottom: '10px', 
-                fontSize: '14px',
-                color: '#1E1B4B',
-                fontWeight: '600'
-              }}>
-                <MapPin size={18} color="#8B5CF6" />
-                Où ? (optionnel)
-              </label>
-              <input
-                type="text"
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                placeholder="Ex: Restaurant Le Bistrot, Paris"
-                style={{
-                  width: '100%',
-                  padding: '14px',
-                  fontSize: '15px',
-                  border: '2px solid #E9D5FF',
-                  borderRadius: '12px',
-                  boxSizing: 'border-box',
-                  outline: 'none',
-                  transition: 'all 0.3s'
-                }}
-                onFocus={(e) => e.target.style.borderColor = '#8B5CF6'}
-                onBlur={(e) => e.target.style.borderColor = '#E9D5FF'}
-              />
-            </div>
-
-            <h3 style={{ fontSize: '18px', marginBottom: '16px', color: '#1E1B4B', fontWeight: '600' }}>
-              Sélectionne 3 dates ({selectedDates.length}/3) :
-            </h3>
-
-            <div style={{
-              background: 'linear-gradient(135deg, #F5F3FF 0%, #E9D5FF 100%)',
-              padding: '20px',
-              borderRadius: '16px',
-              marginBottom: '24px',
-              border: '2px solid #E9D5FF'
-            }}>
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: '20px'
-              }}>
-                <button
-                  onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1))}
-                  style={{
-                    background: 'white',
-                    border: '2px solid #E9D5FF',
-                    borderRadius: '10px',
-                    padding: '8px',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center'
-                  }}
-                >
-                  <ChevronLeft size={20} color="#8B5CF6" />
-                </button>
-                <h4 style={{
-                  fontSize: '16px',
-                  fontWeight: '700',
-                  color: '#1E1B4B',
-                  textTransform: 'capitalize',
-                  margin: 0
-                }}>
-                  {monthYear}
-                </h4>
-                <button
-                  onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1))}
-                  style={{
-                    background: 'white',
-                    border: '2px solid #E9D5FF',
-                    borderRadius: '10px',
-                    padding: '8px',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center'
-                  }}
-                >
-                  <ChevronRight size={20} color="#8B5CF6" />
-                </button>
-              </div>
-
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(7, 1fr)',
-                gap: '8px',
-                marginBottom: '12px'
-              }}>
-                {['D', 'L', 'M', 'M', 'J', 'V', 'S'].map((day, i) => (
-                  <div key={i} style={{
-                    textAlign: 'center',
-                    fontSize: '12px',
-                    fontWeight: '700',
-                    color: '#8B5CF6'
-                  }}>
-                    {day}
-                  </div>
-                ))}
-              </div>
-
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(7, 1fr)',
-                gap: '8px'
-              }}>
-                {getDaysInMonth(currentMonth).map((date, index) => {
-                  const isSelected = isDateSelected(date);
-                  const isPast = isPastDate(date);
-                  
-                  return (
-                    <button
-                      key={index}
-                      onClick={() => handleDateClick(date)}
-                      disabled={!date || isPast}
-                      style={{
-                        aspectRatio: '1',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        background: isSelected 
-                          ? 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)'
-                          : date && !isPast ? 'white' : 'transparent',
-                        color: isSelected ? 'white' : isPast ? '#D1D5DB' : '#1E1B4B',
-                        border: isSelected ? 'none' : date && !isPast ? '2px solid #E9D5FF' : 'none',
-                        borderRadius: '10px',
-                        fontSize: '14px',
-                        fontWeight: isSelected ? '700' : '500',
-                        cursor: date && !isPast ? 'pointer' : 'default',
-                        transition: 'all 0.2s',
-                        boxShadow: isSelected ? '0 4px 12px rgba(139, 92, 246, 0.3)' : 'none'
-                      }}
-                    >
-                      {date ? date.getDate() : ''}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {selectedDates.length > 0 && (
+        {/* Step 4: Calendar & Time Selection */}
+        {(step === 4 || (step === 3 && eventType !== 'other')) && (() => {
+          if (step === 3) setStep(4);
+          return (
+            <div>
               <div style={{ marginBottom: '24px' }}>
-                <h3 style={{ fontSize: '16px', marginBottom: '14px', color: '#1E1B4B', fontWeight: '600' }}>
-                  Horaires :
-                </h3>
-                {selectedDates.map((item, index) => (
-                  <div key={index} style={{
+                <h2 style={{ fontSize: '26px', marginBottom: '12px', color: '#1E1B4B', fontWeight: '700' }}>
+                  {selectedEventType?.label || customEvent}
+                </h2>
+                {selectedEventType && selectedEventType.suggestion && (
+                  <p style={{ 
+                    color: '#6B7280', 
+                    fontSize: '14px',
                     background: 'linear-gradient(135deg, #F5F3FF 0%, #E9D5FF 100%)',
-                    padding: '16px',
+                    padding: '14px',
                     borderRadius: '12px',
-                    marginBottom: '12px',
-                    border: '2px solid #E9D5FF',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center'
+                    margin: '0 0 24px 0',
+                    border: '1px solid #E9D5FF'
                   }}>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: '15px', fontWeight: '700', color: '#1E1B4B' }}>
-                        {formatDate(item.date)}
+                    💡 {selectedEventType.suggestion}
+                  </p>
+                )}
+              </div>
+
+              {/* Lieu (optionnel) */}
+              <div style={{ marginBottom: '24px' }}>
+                <label style={{ 
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  marginBottom: '10px', 
+                  fontSize: '14px',
+                  color: '#1E1B4B',
+                  fontWeight: '600'
+                }}>
+                  <MapPin size={18} color="#8B5CF6" />
+                  Où ? (optionnel)
+                </label>
+                <input
+                  type="text"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  placeholder="Ex: Restaurant Le Bistrot, Paris"
+                  style={{
+                    width: '100%',
+                    padding: '14px',
+                    fontSize: '15px',
+                    border: '2px solid #E9D5FF',
+                    borderRadius: '12px',
+                    boxSizing: 'border-box',
+                    outline: 'none',
+                    transition: 'all 0.3s'
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = '#8B5CF6'}
+                  onBlur={(e) => e.target.style.borderColor = '#E9D5FF'}
+                />
+              </div>
+
+              <h3 style={{ fontSize: '18px', marginBottom: '16px', color: '#1E1B4B', fontWeight: '600' }}>
+                Sélectionne 3 dates ({selectedDates.length}/3) :
+              </h3>
+
+              <div style={{
+                background: 'linear-gradient(135deg, #F5F3FF 0%, #E9D5FF 100%)',
+                padding: '20px',
+                borderRadius: '16px',
+                marginBottom: '24px',
+                border: '2px solid #E9D5FF'
+              }}>
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: '20px'
+                }}>
+                  <button
+                    onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1))}
+                    style={{
+                      background: 'white',
+                      border: '2px solid #E9D5FF',
+                      borderRadius: '10px',
+                      padding: '8px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center'
+                    }}
+                  >
+                    <ChevronLeft size={20} color="#8B5CF6" />
+                  </button>
+                  <h4 style={{
+                    fontSize: '16px',
+                    fontWeight: '700',
+                    color: '#1E1B4B',
+                    textTransform: 'capitalize',
+                    margin: 0
+                  }}>
+                    {monthYear}
+                  </h4>
+                  <button
+                    onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1))}
+                    style={{
+                      background: 'white',
+                      border: '2px solid #E9D5FF',
+                      borderRadius: '10px',
+                      padding: '8px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center'
+                    }}
+                  >
+                    <ChevronRight size={20} color="#8B5CF6" />
+                  </button>
+                </div>
+
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(7, 1fr)',
+                  gap: '8px',
+                  marginBottom: '12px'
+                }}>
+                  {['D', 'L', 'M', 'M', 'J', 'V', 'S'].map((day, i) => (
+                    <div key={i} style={{
+                      textAlign: 'center',
+                      fontSize: '12px',
+                      fontWeight: '700',
+                      color: '#8B5CF6'
+                    }}>
+                      {day}
+                    </div>
+                  ))}
+                </div>
+
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(7, 1fr)',
+                  gap: '8px'
+                }}>
+                  {getDaysInMonth(currentMonth).map((date, index) => {
+                    const isSelected = isDateSelected(date);
+                    const isPast = isPastDate(date);
+                    
+                    return (
+                      <button
+                        key={index}
+                        onClick={() => handleDateClick(date)}
+                        disabled={!date || isPast}
+                        style={{
+                          aspectRatio: '1',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          background: isSelected 
+                            ? 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)'
+                            : date && !isPast ? 'white' : 'transparent',
+                          color: isSelected ? 'white' : isPast ? '#D1D5DB' : '#1E1B4B',
+                          border: isSelected ? 'none' : date && !isPast ? '2px solid #E9D5FF' : 'none',
+                          borderRadius: '10px',
+                          fontSize: '14px',
+                          fontWeight: isSelected ? '700' : '500',
+                          cursor: date && !isPast ? 'pointer' : 'default',
+                          transition: 'all 0.2s',
+                          boxShadow: isSelected ? '0 4px 12px rgba(139, 92, 246, 0.3)' : 'none'
+                        }}
+                      >
+                        {date ? date.getDate() : ''}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {selectedDates.length > 0 && (
+                <div style={{ marginBottom: '24px' }}>
+                  <h3 style={{ fontSize: '16px', marginBottom: '14px', color: '#1E1B4B', fontWeight: '600' }}>
+                    Horaires :
+                  </h3>
+                  {selectedDates.map((item, index) => (
+                    <div key={index} style={{
+                      background: 'linear-gradient(135deg, #F5F3FF 0%, #E9D5FF 100%)',
+                      padding: '16px',
+                      borderRadius: '12px',
+                      marginBottom: '12px',
+                      border: '2px solid #E9D5FF',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center'
+                    }}>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: '15px', fontWeight: '700', color: '#1E1B4B' }}>
+                          {formatDate(item.date)}
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <Clock size={18} color="#8B5CF6" />
+                        <input
+                          type="time"
+                          value={item.time}
+                          onChange={(e) => handleTimeChange(index, e.target.value)}
+                          style={{
+                            padding: '8px 12px',
+                            fontSize: '14px',
+                            border: '2px solid #E9D5FF',
+                            borderRadius: '8px',
+                            background: 'white',
+                            color: '#1E1B4B',
+                            fontWeight: '600',
+                            cursor: 'pointer'
+                          }}
+                        />
                       </div>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <Clock size={18} color="#8B5CF6" />
-                      <input
-                        type="time"
-                        value={item.time}
-                        onChange={(e) => handleTimeChange(index, e.target.value)}
-                        style={{
-                          padding: '8px 12px',
-                          fontSize: '14px',
-                          border: '2px solid #E9D5FF',
-                          borderRadius: '8px',
-                          background: 'white',
-                          color: '#1E1B4B',
-                          fontWeight: '600',
-                          cursor: 'pointer'
-                        }}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+                  ))}
+                </div>
+              )}
 
-            <button
-              onClick={() => setStep(4)}
-              disabled={selectedDates.length === 0}
-              style={{
-                width: '100%',
-                padding: '18px',
-                background: selectedDates.length > 0
-                  ? 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)'
-                  : '#E9D5FF',
-                color: 'white',
-                border: 'none',
-                borderRadius: '14px',
-                fontSize: '16px',
-                fontWeight: '700',
-                cursor: selectedDates.length > 0 ? 'pointer' : 'not-allowed',
-                marginBottom: '12px',
-                boxShadow: selectedDates.length > 0 ? '0 8px 20px rgba(139, 92, 246, 0.3)' : 'none',
-                transition: 'all 0.3s'
-              }}
-            >
-              Continuer →
-            </button>
+              <button
+                onClick={() => setStep(5)}
+                disabled={selectedDates.length === 0}
+                style={{
+                  width: '100%',
+                  padding: '18px',
+                  background: selectedDates.length > 0
+                    ? 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)'
+                    : '#E9D5FF',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '14px',
+                  fontSize: '16px',
+                  fontWeight: '700',
+                  cursor: selectedDates.length > 0 ? 'pointer' : 'not-allowed',
+                  marginBottom: '12px',
+                  boxShadow: selectedDates.length > 0 ? '0 8px 20px rgba(139, 92, 246, 0.3)' : 'none',
+                  transition: 'all 0.3s'
+                }}
+              >
+                Continuer →
+              </button>
 
-            <button
-              onClick={() => {
-                setStep(1);
-                setEventType('');
-                setCustomEvent('');
-                setLocation('');
-                setSelectedDates([]);
-              }}
-              style={{
-                width: '100%',
-                padding: '12px',
-                background: 'transparent',
-                color: '#8B5CF6',
-                border: 'none',
-                fontSize: '14px',
-                cursor: 'pointer',
-                fontWeight: '600'
-              }}
-            >
-              ← Retour
-            </button>
-          </div>
-        )}
+              <button
+                onClick={() => {
+                  setStep(2);
+                  setLocation('');
+                  setSelectedDates([]);
+                }}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  background: 'transparent',
+                  color: '#8B5CF6',
+                  border: 'none',
+                  fontSize: '14px',
+                  cursor: 'pointer',
+                  fontWeight: '600'
+                }}
+              >
+                ← Retour
+              </button>
+            </div>
+          );
+        })()}
 
-        {/* Step 4: Expected participants (optionnel) */}
-        {step === 4 && (
+        {/* Step 5: Expected participants (optionnel) */}
+        {step === 5 && (
           <div>
             <h2 style={{ fontSize: '26px', marginBottom: '12px', color: '#1E1B4B', fontWeight: '700' }}>
               Combien de personnes invites-tu ?
@@ -633,8 +749,8 @@ const Organizer = () => {
           </div>
         )}
 
-        {/* Step 5: Link generated with share buttons */}
-        {step === 5 && (
+        {/* Step 6: Link generated with share buttons */}
+        {step === 6 && (
           <div style={{ textAlign: 'center' }}>
             <div style={{
               width: '90px',
@@ -665,7 +781,7 @@ const Organizer = () => {
               wordBreak: 'break-all',
               border: '2px solid #E9D5FF'
             }}>
-              <code style={{ color: '#8B5CF6', fontWeight: '700', fontSize: '14px' }}>
+              <code style={{ color: '#8B5CF6', fontWeight: '700', fontSize: '13px' }}>
                 {eventLink}
               </code>
             </div>
@@ -762,6 +878,7 @@ const Organizer = () => {
             <button
               onClick={() => {
                 setStep(1);
+                setOrganizerName('');
                 setEventType('');
                 setCustomEvent('');
                 setLocation('');
@@ -809,7 +926,7 @@ const Organizer = () => {
         color: 'rgba(255,255,255,0.9)',
         fontSize: '14px'
       }}>
-        <p style={{ margin: '0 0 8px 0' }}>✨ Prototype Synkro v2.0 - Purple Dream</p>
+        <p style={{ margin: '0 0 8px 0' }}>✨ Synkro v2.1 - Avec localStorage</p>
       </div>
     </div>
   );

@@ -1,19 +1,23 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, Clock, Send, CheckCircle, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Calendar, Clock, Send, CheckCircle, Sparkles, ChevronLeft, ChevronRight, MapPin, Users as UsersIcon, Share2 } from 'lucide-react';
 
 const Organizer = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [eventType, setEventType] = useState('');
   const [customEvent, setCustomEvent] = useState('');
+  const [location, setLocation] = useState('');
+  const [expectedParticipants, setExpectedParticipants] = useState('');
   const [selectedDates, setSelectedDates] = useState([]);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [eventLink, setEventLink] = useState('');
+  const [showShareMenu, setShowShareMenu] = useState(false);
 
   const eventTypes = [
     { id: 'dinner', label: '🍽️ Dîner/Soirée', suggestion: 'Vendredi ou samedi soir, 19h30-21h', defaultTime: '20:00' },
     { id: 'lunch', label: '☕ Déjeuner pro', suggestion: 'Mardi-jeudi, 12h-14h', defaultTime: '12:30' },
+    { id: 'meeting', label: '📅 Rendez-vous professionnel', suggestion: 'Semaine, horaires bureau', defaultTime: '14:00' },
     { id: 'weekend', label: '🏖️ Weekend/Vacances', suggestion: 'Weekend complet, 2-3 jours', defaultTime: '10:00' },
     { id: 'sport', label: '⚽ Sport collectif', suggestion: 'Soir de semaine ou samedi matin', defaultTime: '19:00' },
     { id: 'evf', label: '🎉 EVF', suggestion: 'Weekend, généralement 2 jours', defaultTime: '14:00' },
@@ -73,10 +77,12 @@ const Organizer = () => {
     );
 
     if (alreadySelected) {
+      // Désélectionner
       setSelectedDates(selectedDates.filter(selected => 
         selected.date.toDateString() !== date.toDateString()
       ));
     } else if (selectedDates.length < 3) {
+      // Sélectionner (max 3)
       const selectedEventType = eventTypes.find(e => e.id === eventType);
       setSelectedDates([...selectedDates, { 
         date: date, 
@@ -94,9 +100,9 @@ const Organizer = () => {
   const handleEventTypeSelect = (type) => {
     setEventType(type);
     if (type !== 'other') {
-      setStep(3);
+      setStep(3); // Passer à la sélection de dates
     } else {
-      setStep(2);
+      setStep(2); // Demander le nom custom
     }
   };
 
@@ -108,8 +114,35 @@ const Organizer = () => {
 
   const generateLink = () => {
     const randomId = Math.random().toString(36).substring(7);
-    setEventLink(`${window.location.origin}/respond?id=${randomId}`);
-    setStep(4);
+    const fullLink = `${window.location.origin}/respond?id=${randomId}`;
+    setEventLink(fullLink);
+    setStep(5);
+  };
+
+  const shareVia = (platform) => {
+    const text = `Synkro - ${selectedEventType?.label || customEvent}${location ? ` à ${location}` : ''}`;
+    const encodedLink = encodeURIComponent(eventLink);
+    const encodedText = encodeURIComponent(text);
+
+    const urls = {
+      whatsapp: `https://wa.me/?text=${encodedText}%20${encodedLink}`,
+      messenger: `fb-messenger://share/?link=${encodedLink}`,
+      linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedLink}`,
+      email: `mailto:?subject=${encodedText}&body=${encodedText}%20-%20${encodedLink}`,
+      sms: `sms:?body=${encodedText}%20${encodedLink}`
+    };
+
+    if (urls[platform]) {
+      window.open(urls[platform], '_blank');
+    }
+    
+    setShowShareMenu(false);
+  };
+
+  const copyLink = () => {
+    navigator.clipboard.writeText(eventLink);
+    alert('Lien copié ! 📋');
+    setShowShareMenu(false);
   };
 
   const selectedEventType = eventTypes.find(e => e.id === eventType);
@@ -123,14 +156,16 @@ const Organizer = () => {
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
     }}>
       <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-        <div style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: '10px',
-          marginBottom: '10px',
-          cursor: 'pointer'
-        }}
-        onClick={() => navigate('/')}>
+        <div 
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '10px',
+            marginBottom: '10px',
+            cursor: 'pointer'
+          }}
+          onClick={() => navigate('/')}
+        >
           <Sparkles size={32} color="white" style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))' }} />
           <h1 style={{ 
             fontSize: '36px', 
@@ -156,6 +191,7 @@ const Organizer = () => {
         boxShadow: '0 24px 60px rgba(139, 92, 246, 0.3), 0 0 0 1px rgba(139, 92, 246, 0.1)'
       }}>
         
+        {/* Step 1: Choose event type */}
         {step === 1 && (
           <div>
             <h2 style={{ fontSize: '26px', marginBottom: '24px', color: '#1E1B4B', fontWeight: '700' }}>
@@ -178,6 +214,16 @@ const Organizer = () => {
                     fontWeight: '600',
                     color: '#1E1B4B'
                   }}
+                  onMouseEnter={(e) => {
+                    e.target.style.transform = 'translateY(-2px)';
+                    e.target.style.borderColor = '#8B5CF6';
+                    e.target.style.boxShadow = '0 8px 20px rgba(139, 92, 246, 0.25)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.transform = 'translateY(0)';
+                    e.target.style.borderColor = 'transparent';
+                    e.target.style.boxShadow = 'none';
+                  }}
                 >
                   {type.label}
                 </button>
@@ -186,6 +232,7 @@ const Organizer = () => {
           </div>
         )}
 
+        {/* Step 2: Custom event name */}
         {step === 2 && (
           <div>
             <h2 style={{ fontSize: '26px', marginBottom: '24px', color: '#1E1B4B', fontWeight: '700' }}>
@@ -204,8 +251,11 @@ const Organizer = () => {
                 borderRadius: '14px',
                 marginBottom: '20px',
                 boxSizing: 'border-box',
-                outline: 'none'
+                outline: 'none',
+                transition: 'all 0.3s'
               }}
+              onFocus={(e) => e.target.style.borderColor = '#8B5CF6'}
+              onBlur={(e) => e.target.style.borderColor = '#E9D5FF'}
             />
             <button
               onClick={handleCustomEventSubmit}
@@ -221,7 +271,9 @@ const Organizer = () => {
                 borderRadius: '14px',
                 fontSize: '16px',
                 fontWeight: '700',
-                cursor: customEvent.trim() ? 'pointer' : 'not-allowed'
+                cursor: customEvent.trim() ? 'pointer' : 'not-allowed',
+                boxShadow: customEvent.trim() ? '0 8px 20px rgba(139, 92, 246, 0.3)' : 'none',
+                transition: 'all 0.3s'
               }}
             >
               Continuer
@@ -229,6 +281,7 @@ const Organizer = () => {
           </div>
         )}
 
+        {/* Step 3: Calendar & Time Selection */}
         {step === 3 && (
           <div>
             <div style={{ marginBottom: '24px' }}>
@@ -248,6 +301,40 @@ const Organizer = () => {
                   💡 {selectedEventType.suggestion}
                 </p>
               )}
+            </div>
+
+            {/* Lieu (optionnel) */}
+            <div style={{ marginBottom: '24px' }}>
+              <label style={{ 
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                marginBottom: '10px', 
+                fontSize: '14px',
+                color: '#1E1B4B',
+                fontWeight: '600'
+              }}>
+                <MapPin size={18} color="#8B5CF6" />
+                Où ? (optionnel)
+              </label>
+              <input
+                type="text"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                placeholder="Ex: Restaurant Le Bistrot, Paris"
+                style={{
+                  width: '100%',
+                  padding: '14px',
+                  fontSize: '15px',
+                  border: '2px solid #E9D5FF',
+                  borderRadius: '12px',
+                  boxSizing: 'border-box',
+                  outline: 'none',
+                  transition: 'all 0.3s'
+                }}
+                onFocus={(e) => e.target.style.borderColor = '#8B5CF6'}
+                onBlur={(e) => e.target.style.borderColor = '#E9D5FF'}
+              />
             </div>
 
             <h3 style={{ fontSize: '18px', marginBottom: '16px', color: '#1E1B4B', fontWeight: '600' }}>
@@ -274,7 +361,9 @@ const Organizer = () => {
                     border: '2px solid #E9D5FF',
                     borderRadius: '10px',
                     padding: '8px',
-                    cursor: 'pointer'
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center'
                   }}
                 >
                   <ChevronLeft size={20} color="#8B5CF6" />
@@ -295,7 +384,9 @@ const Organizer = () => {
                     border: '2px solid #E9D5FF',
                     borderRadius: '10px',
                     padding: '8px',
-                    cursor: 'pointer'
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center'
                   }}
                 >
                   <ChevronRight size={20} color="#8B5CF6" />
@@ -348,6 +439,7 @@ const Organizer = () => {
                         fontSize: '14px',
                         fontWeight: isSelected ? '700' : '500',
                         cursor: date && !isPast ? 'pointer' : 'default',
+                        transition: 'all 0.2s',
                         boxShadow: isSelected ? '0 4px 12px rgba(139, 92, 246, 0.3)' : 'none'
                       }}
                     >
@@ -392,7 +484,8 @@ const Organizer = () => {
                           borderRadius: '8px',
                           background: 'white',
                           color: '#1E1B4B',
-                          fontWeight: '600'
+                          fontWeight: '600',
+                          cursor: 'pointer'
                         }}
                       />
                     </div>
@@ -402,7 +495,7 @@ const Organizer = () => {
             )}
 
             <button
-              onClick={generateLink}
+              onClick={() => setStep(4)}
               disabled={selectedDates.length === 0}
               style={{
                 width: '100%',
@@ -417,14 +510,11 @@ const Organizer = () => {
                 fontWeight: '700',
                 cursor: selectedDates.length > 0 ? 'pointer' : 'not-allowed',
                 marginBottom: '12px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '10px'
+                boxShadow: selectedDates.length > 0 ? '0 8px 20px rgba(139, 92, 246, 0.3)' : 'none',
+                transition: 'all 0.3s'
               }}
             >
-              <Send size={20} />
-              Créer l'événement
+              Continuer →
             </button>
 
             <button
@@ -432,6 +522,7 @@ const Organizer = () => {
                 setStep(1);
                 setEventType('');
                 setCustomEvent('');
+                setLocation('');
                 setSelectedDates([]);
               }}
               style={{
@@ -450,7 +541,100 @@ const Organizer = () => {
           </div>
         )}
 
+        {/* Step 4: Expected participants (optionnel) */}
         {step === 4 && (
+          <div>
+            <h2 style={{ fontSize: '26px', marginBottom: '12px', color: '#1E1B4B', fontWeight: '700' }}>
+              Combien de personnes invites-tu ?
+            </h2>
+            <p style={{ 
+              color: '#6B7280', 
+              fontSize: '14px',
+              marginBottom: '24px'
+            }}>
+              💡 Optionnel mais recommandé<br/>
+              Permet d'afficher "4/6 ont répondu"
+            </p>
+
+            <div style={{ marginBottom: '24px' }}>
+              <label style={{ 
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                marginBottom: '10px', 
+                fontSize: '14px',
+                color: '#1E1B4B',
+                fontWeight: '600'
+              }}>
+                <UsersIcon size={18} color="#8B5CF6" />
+                Nombre de participants
+              </label>
+              <input
+                type="number"
+                min="2"
+                value={expectedParticipants}
+                onChange={(e) => setExpectedParticipants(e.target.value)}
+                placeholder="Ex: 6"
+                style={{
+                  width: '100%',
+                  padding: '16px',
+                  fontSize: '16px',
+                  border: '2px solid #E9D5FF',
+                  borderRadius: '12px',
+                  boxSizing: 'border-box',
+                  outline: 'none',
+                  transition: 'all 0.3s'
+                }}
+                onFocus={(e) => e.target.style.borderColor = '#8B5CF6'}
+                onBlur={(e) => e.target.style.borderColor = '#E9D5FF'}
+              />
+            </div>
+
+            <button
+              onClick={generateLink}
+              style={{
+                width: '100%',
+                padding: '18px',
+                background: 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)',
+                color: 'white',
+                border: 'none',
+                borderRadius: '14px',
+                fontSize: '16px',
+                fontWeight: '700',
+                cursor: 'pointer',
+                marginBottom: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '10px',
+                boxShadow: '0 8px 20px rgba(139, 92, 246, 0.3)',
+                transition: 'all 0.3s'
+              }}
+            >
+              <Send size={20} />
+              Créer l'événement
+            </button>
+
+            <button
+              onClick={generateLink}
+              style={{
+                width: '100%',
+                padding: '12px',
+                background: 'transparent',
+                color: '#8B5CF6',
+                border: 'none',
+                fontSize: '14px',
+                cursor: 'pointer',
+                fontWeight: '600'
+              }}
+            >
+              Passer cette étape
+            </button>
+          </div>
+        )}
+
+        {/* Step 5: Link generated with share buttons */}
+        {step === 5 && (
           <div style={{ textAlign: 'center' }}>
             <div style={{
               width: '90px',
@@ -460,7 +644,8 @@ const Organizer = () => {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              margin: '0 auto 24px'
+              margin: '0 auto 24px',
+              boxShadow: '0 12px 28px rgba(139, 92, 246, 0.3)'
             }}>
               <CheckCircle size={52} color="white" />
             </div>
@@ -480,39 +665,110 @@ const Organizer = () => {
               wordBreak: 'break-all',
               border: '2px solid #E9D5FF'
             }}>
-              <code style={{ color: '#8B5CF6', fontWeight: '700', fontSize: '15px' }}>
+              <code style={{ color: '#8B5CF6', fontWeight: '700', fontSize: '14px' }}>
                 {eventLink}
               </code>
             </div>
 
-            <button
-              onClick={() => {
-                navigator.clipboard.writeText(eventLink);
-                alert('Lien copié ! 📋');
-              }}
-              style={{
-                width: '100%',
-                padding: '18px',
-                background: 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)',
-                color: 'white',
-                border: 'none',
-                borderRadius: '14px',
-                fontSize: '16px',
-                fontWeight: '700',
-                cursor: 'pointer',
-                marginBottom: '12px'
-              }}
-            >
-              📋 Copier le lien
-            </button>
+            {/* Share buttons */}
+            <div style={{ position: 'relative', marginBottom: '12px' }}>
+              <button
+                onClick={() => setShowShareMenu(!showShareMenu)}
+                style={{
+                  width: '100%',
+                  padding: '18px',
+                  background: 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '14px',
+                  fontSize: '16px',
+                  fontWeight: '700',
+                  cursor: 'pointer',
+                  boxShadow: '0 8px 20px rgba(139, 92, 246, 0.3)',
+                  transition: 'all 0.3s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '10px'
+                }}
+              >
+                <Share2 size={20} />
+                📤 Partager
+              </button>
+
+              {showShareMenu && (
+                <div style={{
+                  position: 'absolute',
+                  top: '70px',
+                  left: 0,
+                  right: 0,
+                  background: 'white',
+                  border: '2px solid #E9D5FF',
+                  borderRadius: '14px',
+                  padding: '12px',
+                  boxShadow: '0 8px 20px rgba(139, 92, 246, 0.2)',
+                  zIndex: 10
+                }}>
+                  {[
+                    { id: 'whatsapp', label: 'WhatsApp', emoji: '💬' },
+                    { id: 'messenger', label: 'Messenger', emoji: '💙' },
+                    { id: 'linkedin', label: 'LinkedIn', emoji: '💼' },
+                    { id: 'email', label: 'Email', emoji: '📧' },
+                    { id: 'sms', label: 'SMS', emoji: '💬' },
+                  ].map(platform => (
+                    <button
+                      key={platform.id}
+                      onClick={() => shareVia(platform.id)}
+                      style={{
+                        width: '100%',
+                        padding: '12px',
+                        background: 'linear-gradient(135deg, #F5F3FF 0%, #E9D5FF 100%)',
+                        border: 'none',
+                        borderRadius: '10px',
+                        fontSize: '14px',
+                        fontWeight: '600',
+                        color: '#1E1B4B',
+                        cursor: 'pointer',
+                        marginBottom: '8px',
+                        textAlign: 'left',
+                        transition: 'all 0.2s'
+                      }}
+                      onMouseEnter={(e) => e.target.style.background = '#E9D5FF'}
+                      onMouseLeave={(e) => e.target.style.background = 'linear-gradient(135deg, #F5F3FF 0%, #E9D5FF 100%)'}
+                    >
+                      {platform.emoji} {platform.label}
+                    </button>
+                  ))}
+                  <button
+                    onClick={copyLink}
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      background: 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)',
+                      border: 'none',
+                      borderRadius: '10px',
+                      fontSize: '14px',
+                      fontWeight: '700',
+                      color: 'white',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    📋 Copier le lien
+                  </button>
+                </div>
+              )}
+            </div>
 
             <button
               onClick={() => {
                 setStep(1);
                 setEventType('');
                 setCustomEvent('');
+                setLocation('');
+                setExpectedParticipants('');
                 setSelectedDates([]);
                 setEventLink('');
+                setShowShareMenu(false);
               }}
               style={{
                 width: '100%',
@@ -527,6 +783,22 @@ const Organizer = () => {
             >
               Créer un nouvel événement
             </button>
+
+            <button
+              onClick={() => navigate('/')}
+              style={{
+                width: '100%',
+                padding: '12px',
+                background: 'transparent',
+                color: '#6B7280',
+                border: 'none',
+                fontSize: '14px',
+                cursor: 'pointer',
+                marginTop: '8px'
+              }}
+            >
+              ← Retour à l'accueil
+            </button>
           </div>
         )}
       </div>
@@ -537,7 +809,7 @@ const Organizer = () => {
         color: 'rgba(255,255,255,0.9)',
         fontSize: '14px'
       }}>
-        <p style={{ margin: '0 0 8px 0' }}>✨ Prototype Synkro v1.0 - Purple Dream</p>
+        <p style={{ margin: '0 0 8px 0' }}>✨ Prototype Synkro v2.0 - Purple Dream</p>
       </div>
     </div>
   );

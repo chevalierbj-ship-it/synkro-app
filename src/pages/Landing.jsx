@@ -10,7 +10,8 @@ const Landing = () => {
   const handleSubmit = () => {
     if (email.trim() && email.includes('@')) {
       setSubmitted(true);
-      console.log('Email soumis:', email);
+      // TODO: Envoyer à Google Sheets via API
+      console.log('Email beta:', email);
     }
   };
 
@@ -102,6 +103,14 @@ const Landing = () => {
                   gap: '8px',
                   transition: 'all 0.3s'
                 }}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = 'translateY(-2px)';
+                  e.target.style.boxShadow = '0 12px 32px rgba(0,0,0,0.2)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = 'translateY(0)';
+                  e.target.style.boxShadow = '0 8px 24px rgba(0,0,0,0.15)';
+                }}
               >
                 <Sparkles size={20} />
                 Tester maintenant
@@ -148,7 +157,16 @@ const Landing = () => {
                     boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '8px'
+                    gap: '8px',
+                    transition: 'all 0.3s'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.transform = 'translateY(-2px)';
+                    e.target.style.boxShadow = '0 12px 32px rgba(0,0,0,0.2)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.transform = 'translateY(0)';
+                    e.target.style.boxShadow = '0 8px 24px rgba(0,0,0,0.15)';
                   }}
                 >
                   Accès anticipé

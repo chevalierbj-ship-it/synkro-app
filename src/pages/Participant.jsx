@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, Users, CheckCircle, Clock, Download, Sparkles } from 'lucide-react';
+import { Calendar, Users, CheckCircle, Clock, Download, Sparkles, MapPin } from 'lucide-react';
 
 const Participant = () => {
   const navigate = useNavigate();
@@ -13,16 +13,18 @@ const Participant = () => {
     date3: null
   });
 
+  // Données simulées (en prod, viendront de l'API)
   const event = {
     type: '🍽️ Dîner restaurant',
+    location: 'Restaurant Le Bistrot',
     organizer: 'Thomas',
+    expectedParticipants: 6, // Si null, affichage absolu
     dates: [
-      { id: 'date1', label: 'Ven 18 oct, 20:00', votes: 2, voters: ['Sarah', 'Marc'] },
-      { id: 'date2', label: 'Sam 19 oct, 20:00', votes: 1, voters: ['Marc'] },
-      { id: 'date3', label: 'Ven 25 oct, 20:00', votes: 0, voters: [] }
+      { id: 'date1', label: 'Ven 18 oct, 20:00', votes: 4, voters: ['Sarah', 'Marc', 'Julie', 'Paul'] },
+      { id: 'date2', label: 'Sam 19 oct, 20:00', votes: 2, voters: ['Marc', 'Sophie'] },
+      { id: 'date3', label: 'Ven 25 oct, 20:00', votes: 1, voters: ['Paul'] }
     ],
-    totalParticipants: 3,
-    responded: 2
+    totalResponded: 4
   };
 
   const handleAvailabilityToggle = (dateId) => {
@@ -31,11 +33,11 @@ const Participant = () => {
       let newValue;
       
       if (current === null) {
-        newValue = true;
+        newValue = true; // Disponible
       } else if (current === true) {
-        newValue = false;
+        newValue = false; // Indisponible
       } else {
-        newValue = null;
+        newValue = null; // Aucune réponse
       }
       
       return { ...prev, [dateId]: newValue };
@@ -70,14 +72,38 @@ const Participant = () => {
     return 'Tap pour indiquer';
   };
 
+  const getBadge = (date) => {
+    const maxVotes = Math.max(...event.dates.map(d => d.votes));
+    const percentage = event.expectedParticipants ? (date.votes / event.expectedParticipants) * 100 : 0;
+
+    if (event.expectedParticipants && percentage >= 70) {
+      return { text: '✅ Majorité atteinte', color: '#10B981' };
+    } else if (date.votes === maxVotes && date.votes > 0) {
+      return { text: '🔥 Date populaire', color: '#F59E0B' };
+    } else if (date.votes > 0) {
+      return { text: '👀 En tête', color: '#8B5CF6' };
+    }
+    return null;
+  };
+
+  const getProgressColor = (votes) => {
+    const maxVotes = Math.max(...event.dates.map(d => d.votes));
+    if (votes === maxVotes && votes > 0) {
+      return '#10B981'; // Vert
+    } else if (votes > 0) {
+      return '#F59E0B'; // Orange
+    }
+    return '#E5E7EB'; // Gris
+  };
+
   const canSubmit = Object.values(availabilities).some(v => v !== null);
 
   const handleSubmit = () => {
     if (canSubmit && userName.trim()) {
-      setStep(2);
+      setStep(3);
       setTimeout(() => {
         setSelectedDate(event.dates[0]);
-        setStep(3);
+        setStep(4);
       }, 1500);
     }
   };
@@ -90,14 +116,16 @@ const Participant = () => {
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
     }}>
       <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-        <div style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: '10px',
-          marginBottom: '10px',
-          cursor: 'pointer'
-        }}
-        onClick={() => navigate('/')}>
+        <div 
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '10px',
+            marginBottom: '10px',
+            cursor: 'pointer'
+          }}
+          onClick={() => navigate('/')}
+        >
           <Sparkles size={32} color="white" style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))' }} />
           <h1 style={{ 
             fontSize: '36px', 
@@ -123,6 +151,7 @@ const Participant = () => {
         boxShadow: '0 24px 60px rgba(139, 92, 246, 0.3), 0 0 0 1px rgba(139, 92, 246, 0.1)'
       }}>
         
+        {/* Step 1: Enter name */}
         {step === 1 && (
           <div>
             <div style={{
@@ -141,6 +170,19 @@ const Participant = () => {
               }}>
                 {event.type}
               </h2>
+              {event.location && (
+                <p style={{ 
+                  color: '#6B7280', 
+                  margin: '0 0 8px 0',
+                  fontSize: '14px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}>
+                  <MapPin size={16} color="#8B5CF6" />
+                  {event.location}
+                </p>
+              )}
               <p style={{ 
                 color: '#6B7280', 
                 margin: 0,
@@ -150,11 +192,105 @@ const Participant = () => {
               </p>
             </div>
 
+            <h3 style={{ fontSize: '22px', marginBottom: '12px', color: '#1E1B4B', fontWeight: '700' }}>
+              👋 Ton prénom ?
+            </h3>
+            <p style={{ color: '#6B7280', fontSize: '14px', marginBottom: '20px' }}>
+              Pour qu'on sache qui tu es !
+            </p>
+
+            <input
+              type="text"
+              value={userName}
+              onChange={(e) => setUserName(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && userName.trim() && setStep(2)}
+              placeholder="Ex: Julie"
+              autoFocus
+              style={{
+                width: '100%',
+                padding: '16px',
+                fontSize: '16px',
+                border: '2px solid #E9D5FF',
+                borderRadius: '14px',
+                boxSizing: 'border-box',
+                outline: 'none',
+                marginBottom: '20px',
+                transition: 'all 0.3s'
+              }}
+              onFocus={(e) => e.target.style.borderColor = '#8B5CF6'}
+              onBlur={(e) => e.target.style.borderColor = '#E9D5FF'}
+            />
+
+            <button
+              onClick={() => userName.trim() && setStep(2)}
+              disabled={!userName.trim()}
+              style={{
+                width: '100%',
+                padding: '18px',
+                background: userName.trim()
+                  ? 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)'
+                  : '#E9D5FF',
+                color: 'white',
+                border: 'none',
+                borderRadius: '14px',
+                fontSize: '16px',
+                fontWeight: '700',
+                cursor: userName.trim() ? 'pointer' : 'not-allowed',
+                boxShadow: userName.trim() ? '0 8px 20px rgba(139, 92, 246, 0.3)' : 'none',
+                transition: 'all 0.3s'
+              }}
+            >
+              Continuer →
+            </button>
+          </div>
+        )}
+
+        {/* Step 2: Indicate availabilities */}
+        {step === 2 && (
+          <div>
+            <div style={{
+              background: 'linear-gradient(135deg, #F5F3FF 0%, #E9D5FF 100%)',
+              padding: '20px',
+              borderRadius: '16px',
+              marginBottom: '24px',
+              border: '2px solid #E9D5FF'
+            }}>
+              <h3 style={{ 
+                fontSize: '20px', 
+                marginBottom: '8px', 
+                color: '#1E1B4B',
+                margin: '0 0 8px 0',
+                fontWeight: '700'
+              }}>
+                {event.type}
+              </h3>
+              {event.location && (
+                <p style={{ 
+                  color: '#6B7280', 
+                  margin: '0 0 6px 0',
+                  fontSize: '13px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}>
+                  <MapPin size={14} color="#8B5CF6" />
+                  {event.location}
+                </p>
+              )}
+              <p style={{ 
+                color: '#6B7280', 
+                margin: 0,
+                fontSize: '13px'
+              }}>
+                Organisé par <strong style={{ color: '#8B5CF6' }}>{event.organizer}</strong>
+              </p>
+            </div>
+
             <div style={{
               display: 'flex',
               alignItems: 'center',
               gap: '12px',
-              marginBottom: '28px',
+              marginBottom: '24px',
               padding: '14px',
               background: 'linear-gradient(135deg, #F5F3FF 0%, #E9D5FF 100%)',
               borderRadius: '12px',
@@ -162,35 +298,11 @@ const Participant = () => {
             }}>
               <Users size={20} color="#8B5CF6" />
               <span style={{ fontSize: '14px', color: '#6B7280', fontWeight: '500' }}>
-                {event.responded}/{event.totalParticipants} participants ont répondu
+                {event.expectedParticipants 
+                  ? `${event.totalResponded}/${event.expectedParticipants} participants ont répondu`
+                  : `${event.totalResponded} personnes ont répondu`
+                }
               </span>
-            </div>
-
-            <div style={{ marginBottom: '28px' }}>
-              <label style={{ 
-                display: 'block', 
-                marginBottom: '10px', 
-                fontSize: '14px',
-                color: '#1E1B4B',
-                fontWeight: '700'
-              }}>
-                Ton prénom
-              </label>
-              <input
-                type="text"
-                value={userName}
-                onChange={(e) => setUserName(e.target.value)}
-                placeholder="Ex: Julie"
-                style={{
-                  width: '100%',
-                  padding: '16px',
-                  fontSize: '16px',
-                  border: '2px solid #E9D5FF',
-                  borderRadius: '14px',
-                  boxSizing: 'border-box',
-                  outline: 'none'
-                }}
-              />
             </div>
 
             <h3 style={{ 
@@ -203,67 +315,111 @@ const Participant = () => {
             </h3>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '28px' }}>
-              {event.dates.map(date => (
-                <div key={date.id} style={{
-                  border: '2px solid #E9D5FF',
-                  borderRadius: '16px',
-                  padding: '18px',
-                  background: 'linear-gradient(135deg, #FDFCFF 0%, #F9F7FF 100%)'
-                }}>
-                  <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    marginBottom: '14px'
+              {event.dates.map(date => {
+                const badge = getBadge(date);
+                const percentage = event.expectedParticipants ? (date.votes / event.expectedParticipants) * 100 : 0;
+                const progressColor = getProgressColor(date.votes);
+
+                return (
+                  <div key={date.id} style={{
+                    border: '2px solid #E9D5FF',
+                    borderRadius: '16px',
+                    padding: '18px',
+                    background: 'linear-gradient(135deg, #FDFCFF 0%, #F9F7FF 100%)',
+                    transition: 'all 0.3s'
                   }}>
-                    <div>
+                    <div style={{
+                      marginBottom: '14px'
+                    }}>
                       <div style={{ 
                         fontSize: '16px', 
                         fontWeight: '700',
                         color: '#1E1B4B',
-                        marginBottom: '6px'
+                        marginBottom: '8px'
                       }}>
                         {date.label}
                       </div>
-                      <div style={{ 
-                        fontSize: '13px', 
-                        color: '#8B5CF6',
-                        fontWeight: '500'
-                      }}>
-                        {date.votes > 0 ? (
-                          <span>✓ {date.votes} dispo{date.votes > 1 ? 's' : ''}</span>
-                        ) : (
-                          <span style={{ color: '#9CA3AF' }}>Aucune réponse</span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
 
-                  <button
-                    onClick={() => handleAvailabilityToggle(date.id)}
-                    style={{
-                      width: '100%',
-                      padding: '14px',
-                      borderRadius: '12px',
-                      fontSize: '14px',
-                      fontWeight: '700',
-                      cursor: 'pointer',
-                      ...getButtonStyle(availabilities[date.id])
-                    }}
-                  >
-                    {getButtonText(availabilities[date.id])}
-                  </button>
-                </div>
-              ))}
+                      {/* Barre de progression */}
+                      {event.expectedParticipants ? (
+                        <div>
+                          <div style={{
+                            width: '100%',
+                            height: '8px',
+                            background: '#E9D5FF',
+                            borderRadius: '4px',
+                            overflow: 'hidden',
+                            marginBottom: '8px'
+                          }}>
+                            <div style={{
+                              width: `${percentage}%`,
+                              height: '100%',
+                              background: progressColor,
+                              transition: 'all 0.3s'
+                            }} />
+                          </div>
+                          <div style={{ 
+                            fontSize: '13px', 
+                            color: progressColor,
+                            fontWeight: '600',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center'
+                          }}>
+                            <span>{date.votes}/{event.expectedParticipants} ({Math.round(percentage)}%)</span>
+                            {badge && <span style={{ color: badge.color }}>{badge.text}</span>}
+                          </div>
+                        </div>
+                      ) : (
+                        <div style={{ 
+                          fontSize: '13px', 
+                          color: progressColor,
+                          fontWeight: '600',
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center'
+                        }}>
+                          <span>👥 {date.votes} personne{date.votes > 1 ? 's' : ''} disponible{date.votes > 1 ? 's' : ''}</span>
+                          {badge && <span style={{ color: badge.color }}>{badge.text}</span>}
+                        </div>
+                      )}
+                    </div>
+
+                    <button
+                      onClick={() => handleAvailabilityToggle(date.id)}
+                      style={{
+                        width: '100%',
+                        padding: '14px',
+                        borderRadius: '12px',
+                        fontSize: '14px',
+                        fontWeight: '700',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                        ...getButtonStyle(availabilities[date.id])
+                      }}
+                      onMouseEnter={(e) => {
+                        if (availabilities[date.id] === true) {
+                          e.target.style.boxShadow = '0 6px 16px rgba(139, 92, 246, 0.3)';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.boxShadow = 'none';
+                      }}
+                    >
+                      {getButtonText(availabilities[date.id])}
+                    </button>
+                  </div>
+                );
+              })}
             </div>
 
             <button
               onClick={handleSubmit}
-              disabled={!canSubmit || !userName.trim()}
+              disabled={!canSubmit}
               style={{
                 width: '100%',
                 padding: '18px',
-                background: (canSubmit && userName.trim())
+                background: canSubmit
                   ? 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)'
                   : '#E9D5FF',
                 color: 'white',
@@ -271,11 +427,13 @@ const Participant = () => {
                 borderRadius: '14px',
                 fontSize: '16px',
                 fontWeight: '700',
-                cursor: (canSubmit && userName.trim()) ? 'pointer' : 'not-allowed',
+                cursor: canSubmit ? 'pointer' : 'not-allowed',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: '10px'
+                gap: '10px',
+                boxShadow: canSubmit ? '0 8px 20px rgba(139, 92, 246, 0.3)' : 'none',
+                transition: 'all 0.3s'
               }}
             >
               <CheckCircle size={20} />
@@ -293,7 +451,8 @@ const Participant = () => {
           </div>
         )}
 
-        {step === 2 && (
+        {/* Step 3: Processing */}
+        {step === 3 && (
           <div style={{ textAlign: 'center', padding: '50px 20px' }}>
             <div style={{
               width: '90px',
@@ -304,7 +463,8 @@ const Participant = () => {
               alignItems: 'center',
               justifyContent: 'center',
               margin: '0 auto 32px',
-              animation: 'pulse 1.5s ease-in-out infinite'
+              animation: 'pulse 1.5s ease-in-out infinite',
+              boxShadow: '0 12px 28px rgba(139, 92, 246, 0.3)'
             }}>
               <Clock size={44} color="white" />
             </div>
@@ -325,7 +485,8 @@ const Participant = () => {
           </div>
         )}
 
-        {step === 3 && selectedDate && (
+        {/* Step 4: Result */}
+        {step === 4 && selectedDate && (
           <div style={{ textAlign: 'center' }}>
             <div style={{
               width: '90px',
@@ -335,7 +496,8 @@ const Participant = () => {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              margin: '0 auto 24px'
+              margin: '0 auto 24px',
+              boxShadow: '0 12px 28px rgba(139, 92, 246, 0.3)'
             }}>
               <CheckCircle size={52} color="white" />
             </div>
@@ -360,6 +522,17 @@ const Participant = () => {
                   {event.type}
                 </div>
               </div>
+
+              {event.location && (
+                <div style={{ marginBottom: '18px' }}>
+                  <div style={{ fontSize: '13px', color: '#6B7280', marginBottom: '6px', fontWeight: '600' }}>
+                    📍 Lieu
+                  </div>
+                  <div style={{ fontSize: '16px', fontWeight: '600', color: '#1E1B4B' }}>
+                    {event.location}
+                  </div>
+                </div>
+              )}
 
               <div style={{ marginBottom: '18px' }}>
                 <div style={{ fontSize: '13px', color: '#6B7280', marginBottom: '6px', fontWeight: '600' }}>
@@ -402,7 +575,18 @@ const Participant = () => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: '10px'
+                gap: '10px',
+                transition: 'all 0.3s'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.background = 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)';
+                e.target.style.color = 'white';
+                e.target.style.boxShadow = '0 6px 16px rgba(139, 92, 246, 0.3)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.background = 'white';
+                e.target.style.color = '#8B5CF6';
+                e.target.style.boxShadow = 'none';
               }}
             >
               <Calendar size={20} />
@@ -425,7 +609,18 @@ const Participant = () => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: '10px'
+                gap: '10px',
+                transition: 'all 0.3s'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.background = '#EC4899';
+                e.target.style.color = 'white';
+                e.target.style.boxShadow = '0 6px 16px rgba(236, 72, 153, 0.3)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.background = 'white';
+                e.target.style.color = '#EC4899';
+                e.target.style.boxShadow = 'none';
               }}
             >
               <Calendar size={20} />
@@ -480,7 +675,7 @@ const Participant = () => {
         color: 'rgba(255,255,255,0.9)',
         fontSize: '14px'
       }}>
-        <p style={{ margin: '0 0 8px 0' }}>✨ Prototype Synkro v1.0 - Purple Dream</p>
+        <p style={{ margin: '0 0 8px 0' }}>✨ Prototype Synkro v2.0 - Purple Dream</p>
       </div>
     </div>
   );

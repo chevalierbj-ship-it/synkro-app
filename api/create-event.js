@@ -1,125 +1,104 @@
+// /api/create-event.js
 // API Serverless pour créer un événement dans Airtable
-// Version améliorée avec meilleure gestion des erreurs
+// ✅ Version SÉCURISÉE avec variables d'environnement
 
 export default async function handler(req, res) {
-  // CORS headers
+  // Configuration CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  // Handle preflight
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
 
-  // Accepter uniquement les requêtes POST
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    // Récupérer les variables d'environnement (avec ou sans VITE_)
-    const AIRTABLE_API_TOKEN = 
-      process.env.AIRTABLE_API_TOKEN || 
-      process.env.VITE_AIRTABLE_API_TOKEN;
-    
-    const AIRTABLE_BASE_ID = 
-      process.env.AIRTABLE_BASE_ID || 
-      process.env.VITE_AIRTABLE_BASE_ID;
-    
-    const AIRTABLE_EVENTS_TABLE_ID = 
-      process.env.AIRTABLE_EVENTS_TABLE_ID || 
-      process.env.VITE_AIRTABLE_EVENTS_TABLE_ID;
+    const eventData = req.body;
 
-    // Logs pour déboguer (masquer les valeurs sensibles)
-    console.log('Environment check:', {
-      hasToken: !!AIRTABLE_API_TOKEN,
-      hasBaseId: !!AIRTABLE_BASE_ID,
-      hasTableId: !!AIRTABLE_EVENTS_TABLE_ID,
-      tokenStart: AIRTABLE_API_TOKEN ? AIRTABLE_API_TOKEN.substring(0, 10) + '...' : 'MISSING',
-      baseId: AIRTABLE_BASE_ID || 'MISSING',
-      tableId: AIRTABLE_EVENTS_TABLE_ID || 'MISSING'
-    });
-
-    // Vérifier que les variables existent
-    if (!AIRTABLE_API_TOKEN || !AIRTABLE_BASE_ID || !AIRTABLE_EVENTS_TABLE_ID) {
-      console.error('Missing environment variables!');
-      return res.status(500).json({ 
-        error: 'Configuration incomplète',
-        details: {
-          hasToken: !!AIRTABLE_API_TOKEN,
-          hasBaseId: !!AIRTABLE_BASE_ID,
-          hasTableId: !!AIRTABLE_EVENTS_TABLE_ID
-        }
+    // Validation
+    if (!eventData.type || !eventData.organizerName || !eventData.dates) {
+      return res.status(400).json({ 
+        error: 'Missing required fields',
+        required: ['type', 'organizerName', 'dates']
       });
     }
 
-    // Récupérer les données de l'événement depuis le body
-    const eventData = req.body;
-    
-    console.log('Creating event with data:', {
-      eventId: eventData.eventId,
-      organizer: eventData.organizerName,
-      type: eventData.type
-    });
+    // 🔐 RÉCUPÉRATION DES VARIABLES D'ENVIRONNEMENT
+    const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN;
+    const BASE_ID = process.env.AIRTABLE_BASE_ID;
+    const TABLE_NAME = process.env.AIRTABLE_TABLE_NAME || 'Events';
 
-    // Construire l'URL de l'API Airtable
-    const airtableUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_EVENTS_TABLE_ID}`;
-    
-    console.log('Calling Airtable at:', airtableUrl);
+    // Vérification que les variables existent
+    if (!AIRTABLE_TOKEN || !BASE_ID) {
+      console.error('Missing environment variables');
+      return res.status(500).json({ 
+        error: 'Server configuration error',
+        details: 'Missing Airtable credentials'
+      });
+    }
 
-    // Appeler l'API Airtable
-    const response = await fetch(airtableUrl, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${AIRTABLE_API_TOKEN}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        fields: eventData
-      })
-    });
+    // Générer un ID unique pour l'événement
+    const eventId = `evt_${Date.now()}`;
 
-    console.log('Airtable response status:', response.status);
+    // Préparer les données pour Airtable
+    const airtableData = {
+      fields: {
+        eventId: eventId,
+        type: eventData.type,
+        organizerName: eventData.organizerName,
+        organizerEmail: eventData.organizerEmail || '',
+        location: eventData.location || '',
+        expectedParticipants: eventData.expectedParticipants || 0,
+        dates: JSON.stringify(eventData.dates),
+        participants: JSON.stringify([]),
+        totalResponded: 0,
+        createdAt: new Date().toISOString(),
+        status: 'active'
+      }
+    };
 
-    // Vérifier la réponse
+    // Créer l'événement dans Airtable
+    const response = await fetch(
+      `https://api.airtable.com/v0/${BASE_ID}/${TABLE_NAME}`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(airtableData)
+      }
+    );
+
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Airtable error response:', errorText);
-      
-      // Parser l'erreur si c'est du JSON
-      let errorDetails;
-      try {
-        errorDetails = JSON.parse(errorText);
-      } catch (e) {
-        errorDetails = { message: errorText };
-      }
-      
-      return res.status(response.status).json({ 
-        error: 'Erreur Airtable',
-        status: response.status,
-        details: errorDetails,
-        url: airtableUrl.replace(AIRTABLE_API_TOKEN, 'TOKEN_HIDDEN')
+      console.error('Airtable error:', errorText);
+      return res.status(500).json({ 
+        error: 'Failed to create event in Airtable',
+        details: errorText
       });
     }
 
-    // Récupérer les données de la réponse
     const result = await response.json();
-    
-    console.log('Event created successfully:', result.id);
 
-    // Retourner le succès
-    return res.status(200).json({ 
-      success: true, 
-      data: result 
+    // Retourner l'ID de l'événement et le lien
+    return res.status(200).json({
+      success: true,
+      eventId: eventId,
+      airtableId: result.id,
+      participantLink: `${process.env.VERCEL_URL || 'https://synkro-app.vercel.app'}/event/${eventId}`,
+      message: 'Event created successfully'
     });
 
   } catch (error) {
-    console.error('Server error:', error);
+    console.error('Error creating event:', error);
     return res.status(500).json({ 
-      error: 'Erreur serveur',
-      message: error.message,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      error: 'Internal server error',
+      details: error.message 
     });
   }
 }

@@ -1,5 +1,6 @@
 // /api/update-event.js
 // API Serverless pour sauvegarder les votes des participants dans Airtable
+// ✅ Version SÉCURISÉE avec variables d'environnement
 
 export default async function handler(req, res) {
   // Configuration CORS
@@ -25,10 +26,19 @@ export default async function handler(req, res) {
       });
     }
 
-    // Configuration Airtable
-    const AIRTABLE_TOKEN = 'pat8UmBjvuuxLFiK9.3214fff366e3cdfaa5ca5776e8def8b4c76e7c4c8e936b8311cb7d1c2b5bd058';
-    const BASE_ID = 'appgW7tCFlzGlBRsi';
-    const TABLE_NAME = 'Events';
+    // 🔐 RÉCUPÉRATION DES VARIABLES D'ENVIRONNEMENT
+    const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN;
+    const BASE_ID = process.env.AIRTABLE_BASE_ID;
+    const TABLE_NAME = process.env.AIRTABLE_TABLE_NAME || 'Events';
+
+    // Vérification que les variables existent
+    if (!AIRTABLE_TOKEN || !BASE_ID) {
+      console.error('Missing environment variables');
+      return res.status(500).json({ 
+        error: 'Server configuration error',
+        details: 'Missing Airtable credentials'
+      });
+    }
 
     // 1. Récupérer l'événement actuel
     const getResponse = await fetch(

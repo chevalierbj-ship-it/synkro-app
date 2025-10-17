@@ -14,32 +14,41 @@ const Participant = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // 🔥 Charger l'événement depuis localStorage
+  // 🔥 Charger l'événement depuis Airtable via API
   useEffect(() => {
-    try {
-      const storedEvent = localStorage.getItem(`synkro_event_${eventId}`);
-      
-      if (!storedEvent) {
-        setError("Cet événement n'existe pas ou a expiré 😕");
-        setLoading(false);
-        return;
-      }
+    const fetchEvent = async () => {
+      try {
+        const response = await fetch(`/api/get-event?id=${eventId}`);
+        
+        if (!response.ok) {
+          if (response.status === 404) {
+            setError("Cet événement n'existe pas ou a expiré 😕");
+          } else {
+            setError("Erreur lors du chargement de l'événement 😕");
+          }
+          setLoading(false);
+          return;
+        }
 
-      const eventData = JSON.parse(storedEvent);
-      setEvent(eventData);
-      
-      // Initialiser les availabilities avec null pour chaque date
-      const initialAvailabilities = {};
-      eventData.dates.forEach(date => {
-        initialAvailabilities[date.id] = null;
-      });
-      setAvailabilities(initialAvailabilities);
-      
-      setLoading(false);
-    } catch (err) {
-      setError("Erreur lors du chargement de l'événement 😕");
-      setLoading(false);
-    }
+        const eventData = await response.json();
+        setEvent(eventData);
+        
+        // Initialiser les availabilities avec null pour chaque date
+        const initialAvailabilities = {};
+        eventData.dates.forEach(date => {
+          initialAvailabilities[date.id] = null;
+        });
+        setAvailabilities(initialAvailabilities);
+        
+        setLoading(false);
+      } catch (err) {
+        console.error('Error fetching event:', err);
+        setError("Erreur lors du chargement de l'événement 😕");
+        setLoading(false);
+      }
+    };
+
+    fetchEvent();
   }, [eventId]);
 
   const handleAvailabilityToggle = (dateId) => {
@@ -113,69 +122,41 @@ const Participant = () => {
 
   const canSubmit = Object.values(availabilities).some(v => v !== null);
 
-  // 🔥 SAUVEGARDER les votes dans localStorage
-  const handleSubmit = () => {
+  // 🔥 SAUVEGARDER les votes dans Airtable via API
+  const handleSubmit = async () => {
     if (!canSubmit || !userName.trim()) return;
 
     try {
-      // 1. Récupérer l'événement actuel
-      const storedEvent = localStorage.getItem(`synkro_event_${eventId}`);
-      const eventData = JSON.parse(storedEvent);
+      setStep(3); // Afficher le loader
 
-      // 2. Vérifier si le participant a déjà voté
-      const existingParticipantIndex = eventData.participants?.findIndex(
-        p => p.name.toLowerCase() === userName.trim().toLowerCase()
-      );
-
-      // 3. Mettre à jour ou ajouter le participant
-      if (!eventData.participants) {
-        eventData.participants = [];
-      }
-
-      const participantData = {
-        name: userName.trim(),
-        availabilities: availabilities,
-        votedAt: new Date().toISOString()
-      };
-
-      if (existingParticipantIndex !== -1) {
-        // Mettre à jour le participant existant
-        eventData.participants[existingParticipantIndex] = participantData;
-      } else {
-        // Ajouter nouveau participant
-        eventData.participants.push(participantData);
-      }
-
-      // 4. Recalculer les votes pour chaque date
-      eventData.dates.forEach(date => {
-        // Réinitialiser
-        date.votes = 0;
-        date.voters = [];
-
-        // Compter tous les participants disponibles pour cette date
-        eventData.participants.forEach(participant => {
-          if (participant.availabilities[date.id] === true) {
-            date.votes++;
-            date.voters.push(participant.name);
-          }
-        });
+      // Appeler l'API pour sauvegarder
+      const response = await fetch('/api/update-event', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          eventId: event.id,
+          airtableId: event.airtableId,
+          participant: {
+            name: userName.trim()
+          },
+          availabilities: availabilities
+        })
       });
 
-      // 5. Mettre à jour totalResponded
-      eventData.totalResponded = eventData.participants.length;
+      if (!response.ok) {
+        throw new Error('Failed to save vote');
+      }
 
-      // 6. Sauvegarder dans localStorage
-      localStorage.setItem(`synkro_event_${eventId}`, JSON.stringify(eventData));
-
-      // 7. Mettre à jour l'état local
-      setEvent(eventData);
-
-      // 8. Passer à l'étape suivante
-      setStep(3);
+      const result = await response.json();
       
-      // 9. Trouver la meilleure date et afficher le résultat
+      // Mettre à jour l'état local avec les nouvelles données
+      setEvent(result.event);
+
+      // Trouver la meilleure date et afficher le résultat
       setTimeout(() => {
-        const bestDate = eventData.dates.reduce((prev, current) => 
+        const bestDate = result.event.dates.reduce((prev, current) => 
           current.votes > prev.votes ? current : prev
         );
         setSelectedDate(bestDate);
@@ -185,6 +166,7 @@ const Participant = () => {
     } catch (err) {
       console.error('Erreur lors de la sauvegarde:', err);
       alert('Erreur lors de la sauvegarde de tes disponibilités 😕');
+      setStep(2); // Retour au formulaire en cas d'erreur
     }
   };
 
@@ -230,21 +212,20 @@ const Participant = () => {
           <h2 style={{ fontSize: '24px', marginBottom: '12px', color: '#1E1B4B' }}>
             {error}
           </h2>
-          <p style={{ color: '#6B7280', marginBottom: '28px' }}>
-            Vérifie le lien ou demande à l'organisateur de t'en renvoyer un nouveau.
+          <p style={{ color: '#6B7280', marginBottom: '24px' }}>
+            Vérifie que le lien est correct ou contacte l'organisateur.
           </p>
           <button
             onClick={() => navigate('/')}
             style={{
-              padding: '16px 32px',
+              padding: '14px 28px',
               background: 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)',
               color: 'white',
               border: 'none',
               borderRadius: '12px',
               fontSize: '16px',
-              fontWeight: '700',
-              cursor: 'pointer',
-              boxShadow: '0 8px 20px rgba(139, 92, 246, 0.3)'
+              fontWeight: '600',
+              cursor: 'pointer'
             }}
           >
             Retour à l'accueil
@@ -259,297 +240,221 @@ const Participant = () => {
       minHeight: '100vh', 
       background: 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 50%, #06B6D4 100%)',
       padding: '20px',
-      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+      paddingBottom: '60px'
     }}>
-      <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-        <div 
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '10px',
-            marginBottom: '10px',
-            cursor: 'pointer'
-          }}
-          onClick={() => navigate('/')}
-        >
-          <Sparkles size={32} color="white" style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))' }} />
-          <h1 style={{ 
-            fontSize: '36px', 
-            fontWeight: 'bold', 
-            color: 'white',
-            margin: 0,
-            textShadow: '0 2px 8px rgba(0,0,0,0.2)'
-          }}>
-            Synkro
-          </h1>
-        </div>
-        <p style={{ color: 'rgba(255,255,255,0.95)', margin: 0, fontSize: '16px' }}>
-          Une date en 1 minute ⚡
-        </p>
-      </div>
-
       <div style={{
-        maxWidth: '500px',
+        maxWidth: '600px',
         margin: '0 auto',
         background: 'white',
         borderRadius: '24px',
         padding: '32px',
-        boxShadow: '0 24px 60px rgba(139, 92, 246, 0.3), 0 0 0 1px rgba(139, 92, 246, 0.1)'
+        boxShadow: '0 24px 60px rgba(139, 92, 246, 0.3)'
       }}>
-        
-        {/* Step 1: Enter name */}
+        {/* Header */}
+        <div style={{ marginBottom: '32px' }}>
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '12px',
+            marginBottom: '16px'
+          }}>
+            <Sparkles size={32} color="#8B5CF6" />
+            <h1 style={{ 
+              fontSize: '28px', 
+              fontWeight: '700',
+              background: 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              margin: 0
+            }}>
+              Synkro
+            </h1>
+          </div>
+          
+          <div style={{
+            background: 'linear-gradient(135deg, #F5F3FF 0%, #E9D5FF 100%)',
+            padding: '20px',
+            borderRadius: '16px',
+            border: '2px solid #E9D5FF'
+          }}>
+            <h2 style={{ fontSize: '22px', marginBottom: '8px', color: '#1E1B4B', fontWeight: '700' }}>
+              {event.type}
+            </h2>
+            <p style={{ color: '#6B7280', margin: 0, fontSize: '14px' }}>
+              Organisé par <strong>{event.organizerName}</strong>
+            </p>
+            {event.location && (
+              <div style={{ 
+                marginTop: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                color: '#8B5CF6',
+                fontSize: '14px',
+                fontWeight: '600'
+              }}>
+                <MapPin size={18} />
+                {event.location}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Step 1: Name */}
         {step === 1 && (
           <div>
-            <div style={{
-              background: 'linear-gradient(135deg, #F5F3FF 0%, #E9D5FF 100%)',
-              padding: '24px',
-              borderRadius: '16px',
-              marginBottom: '28px',
-              border: '2px solid #E9D5FF'
-            }}>
-              <h2 style={{ 
-                fontSize: '26px', 
-                marginBottom: '10px', 
-                color: '#1E1B4B',
-                margin: '0 0 10px 0',
-                fontWeight: '700'
-              }}>
-                {event.type}
-              </h2>
-              {event.location && (
-                <p style={{ 
-                  color: '#6B7280', 
-                  margin: '0 0 8px 0',
-                  fontSize: '14px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px'
-                }}>
-                  <MapPin size={16} color="#8B5CF6" />
-                  {event.location}
-                </p>
-              )}
-              <p style={{ 
-                color: '#6B7280', 
-                margin: 0,
-                fontSize: '14px'
-              }}>
-                Organisé par <strong style={{ color: '#8B5CF6' }}>{event.organizerName || event.organizer}</strong>
-              </p>
-            </div>
-
-            <h3 style={{ fontSize: '22px', marginBottom: '12px', color: '#1E1B4B', fontWeight: '700' }}>
-              👋 Ton prénom ?
+            <h3 style={{ fontSize: '20px', marginBottom: '8px', color: '#1E1B4B', fontWeight: '700' }}>
+              👋 Comment t'appelles-tu ?
             </h3>
             <p style={{ color: '#6B7280', fontSize: '14px', marginBottom: '20px' }}>
-              Pour qu'on sache qui tu es !
+              Entre ton nom pour continuer
             </p>
 
             <input
               type="text"
               value={userName}
               onChange={(e) => setUserName(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && userName.trim() && setStep(2)}
-              placeholder="Ex: Julie"
-              autoFocus
+              placeholder="Ton nom"
               style={{
                 width: '100%',
                 padding: '16px',
                 fontSize: '16px',
                 border: '2px solid #E9D5FF',
-                borderRadius: '14px',
-                boxSizing: 'border-box',
-                outline: 'none',
+                borderRadius: '12px',
                 marginBottom: '20px',
-                transition: 'all 0.3s'
+                outline: 'none',
+                transition: 'border 0.3s'
               }}
               onFocus={(e) => e.target.style.borderColor = '#8B5CF6'}
               onBlur={(e) => e.target.style.borderColor = '#E9D5FF'}
             />
 
             <button
-              onClick={() => userName.trim() && setStep(2)}
+              onClick={() => setStep(2)}
               disabled={!userName.trim()}
               style={{
                 width: '100%',
                 padding: '18px',
-                background: userName.trim()
+                background: userName.trim() 
                   ? 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)'
-                  : '#E9D5FF',
+                  : '#E5E7EB',
                 color: 'white',
                 border: 'none',
                 borderRadius: '14px',
                 fontSize: '16px',
                 fontWeight: '700',
                 cursor: userName.trim() ? 'pointer' : 'not-allowed',
-                boxShadow: userName.trim() ? '0 8px 20px rgba(139, 92, 246, 0.3)' : 'none',
-                transition: 'all 0.3s'
+                transition: 'all 0.3s',
+                boxShadow: userName.trim() ? '0 6px 16px rgba(139, 92, 246, 0.3)' : 'none'
               }}
             >
-              Continuer →
+              Continuer
             </button>
           </div>
         )}
 
-        {/* Step 2: Indicate availabilities */}
+        {/* Step 2: Availability Selection */}
         {step === 2 && (
           <div>
-            <div style={{
-              background: 'linear-gradient(135deg, #F5F3FF 0%, #E9D5FF 100%)',
-              padding: '20px',
-              borderRadius: '16px',
-              marginBottom: '24px',
-              border: '2px solid #E9D5FF'
-            }}>
-              <h3 style={{ 
-                fontSize: '20px', 
-                marginBottom: '8px', 
-                color: '#1E1B4B',
-                margin: '0 0 8px 0',
-                fontWeight: '700'
-              }}>
-                {event.type}
+            <div style={{ marginBottom: '24px' }}>
+              <h3 style={{ fontSize: '20px', marginBottom: '8px', color: '#1E1B4B', fontWeight: '700' }}>
+                📅 Tes disponibilités
               </h3>
-              {event.location && (
-                <p style={{ 
-                  color: '#6B7280', 
-                  margin: '0 0 6px 0',
-                  fontSize: '13px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px'
-                }}>
-                  <MapPin size={14} color="#8B5CF6" />
-                  {event.location}
-                </p>
-              )}
-              <p style={{ 
-                color: '#6B7280', 
-                margin: 0,
-                fontSize: '13px'
-              }}>
-                Organisé par <strong style={{ color: '#8B5CF6' }}>{event.organizerName || event.organizer}</strong>
+              <p style={{ color: '#6B7280', fontSize: '14px' }}>
+                Indique pour chaque date si tu es disponible ou non
               </p>
             </div>
 
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
-              marginBottom: '24px',
-              padding: '14px',
-              background: 'linear-gradient(135deg, #F5F3FF 0%, #E9D5FF 100%)',
-              borderRadius: '12px',
-              border: '1px solid #E9D5FF'
-            }}>
-              <Users size={20} color="#8B5CF6" />
-              <span style={{ fontSize: '14px', color: '#6B7280', fontWeight: '500' }}>
-                {event.expectedParticipants 
-                  ? `${event.totalResponded || 0}/${event.expectedParticipants} participants ont répondu`
-                  : `${event.totalResponded || 0} personne${(event.totalResponded || 0) > 1 ? 's ont' : ' a'} répondu`
-                }
-              </span>
-            </div>
-
-            <h3 style={{ 
-              fontSize: '18px', 
-              marginBottom: '18px', 
-              color: '#1E1B4B',
-              fontWeight: '700'
-            }}>
-              Indique tes disponibilités :
-            </h3>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '28px' }}>
-              {event.dates.map(date => {
+            <div style={{ marginBottom: '24px' }}>
+              {event.dates.map((date) => {
                 const badge = getBadge(date);
-                const percentage = event.expectedParticipants ? (date.votes / event.expectedParticipants) * 100 : 0;
-                const progressColor = getProgressColor(date.votes);
-
+                
                 return (
-                  <div key={date.id} style={{
-                    border: '2px solid #E9D5FF',
-                    borderRadius: '16px',
-                    padding: '18px',
-                    background: 'linear-gradient(135deg, #FDFCFF 0%, #F9F7FF 100%)',
-                    transition: 'all 0.3s'
-                  }}>
-                    <div style={{
-                      marginBottom: '14px'
+                  <div 
+                    key={date.id}
+                    style={{
+                      marginBottom: '16px',
+                      padding: '20px',
+                      background: '#F9FAFB',
+                      borderRadius: '16px',
+                      border: '2px solid #E9D5FF'
+                    }}
+                  >
+                    <div style={{ 
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'flex-start',
+                      marginBottom: '12px'
                     }}>
-                      <div style={{ 
-                        fontSize: '16px', 
-                        fontWeight: '700',
-                        color: '#1E1B4B',
-                        marginBottom: '8px'
-                      }}>
-                        {date.label}
-                      </div>
-
-                      {/* Barre de progression */}
-                      {event.expectedParticipants ? (
-                        <div>
-                          <div style={{
-                            width: '100%',
-                            height: '8px',
-                            background: '#E9D5FF',
-                            borderRadius: '4px',
-                            overflow: 'hidden',
-                            marginBottom: '8px'
-                          }}>
-                            <div style={{
-                              width: `${percentage}%`,
-                              height: '100%',
-                              background: progressColor,
-                              transition: 'all 0.3s'
-                            }} />
-                          </div>
-                          <div style={{ 
-                            fontSize: '13px', 
-                            color: progressColor,
-                            fontWeight: '600',
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center'
-                          }}>
-                            <span>{date.votes}/{event.expectedParticipants} ({Math.round(percentage)}%)</span>
-                            {badge && <span style={{ color: badge.color }}>{badge.text}</span>}
-                          </div>
-                        </div>
-                      ) : (
+                      <div>
                         <div style={{ 
-                          fontSize: '13px', 
-                          color: progressColor,
-                          fontWeight: '600',
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center'
+                          fontSize: '16px', 
+                          fontWeight: '700',
+                          color: '#1E1B4B',
+                          marginBottom: '4px'
                         }}>
-                          <span>👥 {date.votes} personne{date.votes > 1 ? 's' : ''} disponible{date.votes > 1 ? 's' : ''}</span>
-                          {badge && <span style={{ color: badge.color }}>{badge.text}</span>}
+                          {date.label}
+                        </div>
+                        {badge && (
+                          <div style={{
+                            display: 'inline-block',
+                            padding: '4px 12px',
+                            background: badge.color,
+                            color: 'white',
+                            borderRadius: '20px',
+                            fontSize: '12px',
+                            fontWeight: '600'
+                          }}>
+                            {badge.text}
+                          </div>
+                        )}
+                      </div>
+                      
+                      {date.votes > 0 && (
+                        <div style={{ 
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          fontSize: '14px',
+                          fontWeight: '600',
+                          color: '#8B5CF6'
+                        }}>
+                          <Users size={18} />
+                          {date.votes}
                         </div>
                       )}
                     </div>
+
+                    {date.votes > 0 && (
+                      <div style={{ marginBottom: '12px' }}>
+                        <div style={{
+                          width: '100%',
+                          height: '6px',
+                          background: '#E5E7EB',
+                          borderRadius: '10px',
+                          overflow: 'hidden'
+                        }}>
+                          <div style={{
+                            width: `${(date.votes / (event.expectedParticipants || date.votes)) * 100}%`,
+                            height: '100%',
+                            background: getProgressColor(date.votes),
+                            transition: 'width 0.5s'
+                          }} />
+                        </div>
+                      </div>
+                    )}
 
                     <button
                       onClick={() => handleAvailabilityToggle(date.id)}
                       style={{
                         width: '100%',
                         padding: '14px',
-                        borderRadius: '12px',
-                        fontSize: '14px',
-                        fontWeight: '700',
+                        ...getButtonStyle(availabilities[date.id]),
+                        borderRadius: '10px',
+                        fontSize: '15px',
+                        fontWeight: '600',
                         cursor: 'pointer',
-                        transition: 'all 0.2s',
-                        ...getButtonStyle(availabilities[date.id])
-                      }}
-                      onMouseEnter={(e) => {
-                        if (availabilities[date.id] === true) {
-                          e.target.style.boxShadow = '0 6px 16px rgba(139, 92, 246, 0.3)';
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        e.target.style.boxShadow = 'none';
+                        transition: 'all 0.3s'
                       }}
                     >
                       {getButtonText(availabilities[date.id])}
@@ -559,45 +464,53 @@ const Participant = () => {
               })}
             </div>
 
-            <button
-              onClick={handleSubmit}
-              disabled={!canSubmit}
-              style={{
-                width: '100%',
-                padding: '18px',
-                background: canSubmit
-                  ? 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)'
-                  : '#E9D5FF',
-                color: 'white',
-                border: 'none',
-                borderRadius: '14px',
-                fontSize: '16px',
-                fontWeight: '700',
-                cursor: canSubmit ? 'pointer' : 'not-allowed',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '10px',
-                boxShadow: canSubmit ? '0 8px 20px rgba(139, 92, 246, 0.3)' : 'none',
-                transition: 'all 0.3s'
-              }}
-            >
-              <CheckCircle size={20} />
-              Valider mes disponibilités
-            </button>
-
-            <p style={{
-              fontSize: '12px',
-              color: '#9CA3AF',
-              textAlign: 'center',
-              marginTop: '16px'
+            <div style={{ 
+              display: 'flex', 
+              gap: '12px'
             }}>
-              💡 Clique plusieurs fois pour changer ton choix
-            </p>
+              <button
+                onClick={() => setStep(1)}
+                style={{
+                  flex: 1,
+                  padding: '18px',
+                  background: 'white',
+                  color: '#8B5CF6',
+                  border: '2px solid #8B5CF6',
+                  borderRadius: '14px',
+                  fontSize: '16px',
+                  fontWeight: '700',
+                  cursor: 'pointer'
+                }}
+              >
+                Retour
+              </button>
+
+              <button
+                onClick={handleSubmit}
+                disabled={!canSubmit}
+                style={{
+                  flex: 2,
+                  padding: '18px',
+                  background: canSubmit 
+                    ? 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)'
+                    : '#E5E7EB',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '14px',
+                  fontSize: '16px',
+                  fontWeight: '700',
+                  cursor: canSubmit ? 'pointer' : 'not-allowed',
+                  transition: 'all 0.3s',
+                  boxShadow: canSubmit ? '0 6px 16px rgba(139, 92, 246, 0.3)' : 'none'
+                }}
+              >
+                Valider mes disponibilités
+              </button>
+            </div>
           </div>
         )}
 
-        {/* Step 3: Processing */}
+        {/* Step 3: Loading */}
         {step === 3 && (
           <div style={{ textAlign: 'center', padding: '50px 20px' }}>
             <div style={{
@@ -822,7 +735,7 @@ const Participant = () => {
         color: 'rgba(255,255,255,0.9)',
         fontSize: '14px'
       }}>
-        <p style={{ margin: '0 0 8px 0' }}>✨ Synkro v2.0 - localStorage Edition</p>
+        <p style={{ margin: '0 0 8px 0' }}>✨ Synkro v2.1 - Airtable Edition</p>
       </div>
     </div>
   );

@@ -2,6 +2,11 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Calendar, Clock, Send, CheckCircle, Sparkles, ChevronLeft, ChevronRight, MapPin, Users as UsersIcon, Share2, User } from 'lucide-react';
 
+// Configuration Airtable depuis les variables d'environnement
+const AIRTABLE_API_TOKEN = import.meta.env.VITE_AIRTABLE_API_TOKEN;
+const AIRTABLE_BASE_ID = import.meta.env.VITE_AIRTABLE_BASE_ID;
+const AIRTABLE_EVENTS_TABLE_ID = import.meta.env.VITE_AIRTABLE_EVENTS_TABLE_ID;
+
 const Organizer = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
@@ -14,6 +19,7 @@ const Organizer = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [eventLink, setEventLink] = useState('');
   const [showShareMenu, setShowShareMenu] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
 
   const eventTypes = [
     { id: 'dinner', label: '🍽️ Dîner/Soirée', suggestion: 'Vendredi ou samedi soir, 19h30-21h', defaultTime: '20:00' },
@@ -111,35 +117,61 @@ const Organizer = () => {
     }
   };
 
-  const generateLink = () => {
-    // Générer ID unique
-    const eventId = 'evt_' + Date.now() + '_' + Math.random().toString(36).substring(7);
+  const generateLink = async () => {
+    setIsCreating(true);
     
-    // Préparer les données
-    const selectedEventType = eventTypes.find(e => e.id === eventType);
-    const eventData = {
-      id: eventId,
-      organizer: organizerName,
-      type: eventType === 'other' ? customEvent : selectedEventType.label,
-      location: location,
-      expectedParticipants: expectedParticipants ? parseInt(expectedParticipants) : null,
-      dates: selectedDates.map(d => ({
+    try {
+      // Générer ID unique
+      const eventId = 'evt_' + Date.now() + '_' + Math.random().toString(36).substring(7);
+      
+      // Préparer les données
+      const selectedEventType = eventTypes.find(e => e.id === eventType);
+      const dates = selectedDates.map(d => ({
+        id: `date_${Math.random().toString(36).substring(7)}`,
         date: d.date.toISOString(),
         time: d.time,
         label: `${formatDate(d.date)}, ${d.time}`,
         votes: 0,
         voters: []
-      })),
-      createdAt: new Date().toISOString()
-    };
-    
-    // Stocker dans localStorage
-    localStorage.setItem(`synkro_event_${eventId}`, JSON.stringify(eventData));
-    
-    // Créer le lien
-    const fullLink = `${window.location.origin}/respond?id=${eventId}`;
-    setEventLink(fullLink);
-    setStep(6);
+      }));
+      
+      // Créer l'événement dans Airtable
+      const response = await fetch(
+        `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_EVENTS_TABLE_ID}`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${AIRTABLE_API_TOKEN}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            fields: {
+              eventId: eventId,
+              organizerName: organizerName,
+              type: eventType === 'other' ? customEvent : selectedEventType.label,
+              location: location || '',
+              expectedParticipants: expectedParticipants ? parseInt(expectedParticipants) : 0,
+              dates: JSON.stringify(dates)
+            }
+          })
+        }
+      );
+      
+      if (!response.ok) {
+        throw new Error('Erreur lors de la création de l\'événement');
+      }
+      
+      // Créer le lien
+      const fullLink = `${window.location.origin}/respond?id=${eventId}`;
+      setEventLink(fullLink);
+      setStep(6);
+      
+    } catch (error) {
+      console.error('Erreur:', error);
+      alert('Une erreur est survenue lors de la création de l\'événement. Vérifie ta connexion.');
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   const shareVia = (platform) => {
@@ -708,31 +740,39 @@ const Organizer = () => {
 
             <button
               onClick={generateLink}
+              disabled={isCreating}
               style={{
                 width: '100%',
                 padding: '18px',
-                background: 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)',
+                background: isCreating ? '#E9D5FF' : 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)',
                 color: 'white',
                 border: 'none',
                 borderRadius: '14px',
                 fontSize: '16px',
                 fontWeight: '700',
-                cursor: 'pointer',
+                cursor: isCreating ? 'wait' : 'pointer',
                 marginBottom: '12px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: '10px',
-                boxShadow: '0 8px 20px rgba(139, 92, 246, 0.3)',
+                boxShadow: isCreating ? 'none' : '0 8px 20px rgba(139, 92, 246, 0.3)',
                 transition: 'all 0.3s'
               }}
             >
-              <Send size={20} />
-              Créer l'événement
+              {isCreating ? (
+                <>⏳ Création en cours...</>
+              ) : (
+                <>
+                  <Send size={20} />
+                  Créer l'événement
+                </>
+              )}
             </button>
 
             <button
               onClick={generateLink}
+              disabled={isCreating}
               style={{
                 width: '100%',
                 padding: '12px',
@@ -740,7 +780,7 @@ const Organizer = () => {
                 color: '#8B5CF6',
                 border: 'none',
                 fontSize: '14px',
-                cursor: 'pointer',
+                cursor: isCreating ? 'wait' : 'pointer',
                 fontWeight: '600'
               }}
             >
@@ -926,7 +966,7 @@ const Organizer = () => {
         color: 'rgba(255,255,255,0.9)',
         fontSize: '14px'
       }}>
-        <p style={{ margin: '0 0 8px 0' }}>✨ Synkro v2.1 - Avec localStorage</p>
+        <p style={{ margin: '0 0 8px 0' }}>✨ Synkro v3.0 - Avec Airtable</p>
       </div>
     </div>
   );

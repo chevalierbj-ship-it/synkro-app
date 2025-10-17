@@ -2,11 +2,6 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Calendar, Clock, Send, CheckCircle, Sparkles, ChevronLeft, ChevronRight, MapPin, Users as UsersIcon, Share2, User } from 'lucide-react';
 
-// Configuration Airtable depuis les variables d'environnement
-const AIRTABLE_API_TOKEN = import.meta.env.VITE_AIRTABLE_API_TOKEN;
-const AIRTABLE_BASE_ID = import.meta.env.VITE_AIRTABLE_BASE_ID;
-const AIRTABLE_EVENTS_TABLE_ID = import.meta.env.VITE_AIRTABLE_EVENTS_TABLE_ID;
-
 const Organizer = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
@@ -135,31 +130,30 @@ const Organizer = () => {
         voters: []
       }));
       
-      // Créer l'événement dans Airtable
-      const response = await fetch(
-        `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_EVENTS_TABLE_ID}`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${AIRTABLE_API_TOKEN}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            fields: {
-              eventId: eventId,
-              organizerName: organizerName,
-              type: eventType === 'other' ? customEvent : selectedEventType.label,
-              location: location || '',
-              expectedParticipants: expectedParticipants ? parseInt(expectedParticipants) : 0,
-              dates: JSON.stringify(dates)
-            }
-          })
-        }
-      );
+      // Créer l'événement via l'API serverless
+      const response = await fetch('/api/create-event', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          eventId: eventId,
+          organizerName: organizerName,
+          type: eventType === 'other' ? customEvent : selectedEventType.label,
+          location: location || '',
+          expectedParticipants: expectedParticipants ? parseInt(expectedParticipants) : 0,
+          dates: JSON.stringify(dates)
+        })
+      });
       
       if (!response.ok) {
-        throw new Error('Erreur lors de la création de l\'événement');
+        const errorData = await response.json();
+        console.error('API Error:', errorData);
+        throw new Error(errorData.error || 'Erreur lors de la création de l\'événement');
       }
+      
+      const result = await response.json();
+      console.log('Event created successfully:', result);
       
       // Créer le lien
       const fullLink = `${window.location.origin}/respond?id=${eventId}`;
@@ -168,7 +162,7 @@ const Organizer = () => {
       
     } catch (error) {
       console.error('Erreur:', error);
-      alert('Une erreur est survenue lors de la création de l\'événement. Vérifie ta connexion.');
+      alert('Une erreur est survenue lors de la création de l\'événement: ' + error.message);
     } finally {
       setIsCreating(false);
     }
@@ -966,7 +960,7 @@ const Organizer = () => {
         color: 'rgba(255,255,255,0.9)',
         fontSize: '14px'
       }}>
-        <p style={{ margin: '0 0 8px 0' }}>✨ Synkro v3.0 - Avec Airtable</p>
+        <p style={{ margin: '0 0 8px 0' }}>✨ Synkro v4.0 - API Serverless</p>
       </div>
     </div>
   );

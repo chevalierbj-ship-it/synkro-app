@@ -57,7 +57,7 @@ export default async function handler(req, res) {
         organizerEmail: eventData.organizerEmail || '',
         location: eventData.location || '',
         expectedParticipants: eventData.expectedParticipants || 0,
-        dates: eventData.dates,
+        dates: JSON.stringify(eventData.dates),
         participants: JSON.stringify([]),
         totalResponded: 0,
         status: 'active'

@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Calendar, Users, CheckCircle, Clock, Download, Sparkles, MapPin, AlertCircle } from 'lucide-react';
 
 const Participant = () => {
   const navigate = useNavigate();
-  const { eventId } = useParams(); // Récupère l'ID depuis l'URL
+  const [searchParams] = useSearchParams();
+  const eventId = searchParams.get('id'); // Récupère l'ID depuis l'URL (?id=xxx)
   
   const [step, setStep] = useState(1);
   const [userName, setUserName] = useState('');
@@ -742,3 +743,4 @@ const Participant = () => {
 };
 
 export default Participant;
+

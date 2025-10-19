@@ -3,20 +3,3 @@
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
-```
-
-**e) Commit : "Add vercel.json for SPA routing"**
-
----
-
-### **2️⃣ Attends le redéploiement**
-
-**Vercel va automatiquement redéployer**
-
----
-
-### **3️⃣ Teste à nouveau le lien**
-
-**Une fois le déploiement terminé, essaie :**
-```
-https://synkro-app.vercel.app/respond?id=evt_1760885163518_idwf35n38

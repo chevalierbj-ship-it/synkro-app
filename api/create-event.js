@@ -30,7 +30,7 @@ export default async function handler(req, res) {
     // 🔐 RÉCUPÉRATION DES VARIABLES D'ENVIRONNEMENT
     const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN;
     const BASE_ID = process.env.AIRTABLE_BASE_ID;
-    const TABLE_NAME = process.env.AIRTABLE_TABLE_NAME || 'Events';
+    const TABLE_NAME = process.env.AIRTABLE_TABLE_NAME || 'Synkro_Events';
 
     // Vérification que les variables existent
     if (!AIRTABLE_TOKEN || !BASE_ID) {

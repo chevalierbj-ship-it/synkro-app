@@ -156,7 +156,7 @@ const Organizer = () => {
       console.log('Event created successfully:', result);
       
       // Créer le lien
-      const fullLink = `${window.location.origin}/respond?id=${eventId}`;
+      const fullLink = `${window.location.origin}/respond?id=${resul.eventId}`;
       setEventLink(fullLink);
       setStep(6);
       
@@ -967,3 +967,4 @@ const Organizer = () => {
 };
 
 export default Organizer;
+

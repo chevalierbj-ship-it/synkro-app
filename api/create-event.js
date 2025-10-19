@@ -60,7 +60,6 @@ export default async function handler(req, res) {
     dates: JSON.stringify(eventData.dates),
     participants: JSON.stringify([]),
     totalResponded: 0,
-    createdAt: new Date().toISOString(),  // ← SUPPRIME CETTE LIGNE
     status: 'active'
   }
 };

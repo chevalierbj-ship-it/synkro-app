@@ -29,10 +29,10 @@ export default async function handler(req, res) {
     // 🔐 RÉCUPÉRATION DES VARIABLES D'ENVIRONNEMENT
     const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN;
     const BASE_ID = process.env.AIRTABLE_BASE_ID;
-    const TABLE_NAME = process.env.AIRTABLE_TABLE_NAME || 'Events';
+    const TABLE_ID = process.env.AIRTABLE_EVENTS_TABLE_ID;
 
     // Vérification que les variables existent
-    if (!AIRTABLE_TOKEN || !BASE_ID) {
+    if (!AIRTABLE_TOKEN || !BASE_ID || !TABLE_ID) {
       console.error('Missing environment variables');
       return res.status(500).json({ 
         error: 'Server configuration error',
@@ -42,7 +42,7 @@ export default async function handler(req, res) {
 
     // 1. Récupérer l'événement actuel
     const getResponse = await fetch(
-      `https://api.airtable.com/v0/${BASE_ID}/${TABLE_NAME}/${airtableId}`,
+      `https://api.airtable.com/v0/${BASE_ID}/${TABLE_ID}/${airtableId}`,
       {
         headers: {
           'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
@@ -94,7 +94,7 @@ export default async function handler(req, res) {
 
     // 4. Mettre à jour dans Airtable
     const updateResponse = await fetch(
-      `https://api.airtable.com/v0/${BASE_ID}/${TABLE_NAME}/${airtableId}`,
+      `https://api.airtable.com/v0/${BASE_ID}/${TABLE_ID}/${airtableId}`,
       {
         method: 'PATCH',
         headers: {

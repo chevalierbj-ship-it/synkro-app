@@ -136,14 +136,14 @@ const Organizer = () => {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          eventId: eventId,
-          organizerName: organizerName,
-          type: eventType === 'other' ? customEvent : selectedEventType.label,
-          location: location || '',
-          expectedParticipants: expectedParticipants ? parseInt(expectedParticipants) : 0,
-          dates: JSON.stringify(dates)
-        })
+body: JSON.stringify({
+  eventId: eventId,
+  organizerName: organizerName,
+  type: eventType === 'other' ? customEvent : selectedEventType.label,
+  location: location || '',
+  expectedParticipants: expectedParticipants ? parseInt(expectedParticipants) : 0,
+  dates: dates  // ✅ Envoyer directement l'objet
+})
       });
       
       if (!response.ok) {
@@ -967,5 +967,6 @@ const Organizer = () => {
 };
 
 export default Organizer;
+
 
 

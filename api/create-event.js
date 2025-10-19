@@ -101,7 +101,7 @@ export default async function handler(req, res) {
       eventId: eventId,
       airtableId: result.id,
       participantLink: `${process.env.VERCEL_URL || 'https://synkro-app.vercel.app'}/event/${eventId}`,
-      participantLink: `https://synkro-app-bice.vercel.app/respond?id=${eventId}`
+      participantLink: `https://synkro-app-bice.vercel.app/respond?id=${eventId}`,
     });
 
   } catch (error) {

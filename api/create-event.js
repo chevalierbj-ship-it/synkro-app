@@ -103,7 +103,7 @@ export default async function handler(req, res) {
         const eventLink = `https://synkro-app-bice.vercel.app/participant?id=${eventId}`;
         
         // Envoyer l'email à l'organisateur
-        await fetch(`https://${process.env.VERCEL_URL || 'synkro-app-bice.vercel.app'}/api/send-email`, {
+        const emailResponse = await fetch(`https://${process.env.VERCEL_URL || 'synkro-app-bice.vercel.app'}/api/send-email`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -121,10 +121,16 @@ export default async function handler(req, res) {
           })
         });
         
-        console.log('✅ Email sent to organizer:', eventData.organizerEmail);
+        if (!emailResponse.ok) {
+          const errorData = await emailResponse.json();
+          throw new Error(`Email API error: ${JSON.stringify(errorData)}`);
+        }
+        
+        const emailResult = await emailResponse.json();
+        console.log('✅ Email sent to organizer:', eventData.organizerEmail, '- Email ID:', emailResult.emailId);
       } catch (emailError) {
         // Ne pas bloquer la création si l'email échoue
-        console.error('⚠️ Failed to send email to organizer:', emailError);
+        console.error('⚠️ Failed to send email to organizer:', emailError.message);
       }
     }
     

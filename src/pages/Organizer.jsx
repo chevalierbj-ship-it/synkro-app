@@ -140,6 +140,7 @@ const Organizer = () => {
 body: JSON.stringify({
   eventId: eventId,
   organizerName: organizerName,
+  organizerEmail: organizerEmail || null,  // 🆕 EMAIL AJOUTÉ !
   type: eventType === 'other' ? customEvent : selectedEventType.label,
   location: location || '',
   expectedParticipants: expectedParticipants ? parseInt(expectedParticipants) : 0,
@@ -957,6 +958,7 @@ body: JSON.stringify({
               onClick={() => {
                 setStep(1);
                 setOrganizerName('');
+                setOrganizerEmail('');
                 setEventType('');
                 setCustomEvent('');
                 setLocation('');
@@ -1011,8 +1013,3 @@ body: JSON.stringify({
 };
 
 export default Organizer;
-
-
-
-
-

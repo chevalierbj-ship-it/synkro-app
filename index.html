@@ -1,16 +1,126 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fr">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Synkro - Une date en 1 minute" />
-    <title>Synkro - Une date en 1 minute v3</title>
+    
+    <!-- Mobile Optimization -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <!-- PWA Primary Meta Tags -->
+    <title>Synkro - Trouve la date parfaite en 1 minute</title>
+    <meta name="title" content="Synkro - Planification d'événements">
+    <meta name="description" content="Organisez vos événements facilement ! Synkro trouve la meilleure date pour tout le monde en quelques clics. Gratuit et sans inscription.">
+    <meta name="theme-color" content="#8B5CF6">
+    
+    <!-- Apple Touch Icons -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-192x192.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="/icons/icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="/icons/icon-128x128.png">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-96x96.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/icons/icon-72x72.png">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://synkro-app-bice.vercel.app/">
+    <meta property="og:title" content="Synkro - Trouve la date parfaite">
+    <meta property="og:description" content="Organisez vos événements facilement ! Trouve la meilleure date pour tout le monde.">
+    <meta property="og:image" content="https://synkro-app-bice.vercel.app/og-image.png">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://synkro-app-bice.vercel.app/">
+    <meta property="twitter:title" content="Synkro - Trouve la date parfaite">
+    <meta property="twitter:description" content="Organisez vos événements facilement ! Trouve la meilleure date pour tout le monde.">
+    <meta property="twitter:image" content="https://synkro-app-bice.vercel.app/og-image.png">
+    
+    <!-- Preconnect for performance -->
+    <link rel="preconnect" href="https://api.airtable.com">
+    
+    <!-- Additional Mobile Optimizations -->
+    <meta name="format-detection" content="telephone=no">
+    <meta name="format-detection" content="address=no">
+    
+    <!-- Performance hints -->
+    <link rel="dns-prefetch" href="https://api.airtable.com">
+    
+    <style>
+      /* Critical CSS for initial load */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+          'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+          sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        margin: 0;
+        overflow-x: hidden;
+        min-height: 100vh;
+      }
+      
+      /* Loading screen */
+      #root:empty::before {
+        content: '';
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        background: linear-gradient(135deg, #8B5CF6 0%, #EC4899 50%, #06B6D4 100%);
+      }
+      
+      /* Prevent text size adjustment on iOS */
+      html {
+        -webkit-text-size-adjust: 100%;
+      }
+      
+      /* Better tap targets */
+      button, a, input, select, textarea {
+        -webkit-tap-highlight-color: rgba(139, 92, 246, 0.2);
+        touch-action: manipulation;
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+    
+    <!-- Service Worker Registration -->
+    <script>
+      // Register service worker for PWA
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/service-worker.js')
+            .then(registration => {
+              console.log('SW registered:', registration);
+            })
+            .catch(error => {
+              console.log('SW registration failed:', error);
+            });
+        });
+      }
+      
+      // PWA Install prompt
+      let deferredPrompt;
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        // You can show a custom install button here
+        console.log('PWA install prompt available');
+      });
+    </script>
   </body>
-
 </html>
-
-

@@ -96,49 +96,52 @@ export default async function handler(req, res) {
     const result = await response.json();
     console.log('Event created successfully:', result.id);
 
-    // 🆕 ENVOI EMAIL À L'ORGANISATEUR
+    // 🆕 ENVOI EMAIL À L'ORGANISATEUR (Direct Resend)
     if (eventData.organizerEmail) {
       try {
-        // Construire le lien de l'événement
-        const eventLink = `https://synkro-app-bice.vercel.app/participant?id=${eventId}`;
+        const RESEND_API_KEY = process.env.RESEND_API_KEY;
         
-        // Envoyer l'email à l'organisateur
-        const emailResponse = await fetch(`https://${process.env.VERCEL_URL || 'synkro-app-bice.vercel.app'}/api/send-email`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            type: 'organizer-created',
-            to: eventData.organizerEmail,
-            data: {
-              eventType: eventData.type,
-              eventLink: eventLink,
-              organizerName: eventData.organizerName,
-              dates: eventData.dates,
-              location: eventData.location || null
-            }
-          })
-        });
-        
-        console.log('📧 Email API response status:', emailResponse.status);
-        
-        // Lire la réponse en texte d'abord
-        const responseText = await emailResponse.text();
-        console.log('📧 Email API response (first 500 chars):', responseText.substring(0, 500));
-        
-        if (!emailResponse.ok) {
-          let errorData;
-          try {
-            errorData = JSON.parse(responseText);
-          } catch {
-            errorData = { error: 'Non-JSON response', response: responseText.substring(0, 200) };
+        if (!RESEND_API_KEY) {
+          console.error('⚠️ RESEND_API_KEY not configured');
+        } else {
+          // Construire le lien de l'événement
+          const eventLink = `https://synkro-app-bice.vercel.app/participant?id=${eventId}`;
+          
+          // Générer le HTML de l'email
+          const emailHTML = getOrganizerCreatedEmail({
+            eventType: eventData.type,
+            eventLink: eventLink,
+            organizerName: eventData.organizerName,
+            dates: eventData.dates,
+            location: eventData.location || null
+          });
+          
+          // Envoyer directement via Resend
+          console.log('📤 Sending email to Resend API...');
+          const resendResponse = await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${RESEND_API_KEY}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              from: 'Synkro <onboarding@resend.dev>',
+              to: [eventData.organizerEmail],
+              subject: '✅ Ton événement Synkro est créé !',
+              html: emailHTML
+            })
+          });
+          
+          console.log('📥 Resend API response status:', resendResponse.status);
+          
+          if (resendResponse.ok) {
+            const resendResult = await resendResponse.json();
+            console.log('✅ Email sent to organizer:', eventData.organizerEmail, '- Email ID:', resendResult.id);
+          } else {
+            const errorText = await resendResponse.text();
+            console.error('❌ Resend API error:', errorText);
           }
-          throw new Error(`Email API error (${emailResponse.status}): ${JSON.stringify(errorData)}`);
         }
-        
-        const emailResult = JSON.parse(responseText);
-        console.log('✅ Email sent to organizer:', eventData.organizerEmail, '- Email ID:', emailResult.emailId);
       } catch (emailError) {
         // Ne pas bloquer la création si l'email échoue
         console.error('⚠️ Failed to send email to organizer:', emailError.message);
@@ -161,4 +164,98 @@ export default async function handler(req, res) {
       details: error.message 
     });
   }
+}
+
+// ========================================
+// TEMPLATE D'EMAIL ORGANISATEUR
+// ========================================
+
+function getOrganizerCreatedEmail(data) {
+  const { eventType, eventLink, organizerName, dates, location } = data;
+  
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Événement créé</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f3f4f6;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f3f4f6; padding: 40px 20px;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="background: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%); border-radius: 20px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.1);">
+          <tr>
+            <td style="padding: 40px; text-align: center;">
+              <div style="width: 80px; height: 80px; background: white; border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center;">
+                <span style="font-size: 40px;">✨</span>
+              </div>
+              <h1 style="color: white; margin: 0; font-size: 32px; font-weight: 700;">Synkro</h1>
+            </td>
+          </tr>
+          <tr>
+            <td style="background: white; padding: 40px;">
+              <h2 style="color: #1E1B4B; margin: 0 0 20px 0; font-size: 24px; font-weight: 700;">
+                ✅ Ton événement est créé !
+              </h2>
+              
+              <p style="color: #6B7280; margin: 0 0 30px 0; font-size: 16px; line-height: 1.6;">
+                Salut ${organizerName} ! 👋<br><br>
+                Ton événement <strong>"${eventType}"</strong> est prêt ! Partage le lien ci-dessous avec tes invités pour qu'ils puissent voter.
+              </p>
+
+              <div style="background: linear-gradient(135deg, #F5F3FF 0%, #E9D5FF 100%); border-radius: 12px; padding: 24px; margin-bottom: 30px;">
+                <p style="color: #6B7280; margin: 0 0 8px 0; font-size: 13px; font-weight: 600;">
+                  📅 Type d'événement
+                </p>
+                <p style="color: #1E1B4B; margin: 0 0 16px 0; font-size: 18px; font-weight: 700;">
+                  ${eventType}
+                </p>
+                
+                ${location ? `
+                <p style="color: #6B7280; margin: 0 0 8px 0; font-size: 13px; font-weight: 600;">
+                  📍 Lieu
+                </p>
+                <p style="color: #1E1B4B; margin: 0 0 16px 0; font-size: 16px; font-weight: 600;">
+                  ${location}
+                </p>
+                ` : ''}
+                
+                <p style="color: #6B7280; margin: 0 0 8px 0; font-size: 13px; font-weight: 600;">
+                  📆 Dates proposées
+                </p>
+                <p style="color: #1E1B4B; margin: 0; font-size: 14px; font-weight: 500; line-height: 1.8;">
+                  ${dates.map(d => d.label).join('<br>')}
+                </p>
+              </div>
+
+              <a href="${eventLink}" style="display: block; background: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%); color: white; text-decoration: none; padding: 18px 32px; border-radius: 12px; font-size: 16px; font-weight: 700; text-align: center; margin-bottom: 20px;">
+                📤 Partager avec mes invités
+              </a>
+
+              <div style="background: #FEF3C7; border-radius: 12px; padding: 16px; border-left: 4px solid #F59E0B;">
+                <p style="color: #92400E; margin: 0; font-size: 14px; line-height: 1.6;">
+                  💡 <strong>Astuce :</strong> Copie ce lien et envoie-le par WhatsApp, email ou SMS à tes invités !
+                </p>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td style="background: #F9FAFB; padding: 30px; text-align: center; border-top: 1px solid #E5E7EB;">
+              <p style="color: #6B7280; margin: 0 0 10px 0; font-size: 14px;">
+                Créé avec ❤️ par Synkro
+              </p>
+              <p style="color: #9CA3AF; margin: 0; font-size: 12px;">
+                Trouve la date parfaite en 1 minute
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `;
 }

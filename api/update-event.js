@@ -132,7 +132,7 @@ export default async function handler(req, res) {
           available: availabilities[date.id] === true
         }));
 
-        await fetch(`${process.env.VERCEL_URL || 'https://synkro-app-bice.vercel.app'}/api/send-email`, {
+        await fetch(`https://${process.env.VERCEL_URL || 'synkro-app-bice.vercel.app'}/api/send-email`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -184,7 +184,7 @@ export default async function handler(req, res) {
 
           // Envoyer l'email à tous
           for (const email of allEmails) {
-            await fetch(`${process.env.VERCEL_URL || 'https://synkro-app-bice.vercel.app'}/api/send-email`, {
+            await fetch(`https://${process.env.VERCEL_URL || 'synkro-app-bice.vercel.app'}/api/send-email`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json'

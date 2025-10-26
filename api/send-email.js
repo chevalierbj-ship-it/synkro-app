@@ -3,20 +3,25 @@
 // Documentation: https://resend.com/docs/send-with-nodejs
 
 export default async function handler(req, res) {
+  console.log('🔵 send-email.js called - Method:', req.method);
+  
   // Configuration CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   if (req.method === 'OPTIONS') {
+    console.log('✅ OPTIONS request - returning 200');
     return res.status(200).end();
   }
 
   if (req.method !== 'POST') {
+    console.log('❌ Method not allowed:', req.method);
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
+    console.log('📧 Email request body:', JSON.stringify(req.body, null, 2));
     const { type, to, data } = req.body;
 
     // Validation
@@ -60,6 +65,11 @@ export default async function handler(req, res) {
     }
 
     // Envoyer l'email via Resend
+    console.log('📤 Sending email to Resend API...');
+    console.log('📧 To:', to);
+    console.log('📋 Subject:', subject);
+    console.log('🔑 API Key present:', !!RESEND_API_KEY);
+    
     const response = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
@@ -74,7 +84,9 @@ export default async function handler(req, res) {
       })
     });
 
+    console.log('📥 Resend API response status:', response.status);
     const result = await response.json();
+    console.log('📥 Resend API response:', JSON.stringify(result, null, 2));
 
     if (!response.ok) {
       console.error('Resend API error:', result);

@@ -6,6 +6,7 @@ const Organizer = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [organizerName, setOrganizerName] = useState('');
+  const [organizerEmail, setOrganizerEmail] = useState('');
   const [eventType, setEventType] = useState('');
   const [customEvent, setCustomEvent] = useState('');
   const [location, setLocation] = useState('');
@@ -967,6 +968,7 @@ body: JSON.stringify({
 };
 
 export default Organizer;
+
 
 
 

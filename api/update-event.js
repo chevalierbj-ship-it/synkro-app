@@ -149,12 +149,23 @@ export default async function handler(req, res) {
           })
         });
         
+        console.log('📧 Email API response status:', emailResponse.status);
+        
+        // Lire la réponse en texte d'abord
+        const responseText = await emailResponse.text();
+        console.log('📧 Email API response (first 500 chars):', responseText.substring(0, 500));
+        
         if (!emailResponse.ok) {
-          const errorData = await emailResponse.json();
-          throw new Error(`Email API error: ${JSON.stringify(errorData)}`);
+          let errorData;
+          try {
+            errorData = JSON.parse(responseText);
+          } catch {
+            errorData = { error: 'Non-JSON response', response: responseText.substring(0, 200) };
+          }
+          throw new Error(`Email API error (${emailResponse.status}): ${JSON.stringify(errorData)}`);
         }
         
-        const emailResult = await emailResponse.json();
+        const emailResult = JSON.parse(responseText);
         console.log('✅ Email sent to participant:', participant.email, '- Email ID:', emailResult.emailId);
       } catch (emailError) {
         console.error('⚠️ Failed to send email to participant:', emailError.message);
@@ -210,12 +221,23 @@ export default async function handler(req, res) {
                 })
               });
               
+              console.log('📧 Email API response status:', emailResponse.status);
+              
+              // Lire la réponse en texte d'abord
+              const responseText = await emailResponse.text();
+              console.log('📧 Email API response (first 500 chars):', responseText.substring(0, 500));
+              
               if (!emailResponse.ok) {
-                const errorData = await emailResponse.json();
-                throw new Error(`Email API error: ${JSON.stringify(errorData)}`);
+                let errorData;
+                try {
+                  errorData = JSON.parse(responseText);
+                } catch {
+                  errorData = { error: 'Non-JSON response', response: responseText.substring(0, 200) };
+                }
+                throw new Error(`Email API error (${emailResponse.status}): ${JSON.stringify(errorData)}`);
               }
               
-              const emailResult = await emailResponse.json();
+              const emailResult = JSON.parse(responseText);
               console.log('✅ Date confirmation email sent to:', email, '- Email ID:', emailResult.emailId);
             } catch (emailError) {
               console.error('⚠️ Failed to send date confirmation email to:', email, '- Error:', emailError.message);

@@ -132,7 +132,7 @@ export default async function handler(req, res) {
           available: availabilities[date.id] === true
         }));
 
-        await fetch(`https://${process.env.VERCEL_URL || 'synkro-app-bice.vercel.app'}/api/send-email`, {
+        const emailResponse = await fetch(`https://${process.env.VERCEL_URL || 'synkro-app-bice.vercel.app'}/api/send-email`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -149,9 +149,15 @@ export default async function handler(req, res) {
           })
         });
         
-        console.log('✅ Email sent to participant:', participant.email);
+        if (!emailResponse.ok) {
+          const errorData = await emailResponse.json();
+          throw new Error(`Email API error: ${JSON.stringify(errorData)}`);
+        }
+        
+        const emailResult = await emailResponse.json();
+        console.log('✅ Email sent to participant:', participant.email, '- Email ID:', emailResult.emailId);
       } catch (emailError) {
-        console.error('⚠️ Failed to send email to participant:', emailError);
+        console.error('⚠️ Failed to send email to participant:', emailError.message);
       }
     }
 
@@ -184,24 +190,36 @@ export default async function handler(req, res) {
 
           // Envoyer l'email à tous
           for (const email of allEmails) {
-            await fetch(`https://${process.env.VERCEL_URL || 'synkro-app-bice.vercel.app'}/api/send-email`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({
-                type: 'date-confirmed',
-                to: email,
-                data: {
-                  eventType: eventRecord.fields.type,
-                  finalDate: bestDate.label,
-                  organizerName: eventRecord.fields.organizerName,
-                  participants: [eventRecord.fields.organizerName, ...bestDate.voters],
-                  location: eventRecord.fields.location || null,
-                  calendarLink: null
-                }
-              })
-            });
+            try {
+              const emailResponse = await fetch(`https://${process.env.VERCEL_URL || 'synkro-app-bice.vercel.app'}/api/send-email`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                  type: 'date-confirmed',
+                  to: email,
+                  data: {
+                    eventType: eventRecord.fields.type,
+                    finalDate: bestDate.label,
+                    organizerName: eventRecord.fields.organizerName,
+                    participants: [eventRecord.fields.organizerName, ...bestDate.voters],
+                    location: eventRecord.fields.location || null,
+                    calendarLink: null
+                  }
+                })
+              });
+              
+              if (!emailResponse.ok) {
+                const errorData = await emailResponse.json();
+                throw new Error(`Email API error: ${JSON.stringify(errorData)}`);
+              }
+              
+              const emailResult = await emailResponse.json();
+              console.log('✅ Date confirmation email sent to:', email, '- Email ID:', emailResult.emailId);
+            } catch (emailError) {
+              console.error('⚠️ Failed to send date confirmation email to:', email, '- Error:', emailError.message);
+            }
           }
           
           // Marquer comme notifié dans Airtable
@@ -218,9 +236,8 @@ export default async function handler(req, res) {
             })
           });
           
-          console.log('✅ Date confirmation emails sent to all participants');
         } catch (emailError) {
-          console.error('⚠️ Failed to send date confirmation emails:', emailError);
+          console.error('⚠️ Failed to send date confirmation emails:', emailError.message);
         }
       }
     }

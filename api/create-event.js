@@ -2,6 +2,7 @@
 // API Serverless pour créer un événement dans Airtable
 // ✅ Version SÉCURISÉE avec variables d'environnement
 // ✅ Utilise l'ID de la table au lieu du nom
+// ✅ Envoie un email à l'organisateur
 
 export default async function handler(req, res) {
   // Configuration CORS
@@ -95,57 +96,45 @@ export default async function handler(req, res) {
     const result = await response.json();
     console.log('Event created successfully:', result.id);
 
-    // ========================================
-// MODIFICATION DE /api/create-event.js
-// ========================================
-// À AJOUTER À LA FIN de la fonction handler, JUSTE AVANT le return final
-
-// 🆕 ENVOI EMAIL À L'ORGANISATEUR
-try {
-  // Construire le lien de l'événement
-  const eventLink = `https://synkro-app-bice.vercel.app/participant?id=${shortId}`;
-  
-  // Envoyer l'email à l'organisateur
-  await fetch(`${process.env.VERCEL_URL || 'https://synkro-app-bice.vercel.app'}/api/send-email`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      type: 'organizer-created',
-      to: organizerEmail, // L'email de l'organisateur
-      data: {
-        eventType: type,
-        eventLink: eventLink,
-        organizerName: organizerName,
-        dates: dates,
-        location: location || null
+    // 🆕 ENVOI EMAIL À L'ORGANISATEUR
+    if (eventData.organizerEmail) {
+      try {
+        // Construire le lien de l'événement
+        const eventLink = `https://synkro-app-bice.vercel.app/participant?id=${eventId}`;
+        
+        // Envoyer l'email à l'organisateur
+        await fetch(`${process.env.VERCEL_URL || 'https://synkro-app-bice.vercel.app'}/api/send-email`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            type: 'organizer-created',
+            to: eventData.organizerEmail,
+            data: {
+              eventType: eventData.type,
+              eventLink: eventLink,
+              organizerName: eventData.organizerName,
+              dates: eventData.dates,
+              location: eventData.location || null
+            }
+          })
+        });
+        
+        console.log('✅ Email sent to organizer:', eventData.organizerEmail);
+      } catch (emailError) {
+        // Ne pas bloquer la création si l'email échoue
+        console.error('⚠️ Failed to send email to organizer:', emailError);
       }
-    })
-  });
-  
-  console.log('✅ Email sent to organizer:', organizerEmail);
-} catch (emailError) {
-  // Ne pas bloquer la création si l'email échoue
-  console.error('⚠️ Failed to send email to organizer:', emailError);
-}
-
-// Return original response
-return res.status(200).json({
-  success: true,
-  id: shortId,
-  airtableId: airtableRecord.id,
-  message: 'Event created successfully',
-  eventLink: `https://synkro-app-bice.vercel.app/participant?id=${shortId}`
-});
+    }
     
     // Retourner l'ID de l'événement et le lien
     return res.status(200).json({
       success: true,
       eventId: eventId,
       airtableId: result.id,
-      participantLink: `${process.env.VERCEL_URL || 'https://synkro-app.vercel.app'}/event/${eventId}`,
-      participantLink: `https://synkro-app-bice.vercel.app/respond?id=${eventId}`,
+      participantLink: `https://synkro-app-bice.vercel.app/participant?id=${eventId}`,
+      message: 'Event created successfully'
     });
 
   } catch (error) {
@@ -156,4 +145,3 @@ return res.status(200).json({
     });
   }
 }
-// Force rebuild

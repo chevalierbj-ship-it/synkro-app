@@ -103,7 +103,7 @@ export default async function handler(req, res) {
         const eventLink = `https://synkro-app-bice.vercel.app/participant?id=${eventId}`;
         
         // Envoyer l'email à l'organisateur
-        await fetch(`${process.env.VERCEL_URL || 'https://synkro-app-bice.vercel.app'}/api/send-email`, {
+        await fetch(`https://${process.env.VERCEL_URL || 'synkro-app-bice.vercel.app'}/api/send-email`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'

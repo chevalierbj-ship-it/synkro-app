@@ -122,6 +122,118 @@ export default async function handler(req, res) {
 
     const updatedRecord = await updateResponse.json();
 
+    // ========================================
+// MODIFICATION DE /api/update-event.js
+// ========================================
+// À AJOUTER JUSTE AVANT le return final
+
+// 🆕 ENVOI EMAIL AU PARTICIPANT (après son vote)
+if (participant.email) {
+  try {
+    // Préparer les dates votées pour l'email
+    const votedDates = updatedEvent.dates.map(date => ({
+      label: date.label,
+      available: availabilities[date.id] === true
+    }));
+
+    await fetch(`${process.env.VERCEL_URL || 'https://synkro-app-bice.vercel.app'}/api/send-email`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        type: 'participant-voted',
+        to: participant.email,
+        data: {
+          participantName: participant.name,
+          eventType: updatedEvent.type,
+          organizerName: updatedEvent.organizerName,
+          votedDates: votedDates
+        }
+      })
+    });
+    
+    console.log('✅ Email sent to participant:', participant.email);
+  } catch (emailError) {
+    console.error('⚠️ Failed to send email to participant:', emailError);
+  }
+}
+
+// 🆕 VÉRIFIER SI UNE DATE ATTEINT LA MAJORITÉ
+// Si expectedParticipants est défini et qu'une date atteint 70%+
+if (updatedEvent.expectedParticipants) {
+  const bestDate = updatedEvent.dates.reduce((prev, current) => 
+    current.votes > prev.votes ? current : prev
+  );
+  
+  const percentage = (bestDate.votes / updatedEvent.expectedParticipants) * 100;
+  
+  // Si majorité atteinte (70%+) et pas déjà notifié
+  if (percentage >= 70 && !updatedEvent.dateConfirmedEmailSent) {
+    try {
+      // Collecter tous les emails (organisateur + participants)
+      const allEmails = [updatedEvent.organizerEmail];
+      
+      updatedEvent.dates.forEach(date => {
+        if (date.voters && date.voters.length > 0) {
+          date.voters.forEach(voter => {
+            if (voter.email && !allEmails.includes(voter.email)) {
+              allEmails.push(voter.email);
+            }
+          });
+        }
+      });
+
+      // Envoyer l'email à tous
+      for (const email of allEmails) {
+        await fetch(`${process.env.VERCEL_URL || 'https://synkro-app-bice.vercel.app'}/api/send-email`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            type: 'date-confirmed',
+            to: email,
+            data: {
+              eventType: updatedEvent.type,
+              finalDate: bestDate.label,
+              organizerName: updatedEvent.organizerName,
+              participants: [updatedEvent.organizerName, ...bestDate.voters.map(v => v.name)],
+              location: updatedEvent.location || null,
+              calendarLink: null // On peut ajouter un lien Google Calendar ici
+            }
+          })
+        });
+      }
+      
+      // Marquer comme notifié dans Airtable
+      await fetch(`https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/${process.env.AIRTABLE_TABLE_NAME}/${airtableId}`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${process.env.AIRTABLE_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          fields: {
+            dateConfirmedEmailSent: true
+          }
+        })
+      });
+      
+      console.log('✅ Date confirmation emails sent to all participants');
+    } catch (emailError) {
+      console.error('⚠️ Failed to send date confirmation emails:', emailError);
+    }
+  }
+}
+
+// Return original response
+return res.status(200).json({
+  success: true,
+  event: updatedEvent,
+  message: 'Vote recorded successfully'
+});
+    
     // 5. Retourner les données mises à jour
     return res.status(200).json({
       success: true,

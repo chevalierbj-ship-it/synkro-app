@@ -275,7 +275,7 @@ body: JSON.stringify({
                 value={organizerName}
                 onChange={(e) => setOrganizerName(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && organizerName.trim() && setStep(2)}
-                placeholder="Ex: Thomas"
+                placeholder="Ex: Benjamin"
                 autoFocus
                 style={{
                   width: '100%',
@@ -290,6 +290,49 @@ body: JSON.stringify({
                 onFocus={(e) => e.target.style.borderColor = '#8B5CF6'}
                 onBlur={(e) => e.target.style.borderColor = '#E9D5FF'}
               />
+              {/* 📧 Email de l'organisateur */}
+<div style={{ marginBottom: '24px' }}>
+  <label style={{ 
+    display: 'block', 
+    marginBottom: '8px', 
+    color: '#1E1B4B',
+    fontSize: '15px',
+    fontWeight: '600'
+  }}>
+    📧 Ton email (optionnel)
+  </label>
+  <input
+    type="email"
+    value={organizerEmail}
+    onChange={(e) => setOrganizerEmail(e.target.value)}
+    placeholder="ton.email@example.com"
+    style={{
+      width: '100%',
+      padding: '14px',
+      border: '2px solid #E9D5FF',
+      borderRadius: '12px',
+      fontSize: '16px',
+      outline: 'none',
+      transition: 'all 0.3s'
+    }}
+    onFocus={(e) => {
+      e.target.style.borderColor = '#8B5CF6';
+      e.target.style.boxShadow = '0 0 0 3px rgba(139, 92, 246, 0.1)';
+    }}
+    onBlur={(e) => {
+      e.target.style.borderColor = '#E9D5FF';
+      e.target.style.boxShadow = 'none';
+    }}
+  />
+  <p style={{ 
+    fontSize: '13px', 
+    color: '#6B7280', 
+    marginTop: '6px',
+    fontStyle: 'italic'
+  }}>
+    💡 Pour recevoir un email de confirmation avec le lien à partager
+  </p>
+</div>
             </div>
 
             <button
@@ -968,6 +1011,7 @@ body: JSON.stringify({
 };
 
 export default Organizer;
+
 
 
 

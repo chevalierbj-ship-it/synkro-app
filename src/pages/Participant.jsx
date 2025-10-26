@@ -14,7 +14,25 @@ const Participant = () => {
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
+// 🆕 AJOUTE ICI LES 3 FONCTIONS CALENDRIER
+const addToGoogleCalendar = () => {
+  // ... code complet fourni
+};
+
+const addToOutlook = () => {
+  // ... code complet fourni
+};
+
+const downloadICS = () => {
+  // ... code complet fourni
+};
+
+// Existing useEffect
+useEffect(() => {
+  // ...
+  
   // 🔥 Charger l'événement depuis Airtable via API
   useEffect(() => {
     const fetchEvent = async () => {
@@ -743,4 +761,5 @@ const Participant = () => {
 };
 
 export default Participant;
+
 

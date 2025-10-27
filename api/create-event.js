@@ -104,13 +104,15 @@ export default async function handler(req, res) {
         if (!RESEND_API_KEY) {
           console.error('⚠️ RESEND_API_KEY not configured');
         } else {
-          // Construire le lien de l'événement
+          // Construire les liens
           const eventLink = `https://synkro-app-bice.vercel.app/participant?id=${eventId}`;
+          const adminLink = `https://synkro-app-bice.vercel.app/admin?id=${eventId}`;
           
           // Générer le HTML de l'email
           const emailHTML = getOrganizerCreatedEmail({
             eventType: eventData.type,
             eventLink: eventLink,
+            adminLink: adminLink,
             organizerName: eventData.organizerName,
             dates: eventData.dates,
             location: eventData.location || null
@@ -171,7 +173,7 @@ export default async function handler(req, res) {
 // ========================================
 
 function getOrganizerCreatedEmail(data) {
-  const { eventType, eventLink, organizerName, dates, location } = data;
+  const { eventType, eventLink, adminLink, organizerName, dates, location } = data;
   
   return `
 <!DOCTYPE html>
@@ -230,13 +232,23 @@ function getOrganizerCreatedEmail(data) {
                 </p>
               </div>
 
-              <a href="${eventLink}" style="display: block; background: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%); color: white; text-decoration: none; padding: 18px 32px; border-radius: 12px; font-size: 16px; font-weight: 700; text-align: center; margin-bottom: 20px;">
+              <a href="${eventLink}" style="display: block; background: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%); color: white; text-decoration: none; padding: 18px 32px; border-radius: 12px; font-size: 16px; font-weight: 700; text-align: center; margin-bottom: 16px;">
                 📤 Partager avec mes invités
               </a>
 
-              <div style="background: #FEF3C7; border-radius: 12px; padding: 16px; border-left: 4px solid #F59E0B;">
+              <a href="${adminLink}" style="display: block; background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); color: white; text-decoration: none; padding: 18px 32px; border-radius: 12px; font-size: 16px; font-weight: 700; text-align: center; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);">
+                🔐 Accéder à mon dashboard
+              </a>
+
+              <div style="background: #FEF3C7; border-radius: 12px; padding: 16px; border-left: 4px solid #F59E0B; margin-bottom: 16px;">
                 <p style="color: #92400E; margin: 0; font-size: 14px; line-height: 1.6;">
                   💡 <strong>Astuce :</strong> Copie ce lien et envoie-le par WhatsApp, email ou SMS à tes invités !
+                </p>
+              </div>
+
+              <div style="background: #DBEAFE; border-radius: 12px; padding: 16px; border-left: 4px solid #3B82F6;">
+                <p style="color: #1E40AF; margin: 0; font-size: 14px; line-height: 1.6;">
+                  🔐 <strong>Dashboard privé :</strong> Garde le lien du dashboard pour suivre les votes en temps réel ! Ne le partage pas avec tes invités.
                 </p>
               </div>
             </td>

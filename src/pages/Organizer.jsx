@@ -865,6 +865,26 @@ body: JSON.stringify({
               </code>
             </div>
 
+            {/* Admin Link */}
+            <div style={{
+              background: 'linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%)',
+              padding: '20px',
+              borderRadius: '16px',
+              marginBottom: '24px',
+              wordBreak: 'break-all',
+              border: '2px solid #FDE68A'
+            }}>
+              <div style={{ fontSize: '13px', color: '#92400E', marginBottom: '8px', fontWeight: '600' }}>
+                🔐 Ton dashboard organisateur (privé)
+              </div>
+              <code style={{ color: '#D97706', fontWeight: '700', fontSize: '13px' }}>
+                {`${window.location.origin}/admin?id=${eventLink.split('id=')[1]}`}
+              </code>
+              <div style={{ fontSize: '12px', color: '#92400E', marginTop: '8px', fontStyle: 'italic' }}>
+                💡 Garde ce lien pour suivre les votes en temps réel !
+              </div>
+            </div>
+
             {/* Share buttons */}
             <div style={{ position: 'relative', marginBottom: '12px' }}>
               <button

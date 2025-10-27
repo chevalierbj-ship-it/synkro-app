@@ -9,7 +9,6 @@ const Participant = () => {
   
   const [step, setStep] = useState(1);
   const [userName, setUserName] = useState('');
-  const [userEmail, setUserEmail] = useState('');
   const [selectedDate, setSelectedDate] = useState(null);
   const [availabilities, setAvailabilities] = useState({});
   const [event, setEvent] = useState(null);
@@ -95,7 +94,8 @@ const Participant = () => {
           return;
         }
 
-        const eventData = await response.json();
+        const responseData = await response.json();
+        const eventData = responseData.event;
         setEvent(eventData);
         
         // Initialiser les availabilities avec null pour chaque date
@@ -204,8 +204,7 @@ const Participant = () => {
           eventId: event.id,
           airtableId: event.airtableId,
           participant: {
-            name: userName.trim(),
-            email: userEmail.trim() || null  // 🆕 AJOUTÉ !
+            name: userName.trim()
           },
           availabilities: availabilities
         })
@@ -398,50 +397,6 @@ const Participant = () => {
                 e.target.style.boxShadow = 'none';
               }}
             />
-
-            {/* 📧 Email du participant */}
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ 
-                display: 'block', 
-                marginBottom: '8px', 
-                color: '#1E1B4B',
-                fontSize: '15px',
-                fontWeight: '600'
-              }}>
-                📧 Ton email (optionnel)
-              </label>
-              <input
-                type="email"
-                value={userEmail}
-                onChange={(e) => setUserEmail(e.target.value)}
-                placeholder="ton.email@example.com"
-                style={{
-                  width: '100%',
-                  padding: '16px',
-                  border: '2px solid #E9D5FF',
-                  borderRadius: '12px',
-                  fontSize: '16px',
-                  outline: 'none',
-                  transition: 'all 0.3s'
-                }}
-                onFocus={(e) => {
-                  e.target.style.borderColor = '#8B5CF6';
-                  e.target.style.boxShadow = '0 0 0 3px rgba(139, 92, 246, 0.1)';
-                }}
-                onBlur={(e) => {
-                  e.target.style.borderColor = '#E9D5FF';
-                  e.target.style.boxShadow = 'none';
-                }}
-              />
-              <p style={{ 
-                fontSize: '13px', 
-                color: '#6B7280', 
-                marginTop: '6px',
-                fontStyle: 'italic'
-              }}>
-                💡 Pour recevoir une confirmation et être notifié de la date finale
-              </p>
-            </div>
 
             <button
               onClick={() => setStep(2)}

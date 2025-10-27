@@ -1,7 +1,5 @@
 // /api/get-event.js
-// API Serverless pour récupérer un événement depuis Airtable
-// ✅ Version SÉCURISÉE avec variables d'environnement
-// ✅ Utilise l'ID de la table au lieu du nom
+// API pour récupérer les détails d'un événement
 
 export default async function handler(req, res) {
   // Configuration CORS
@@ -20,84 +18,75 @@ export default async function handler(req, res) {
   try {
     const { id } = req.query;
 
-    console.log('Received event ID:', id);
-
     if (!id) {
       return res.status(400).json({ error: 'Event ID is required' });
     }
 
-    // 🔐 RÉCUPÉRATION DES VARIABLES D'ENVIRONNEMENT
+    console.log('📥 Fetching event with ID:', id);
+
+    // Configuration Airtable
     const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN;
     const BASE_ID = process.env.AIRTABLE_BASE_ID;
-    const TABLE_ID = process.env.AIRTABLE_EVENTS_TABLE_ID;
+    const TABLE_ID = process.env.AIRTABLE_TABLE_ID;
 
-    // Vérification que les variables existent
     if (!AIRTABLE_TOKEN || !BASE_ID || !TABLE_ID) {
-      console.error('Missing environment variables');
-      console.error('AIRTABLE_TOKEN:', AIRTABLE_TOKEN ? 'Present' : 'Missing');
-      console.error('BASE_ID:', BASE_ID ? 'Present' : 'Missing');
-      console.error('TABLE_ID:', TABLE_ID ? 'Present' : 'Missing');
-      return res.status(500).json({ 
-        error: 'Server configuration error',
-        details: 'Missing Airtable credentials'
-      });
+      console.error('Missing Airtable configuration');
+      return res.status(500).json({ error: 'Database configuration error' });
     }
 
-    console.log('Fetching event from Airtable...');
-    console.log('Using BASE_ID:', BASE_ID);
-    console.log('Using TABLE_ID:', TABLE_ID);
+    // Rechercher l'événement par eventId dans Airtable
+    // On utilise filterByFormula pour chercher par le champ eventId
+    const searchUrl = `https://api.airtable.com/v0/${BASE_ID}/${TABLE_ID}?filterByFormula={eventId}='${id}'`;
 
-    // Récupérer l'événement depuis Airtable avec l'ID de la table
-    const response = await fetch(
-      `https://api.airtable.com/v0/${BASE_ID}/${TABLE_ID}?filterByFormula={eventId}='${id}'`,
-      {
-        headers: {
-          'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
-          'Content-Type': 'application/json'
-        }
+    console.log('🔍 Searching event in Airtable...');
+    
+    const searchResponse = await fetch(searchUrl, {
+      headers: {
+        'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
+        'Content-Type': 'application/json'
       }
-    );
+    });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Airtable error:', errorText);
-      console.error('Status:', response.status);
-      return res.status(500).json({ 
-        error: 'Failed to fetch event from Airtable',
-        details: errorText,
-        status: response.status
-      });
+    if (!searchResponse.ok) {
+      const errorText = await searchResponse.text();
+      console.error('Airtable search error:', errorText);
+      return res.status(500).json({ error: 'Database search error' });
     }
 
-    const data = await response.json();
+    const searchData = await searchResponse.json();
 
-    console.log('Airtable response:', JSON.stringify(data, null, 2));
-
-    if (!data.records || data.records.length === 0) {
-      console.log('No event found with ID:', id);
+    if (!searchData.records || searchData.records.length === 0) {
+      console.log('❌ Event not found:', id);
       return res.status(404).json({ error: 'Event not found' });
     }
 
-    // Retourner l'événement
-    const record = data.records[0];
-    console.log('Event found:', record.fields.eventId);
+    const record = searchData.records[0];
+    console.log('✅ Event found:', record.id);
 
-    const eventData = {
-      id: record.fields.eventId,
-      airtableId: record.id, // Important pour les updates
+    // Parser les champs JSON
+    const dates = record.fields.dates ? JSON.parse(record.fields.dates) : [];
+    const participants = record.fields.participants ? JSON.parse(record.fields.participants) : [];
+
+    // Construire l'objet événement
+    const event = {
+      eventId: record.fields.eventId,
+      airtableId: record.id,
       type: record.fields.type,
       organizerName: record.fields.organizerName,
-      organizerEmail: record.fields.organizerEmail,
-      location: record.fields.location,
-      expectedParticipants: record.fields.expectedParticipants,
-      dates: JSON.parse(record.fields.dates || '[]'),
-      participants: JSON.parse(record.fields.participants || '[]'),
+      organizerEmail: record.fields.organizerEmail || null,
+      location: record.fields.location || null,
+      expectedParticipants: record.fields.expectedParticipants || 0,
       totalResponded: record.fields.totalResponded || 0,
-      createdAt: record.fields.createdAt,
-      status: record.fields.status || 'active'
+      dates: dates,
+      participants: participants,
+      status: record.fields.status || 'active',
+      createdAt: record.fields.createdAt
     };
 
-    return res.status(200).json(eventData);
+    return res.status(200).json({
+      success: true,
+      event: event
+    });
 
   } catch (error) {
     console.error('Error fetching event:', error);

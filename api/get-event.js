@@ -27,10 +27,18 @@ export default async function handler(req, res) {
     // Configuration Airtable
     const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN;
     const BASE_ID = process.env.AIRTABLE_BASE_ID;
-    const TABLE_ID = process.env.AIRTABLE_TABLE_ID;
+    const TABLE_ID = process.env.AIRTABLE_EVENTS_TABLE_ID;
+
+    console.log('🔑 Checking Airtable config...');
+    console.log('AIRTABLE_TOKEN:', AIRTABLE_TOKEN ? 'Present' : 'MISSING');
+    console.log('BASE_ID:', BASE_ID ? BASE_ID : 'MISSING');
+    console.log('TABLE_ID:', TABLE_ID ? TABLE_ID : 'MISSING');
 
     if (!AIRTABLE_TOKEN || !BASE_ID || !TABLE_ID) {
-      console.error('Missing Airtable configuration');
+      console.error('❌ Missing Airtable configuration');
+      console.error('AIRTABLE_TOKEN:', !!AIRTABLE_TOKEN);
+      console.error('BASE_ID:', !!BASE_ID);
+      console.error('TABLE_ID:', !!TABLE_ID);
       return res.status(500).json({ error: 'Database configuration error' });
     }
 

@@ -201,7 +201,7 @@ const Participant = () => {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          eventId: event.id,
+          eventId: event.eventId,
           airtableId: event.airtableId,
           participant: {
             name: userName.trim()

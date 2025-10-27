@@ -158,7 +158,7 @@ body: JSON.stringify({
       console.log('Event created successfully:', result);
       
       // Créer le lien
-      const fullLink = `${window.location.origin}/respond?id=${result.eventId}`;
+      const fullLink = `${window.location.origin}/participant?id=${result.eventId}`;
       setEventLink(fullLink);
       setStep(6);
       

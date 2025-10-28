@@ -9,6 +9,8 @@ const Participant = () => {
   
   const [step, setStep] = useState(1);
   const [userName, setUserName] = useState('');
+  const [userEmail, setUserEmail] = useState(''); // 🆕 Email optionnel
+  const [userEmail, setUserEmail] = useState(''); // 🆕 Email optionnel pour confirmation
   const [selectedDate, setSelectedDate] = useState(null);
   const [availabilities, setAvailabilities] = useState({});
   const [event, setEvent] = useState(null);
@@ -201,11 +203,9 @@ const Participant = () => {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          eventId: event.eventId,
-          airtableId: event.airtableId,
-          participant: {
-            name: userName.trim()
-          },
+          eventId: eventId,
+          participantName: userName.trim(),
+          participantEmail: userEmail.trim() || undefined,
           availabilities: availabilities
         })
       });
@@ -397,6 +397,42 @@ const Participant = () => {
                 e.target.style.boxShadow = 'none';
               }}
             />
+
+            <input
+              type="email"
+              value={userEmail}
+              onChange={(e) => setUserEmail(e.target.value)}
+              placeholder="Ton email (optionnel, pour confirmation)"
+              style={{
+                width: '100%',
+                padding: '16px',
+                border: '2px solid #E9D5FF',
+                borderRadius: '12px',
+                fontSize: '16px',
+                marginBottom: '12px',
+                outline: 'none',
+                transition: 'all 0.3s'
+              }}
+              onFocus={(e) => {
+                e.target.style.borderColor = '#8B5CF6';
+                e.target.style.boxShadow = '0 0 0 3px rgba(139, 92, 246, 0.1)';
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = '#E9D5FF';
+                e.target.style.boxShadow = 'none';
+              }}
+            />
+
+            <div style={{
+              marginBottom: '20px',
+              fontSize: '13px',
+              color: '#6B7280',
+              textAlign: 'center',
+              lineHeight: '1.5'
+            }}>
+              💌 Ton email est optionnel. Si tu le donnes, tu recevras une confirmation par email.
+            </div>
+
 
             <button
               onClick={() => setStep(2)}

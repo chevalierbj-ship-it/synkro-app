@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Calendar, Users, CheckCircle, Clock, Share2, Copy, Sparkles, MapPin, AlertCircle, TrendingUp, BarChart } from 'lucide-react';
+import { Calendar, Users, CheckCircle, Clock, Share2, Copy, Sparkles, MapPin, AlertCircle, TrendingUp, BarChart, Pause, Play, Volume2, VolumeX, RefreshCw } from 'lucide-react';
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -14,6 +14,82 @@ const Admin = () => {
   const [selectedDateToConfirm, setSelectedDateToConfirm] = useState(null);
   const [copySuccess, setCopySuccess] = useState(false);
 
+  // 🆕 ÉTATS TEMPS RÉEL
+  const [countdown, setCountdown] = useState(10);
+  const [isAutoRefreshEnabled, setIsAutoRefreshEnabled] = useState(true);
+  const [lastRefreshTime, setLastRefreshTime] = useState(null);
+  const [previousParticipantCount, setPreviousParticipantCount] = useState(0);
+  const [newParticipants, setNewParticipants] = useState([]);
+  const [isSoundEnabled, setIsSoundEnabled] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const intervalRef = useRef(null);
+  const countdownRef = useRef(null);
+
+  // 🔊 Fonction pour jouer un son de notification
+  const playNotificationSound = () => {
+    if (!isSoundEnabled) return;
+    
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    oscillator.frequency.value = 800;
+    oscillator.type = 'sine';
+    
+    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+    
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.2);
+  };
+
+  // 📊 Fonction de récupération des données
+  const fetchEvent = async () => {
+    try {
+      setIsRefreshing(true);
+      const response = await fetch(`/api/get-event?id=${eventId}`);
+      
+      if (!response.ok) {
+        throw new Error('Événement non trouvé');
+      }
+
+      const data = await response.json();
+      const newEvent = data.event;
+
+      // 🔔 Détection de nouveaux participants
+      if (event && newEvent.participants) {
+        const oldCount = event.participants?.length || 0;
+        const newCount = newEvent.participants.length;
+
+        if (newCount > oldCount) {
+          const newParticipantsList = newEvent.participants.slice(oldCount);
+          setNewParticipants(newParticipantsList.map(p => p.name));
+          playNotificationSound();
+
+          // Retirer l'animation après 3 secondes
+          setTimeout(() => {
+            setNewParticipants([]);
+          }, 3000);
+        }
+      }
+
+      setEvent(newEvent);
+      setLastRefreshTime(new Date());
+      setLoading(false);
+      setIsRefreshing(false);
+    } catch (err) {
+      console.error('Error fetching event:', err);
+      setError(err.message);
+      setLoading(false);
+      setIsRefreshing(false);
+    }
+  };
+
+  // ⏱️ Gestion du countdown et auto-refresh
   useEffect(() => {
     if (!eventId) {
       setError('ID d\'événement manquant');
@@ -21,30 +97,45 @@ const Admin = () => {
       return;
     }
 
-    const fetchEvent = async () => {
-      try {
-        const response = await fetch(`/api/get-event?id=${eventId}`);
-        
-        if (!response.ok) {
-          throw new Error('Événement non trouvé');
-        }
-
-        const data = await response.json();
-        setEvent(data.event);
-        setLoading(false);
-      } catch (err) {
-        console.error('Error fetching event:', err);
-        setError(err.message);
-        setLoading(false);
-      }
-    };
-
+    // Premier chargement
     fetchEvent();
 
-    // Rafraîchir toutes les 10 secondes
-    const interval = setInterval(fetchEvent, 10000);
-    return () => clearInterval(interval);
+    // Démarrer le countdown
+    countdownRef.current = setInterval(() => {
+      setCountdown(prev => {
+        if (prev <= 1) {
+          return 10;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      if (countdownRef.current) clearInterval(countdownRef.current);
+    };
   }, [eventId]);
+
+  // 🔄 Auto-refresh quand countdown = 10 et auto-refresh activé
+  useEffect(() => {
+    if (countdown === 10 && isAutoRefreshEnabled && event) {
+      fetchEvent();
+    }
+  }, [countdown, isAutoRefreshEnabled]);
+
+  // ⏸️ Toggle pause/play
+  const toggleAutoRefresh = () => {
+    setIsAutoRefreshEnabled(prev => !prev);
+    if (!isAutoRefreshEnabled) {
+      setCountdown(10); // Reset countdown quand on réactive
+    }
+  };
+
+  // 🔄 Refresh manuel
+  const manualRefresh = () => {
+    setCountdown(10);
+    fetchEvent();
+  };
 
   const participantLink = `${window.location.origin}/participant?id=${eventId}`;
 
@@ -200,6 +291,147 @@ const Admin = () => {
           </p>
         </div>
 
+        {/* 🆕 BANDEAU TEMPS RÉEL */}
+        <div style={{
+          background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+          padding: '16px 20px',
+          borderRadius: '12px',
+          marginBottom: '28px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '12px'
+        }}>
+          {/* Pastille "En direct" avec pulse */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{
+              width: '12px',
+              height: '12px',
+              background: '#FFF',
+              borderRadius: '50%',
+              animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+              boxShadow: '0 0 0 0 rgba(255, 255, 255, 0.7)'
+            }}></div>
+            <span style={{ color: 'white', fontWeight: '700', fontSize: '15px' }}>
+              🟢 En direct
+            </span>
+            {lastRefreshTime && (
+              <span style={{ color: 'rgba(255,255,255,0.8)', fontSize: '13px' }}>
+                • Mis à jour à {lastRefreshTime.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+              </span>
+            )}
+          </div>
+
+          {/* Contrôles */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {/* Countdown */}
+            <div style={{
+              background: 'rgba(255,255,255,0.2)',
+              padding: '8px 14px',
+              borderRadius: '8px',
+              color: 'white',
+              fontWeight: '700',
+              fontSize: '14px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}>
+              <Clock size={16} />
+              {isAutoRefreshEnabled ? `${countdown}s` : '⏸️'}
+            </div>
+
+            {/* Bouton Pause/Play */}
+            <button
+              onClick={toggleAutoRefresh}
+              style={{
+                padding: '8px 12px',
+                background: 'rgba(255,255,255,0.2)',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                fontWeight: '600',
+                fontSize: '13px',
+                transition: 'background 0.2s'
+              }}
+              onMouseEnter={(e) => e.target.style.background = 'rgba(255,255,255,0.3)'}
+              onMouseLeave={(e) => e.target.style.background = 'rgba(255,255,255,0.2)'}
+            >
+              {isAutoRefreshEnabled ? <><Pause size={16} /> Pause</> : <><Play size={16} /> Play</>}
+            </button>
+
+            {/* Bouton Son */}
+            <button
+              onClick={() => setIsSoundEnabled(!isSoundEnabled)}
+              style={{
+                padding: '8px 12px',
+                background: 'rgba(255,255,255,0.2)',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                transition: 'background 0.2s'
+              }}
+              onMouseEnter={(e) => e.target.style.background = 'rgba(255,255,255,0.3)'}
+              onMouseLeave={(e) => e.target.style.background = 'rgba(255,255,255,0.2)'}
+            >
+              {isSoundEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
+            </button>
+
+            {/* Bouton Refresh manuel */}
+            <button
+              onClick={manualRefresh}
+              disabled={isRefreshing}
+              style={{
+                padding: '8px 12px',
+                background: 'rgba(255,255,255,0.2)',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: isRefreshing ? 'not-allowed' : 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                fontWeight: '600',
+                fontSize: '13px',
+                transition: 'background 0.2s',
+                opacity: isRefreshing ? 0.5 : 1
+              }}
+              onMouseEnter={(e) => !isRefreshing && (e.target.style.background = 'rgba(255,255,255,0.3)')}
+              onMouseLeave={(e) => !isRefreshing && (e.target.style.background = 'rgba(255,255,255,0.2)')}
+            >
+              <RefreshCw size={16} style={{ animation: isRefreshing ? 'spin 1s linear infinite' : 'none' }} />
+              Actualiser
+            </button>
+          </div>
+        </div>
+
+        {/* 🔔 Badge "Nouveau vote !" */}
+        {newParticipants.length > 0 && (
+          <div style={{
+            background: 'linear-gradient(135deg, #F59E0B 0%, #EF4444 100%)',
+            padding: '16px',
+            borderRadius: '12px',
+            marginBottom: '20px',
+            animation: 'flash 0.5s ease-in-out',
+            boxShadow: '0 4px 12px rgba(245, 158, 11, 0.4)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'white', fontWeight: '700', fontSize: '15px' }}>
+              <Sparkles size={20} />
+              Nouveau{newParticipants.length > 1 ? 'x' : ''} vote{newParticipants.length > 1 ? 's' : ''} ! 🎉
+            </div>
+            <div style={{ color: 'rgba(255,255,255,0.9)', fontSize: '13px', marginTop: '6px' }}>
+              {newParticipants.join(', ')} {newParticipants.length > 1 ? 'ont' : 'a'} voté !
+            </div>
+          </div>
+        )}
+
         {/* Info Événement */}
         <div style={{
           background: 'linear-gradient(135deg, #F5F3FF 0%, #E9D5FF 100%)',
@@ -229,65 +461,67 @@ const Admin = () => {
           gap: '16px',
           marginBottom: '28px'
         }}>
-          {/* Participants */}
+          {/* Participants attendus */}
+          {event.expectedParticipants && (
+            <div style={{
+              background: 'linear-gradient(135deg, #EEF2FF 0%, #DBEAFE 100%)',
+              padding: '20px',
+              borderRadius: '12px',
+              border: '2px solid #DBEAFE'
+            }}>
+              <div style={{ fontSize: '13px', color: '#6B7280', fontWeight: '600', marginBottom: '8px' }}>
+                👥 Participants attendus
+              </div>
+              <div style={{ fontSize: '28px', fontWeight: '800', color: '#1E40AF' }}>
+                {event.expectedParticipants}
+              </div>
+            </div>
+          )}
+
+          {/* Réponses reçues */}
           <div style={{
-            background: 'white',
-            border: '2px solid #E9D5FF',
-            borderRadius: '16px',
+            background: 'linear-gradient(135deg, #F0FDF4 0%, #D1FAE5 100%)',
             padding: '20px',
-            textAlign: 'center'
+            borderRadius: '12px',
+            border: '2px solid #D1FAE5'
           }}>
-            <Users size={32} color="#8B5CF6" style={{ margin: '0 auto 12px' }} />
-            <div style={{ fontSize: '32px', fontWeight: '700', color: '#1E1B4B', marginBottom: '4px' }}>
+            <div style={{ fontSize: '13px', color: '#6B7280', fontWeight: '600', marginBottom: '8px' }}>
+              ✅ Réponses reçues
+            </div>
+            <div style={{ fontSize: '28px', fontWeight: '800', color: '#059669' }}>
               {event.totalResponded || 0}
             </div>
-            <div style={{ fontSize: '14px', color: '#6B7280' }}>
-              Participants
-            </div>
-            {event.expectedParticipants > 0 && (
-              <div style={{ fontSize: '12px', color: '#8B5CF6', marginTop: '4px', fontWeight: '600' }}>
-                sur {event.expectedParticipants} attendus ({progressPercentage}%)
-              </div>
-            )}
           </div>
 
-          {/* Meilleure Date */}
-          <div style={{
-            background: 'white',
-            border: '2px solid #E9D5FF',
-            borderRadius: '16px',
-            padding: '20px',
-            textAlign: 'center'
-          }}>
-            <TrendingUp size={32} color="#10B981" style={{ margin: '0 auto 12px' }} />
-            <div style={{ fontSize: '18px', fontWeight: '700', color: '#1E1B4B', marginBottom: '4px' }}>
-              {bestDate ? bestDate.votes : 0} votes
-            </div>
-            <div style={{ fontSize: '12px', color: '#6B7280', lineHeight: '1.4' }}>
-              {bestDate ? bestDate.label : 'Aucun vote'}
-            </div>
-            {event.expectedParticipants > 0 && bestDate && (
-              <div style={{ fontSize: '12px', color: '#10B981', marginTop: '4px', fontWeight: '600' }}>
-                {getDatePercentage(bestDate)}% d'accord
+          {/* Date favorite */}
+          {bestDate && (
+            <div style={{
+              background: 'linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%)',
+              padding: '20px',
+              borderRadius: '12px',
+              border: '2px solid #FDE68A'
+            }}>
+              <div style={{ fontSize: '13px', color: '#6B7280', fontWeight: '600', marginBottom: '8px' }}>
+                ⭐ Date favorite
               </div>
-            )}
-          </div>
+              <div style={{ fontSize: '16px', fontWeight: '700', color: '#92400E' }}>
+                {bestDate.label}
+              </div>
+              <div style={{ fontSize: '13px', color: '#92400E', marginTop: '4px' }}>
+                {bestDate.votes} vote{bestDate.votes !== 1 ? 's' : ''}
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Progression vers l'objectif */}
-        {event.expectedParticipants > 0 && (
-          <div style={{
-            background: 'white',
-            border: '2px solid #E9D5FF',
-            borderRadius: '16px',
-            padding: '20px',
-            marginBottom: '28px'
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
-              <span style={{ fontSize: '14px', fontWeight: '600', color: '#1E1B4B' }}>
-                📊 Progression
-              </span>
-              <span style={{ fontSize: '14px', fontWeight: '700', color: '#8B5CF6' }}>
+        {/* Progression globale */}
+        {event.expectedParticipants && (
+          <div style={{ marginBottom: '28px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+              <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#1E1B4B', margin: 0 }}>
+                📊 Taux de participation
+              </h3>
+              <span style={{ fontSize: '20px', fontWeight: '800', color: progressPercentage >= 70 ? '#10B981' : '#8B5CF6' }}>
                 {progressPercentage}%
               </span>
             </div>
@@ -383,32 +617,38 @@ const Admin = () => {
               borderRadius: '12px',
               overflow: 'hidden'
             }}>
-              {event.participants.map((participant, index) => (
-                <div key={index} style={{
-                  padding: '16px',
-                  borderBottom: index < event.participants.length - 1 ? '1px solid #E9D5FF' : 'none',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center'
-                }}>
-                  <div>
-                    <div style={{ fontSize: '15px', fontWeight: '600', color: '#1E1B4B', marginBottom: '4px' }}>
-                      {participant.name}
+              {event.participants.map((participant, index) => {
+                const isNew = newParticipants.includes(participant.name);
+                return (
+                  <div key={index} style={{
+                    padding: '16px',
+                    borderBottom: index < event.participants.length - 1 ? '1px solid #E9D5FF' : 'none',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    background: isNew ? 'linear-gradient(90deg, rgba(251,191,36,0.1) 0%, rgba(252,211,77,0.1) 100%)' : 'transparent',
+                    animation: isNew ? 'flash 0.5s ease-in-out' : 'none'
+                  }}>
+                    <div>
+                      <div style={{ fontSize: '15px', fontWeight: '600', color: '#1E1B4B', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        {participant.name}
+                        {isNew && <span style={{ fontSize: '11px', background: '#F59E0B', color: 'white', padding: '2px 8px', borderRadius: '12px', fontWeight: '700' }}>NOUVEAU</span>}
+                      </div>
+                      <div style={{ fontSize: '12px', color: '#6B7280' }}>
+                        {new Date(participant.votedAt).toLocaleDateString('fr-FR', { 
+                          day: 'numeric', 
+                          month: 'short', 
+                          hour: '2-digit', 
+                          minute: '2-digit' 
+                        })}
+                      </div>
                     </div>
-                    <div style={{ fontSize: '12px', color: '#6B7280' }}>
-                      {new Date(participant.votedAt).toLocaleDateString('fr-FR', { 
-                        day: 'numeric', 
-                        month: 'short', 
-                        hour: '2-digit', 
-                        minute: '2-digit' 
-                      })}
+                    <div style={{ fontSize: '13px', color: '#8B5CF6', fontWeight: '600' }}>
+                      {Object.values(participant.availabilities).filter(v => v === true).length} dates ✓
                     </div>
                   </div>
-                  <div style={{ fontSize: '13px', color: '#8B5CF6', fontWeight: '600' }}>
-                    {Object.values(participant.availabilities).filter(v => v === true).length} dates ✓
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
@@ -450,7 +690,7 @@ const Admin = () => {
                   padding: '12px',
                   background: copySuccess ? '#10B981' : 'white',
                   color: copySuccess ? 'white' : '#8B5CF6',
-                  border: '2px solid' + (copySuccess ? '#10B981' : '#8B5CF6'),
+                  border: '2px solid ' + (copySuccess ? '#10B981' : '#8B5CF6'),
                   borderRadius: '8px',
                   fontSize: '14px',
                   fontWeight: '600',
@@ -515,6 +755,39 @@ const Admin = () => {
           ← Retour à l'accueil
         </button>
       </div>
+
+      {/* 🎨 ANIMATIONS CSS */}
+      <style>{`
+        @keyframes pulse {
+          0%, 100% {
+            opacity: 1;
+            box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7);
+          }
+          50% {
+            opacity: 0.8;
+            box-shadow: 0 0 0 8px rgba(255, 255, 255, 0);
+          }
+        }
+
+        @keyframes flash {
+          0%, 100% {
+            opacity: 1;
+          }
+          50% {
+            opacity: 0.8;
+            transform: scale(1.02);
+          }
+        }
+
+        @keyframes spin {
+          from {
+            transform: rotate(0deg);
+          }
+          to {
+            transform: rotate(360deg);
+          }
+        }
+      `}</style>
     </div>
   );
 };

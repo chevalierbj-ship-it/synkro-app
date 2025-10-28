@@ -1,5 +1,4 @@
 // API : Mettre à jour un événement avec les votes d'un participant + envoyer emails
-import fetch from 'node-fetch';
 
 export default async function handler(req, res) {
   // Autoriser uniquement POST

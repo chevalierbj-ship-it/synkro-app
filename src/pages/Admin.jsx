@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Calendar, Users, CheckCircle, Clock, Share2, Copy, Sparkles, MapPin, AlertCircle, TrendingUp, BarChart, Pause, Play, Volume2, VolumeX, RefreshCw } from 'lucide-react';
+import { Calendar, Users, CheckCircle, Clock, Share2, Copy, Sparkles, MapPin, AlertCircle, TrendingUp, BarChart, Pause, Play, Volume2, VolumeX, RefreshCw, Bell } from 'lucide-react';
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -14,7 +14,7 @@ const Admin = () => {
   const [selectedDateToConfirm, setSelectedDateToConfirm] = useState(null);
   const [copySuccess, setCopySuccess] = useState(false);
 
-  // 🆕 ÉTATS TEMPS RÉEL
+  // États temps réel
   const [countdown, setCountdown] = useState(10);
   const [isAutoRefreshEnabled, setIsAutoRefreshEnabled] = useState(true);
   const [lastRefreshTime, setLastRefreshTime] = useState(null);
@@ -23,10 +23,14 @@ const Admin = () => {
   const [isSoundEnabled, setIsSoundEnabled] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
+  // 🆕 État pour la relance
+  const [isSendingReminder, setIsSendingReminder] = useState(false);
+  const [reminderSuccess, setReminderSuccess] = useState(false);
+
   const intervalRef = useRef(null);
   const countdownRef = useRef(null);
 
-  // 🔊 Fonction pour jouer un son de notification
+  // Fonction pour jouer un son de notification
   const playNotificationSound = () => {
     if (!isSoundEnabled) return;
     
@@ -47,7 +51,7 @@ const Admin = () => {
     oscillator.stop(audioContext.currentTime + 0.2);
   };
 
-  // 📊 Fonction de récupération des données
+  // Fonction de récupération des données
   const fetchEvent = async () => {
     try {
       setIsRefreshing(true);
@@ -60,7 +64,7 @@ const Admin = () => {
       const data = await response.json();
       const newEvent = data.event;
 
-      // 🔔 Détection de nouveaux participants
+      // Détection de nouveaux participants
       if (event && newEvent.participants) {
         const oldCount = event.participants?.length || 0;
         const newCount = newEvent.participants.length;
@@ -70,7 +74,6 @@ const Admin = () => {
           setNewParticipants(newParticipantsList.map(p => p.name));
           playNotificationSound();
 
-          // Retirer l'animation après 3 secondes
           setTimeout(() => {
             setNewParticipants([]);
           }, 3000);
@@ -89,7 +92,7 @@ const Admin = () => {
     }
   };
 
-  // ⏱️ Gestion du countdown et auto-refresh
+  // Gestion du countdown et auto-refresh
   useEffect(() => {
     if (!eventId) {
       setError('ID d\'événement manquant');
@@ -97,10 +100,8 @@ const Admin = () => {
       return;
     }
 
-    // Premier chargement
     fetchEvent();
 
-    // Démarrer le countdown
     countdownRef.current = setInterval(() => {
       setCountdown(prev => {
         if (prev <= 1) {
@@ -116,25 +117,58 @@ const Admin = () => {
     };
   }, [eventId]);
 
-  // 🔄 Auto-refresh quand countdown = 10 et auto-refresh activé
+  // Auto-refresh quand countdown = 10
   useEffect(() => {
     if (countdown === 10 && isAutoRefreshEnabled && event) {
       fetchEvent();
     }
   }, [countdown, isAutoRefreshEnabled]);
 
-  // ⏸️ Toggle pause/play
+  // Toggle pause/play
   const toggleAutoRefresh = () => {
     setIsAutoRefreshEnabled(prev => !prev);
     if (!isAutoRefreshEnabled) {
-      setCountdown(10); // Reset countdown quand on réactive
+      setCountdown(10);
     }
   };
 
-  // 🔄 Refresh manuel
+  // Refresh manuel
   const manualRefresh = () => {
     setCountdown(10);
     fetchEvent();
+  };
+
+  // 🆕 FONCTION : Relancer les non-votants
+  const sendReminder = async () => {
+    if (isSendingReminder) return;
+
+    setIsSendingReminder(true);
+    setReminderSuccess(false);
+
+    try {
+      const response = await fetch('/api/send-reminder', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ eventId })
+      });
+
+      if (!response.ok) {
+        throw new Error('Erreur lors de l\'envoi de la relance');
+      }
+
+      setReminderSuccess(true);
+      setTimeout(() => {
+        setReminderSuccess(false);
+      }, 3000);
+
+    } catch (error) {
+      console.error('Error sending reminder:', error);
+      alert('Erreur lors de l\'envoi de la relance. Réessayez.');
+    } finally {
+      setIsSendingReminder(false);
+    }
   };
 
   const participantLink = `${window.location.origin}/participant?id=${eventId}`;
@@ -179,7 +213,7 @@ const Admin = () => {
     return Math.round((date.votes / event.expectedParticipants) * 100);
   };
 
-  // 🔥 Écran de chargement
+  // Écran de chargement
   if (loading) {
     return (
       <div style={{ 
@@ -198,7 +232,7 @@ const Admin = () => {
     );
   }
 
-  // ❌ Écran d'erreur
+  // Écran d'erreur
   if (error || !event) {
     return (
       <div style={{ 
@@ -246,6 +280,7 @@ const Admin = () => {
 
   const bestDate = getBestDate();
   const progressPercentage = getProgressPercentage();
+  const remainingParticipants = Math.max(0, (event.expectedParticipants || 0) - (event.totalResponded || 0));
 
   return (
     <div style={{ 
@@ -291,7 +326,7 @@ const Admin = () => {
           </p>
         </div>
 
-        {/* 🆕 BANDEAU TEMPS RÉEL */}
+        {/* Bandeau Temps Réel */}
         <div style={{
           background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
           padding: '16px 20px',
@@ -303,7 +338,6 @@ const Admin = () => {
           flexWrap: 'wrap',
           gap: '12px'
         }}>
-          {/* Pastille "En direct" avec pulse */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div style={{
               width: '12px',
@@ -323,9 +357,7 @@ const Admin = () => {
             )}
           </div>
 
-          {/* Contrôles */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            {/* Countdown */}
             <div style={{
               background: 'rgba(255,255,255,0.2)',
               padding: '8px 14px',
@@ -341,7 +373,6 @@ const Admin = () => {
               {isAutoRefreshEnabled ? `${countdown}s` : '⏸️'}
             </div>
 
-            {/* Bouton Pause/Play */}
             <button
               onClick={toggleAutoRefresh}
               style={{
@@ -364,7 +395,6 @@ const Admin = () => {
               {isAutoRefreshEnabled ? <><Pause size={16} /> Pause</> : <><Play size={16} /> Play</>}
             </button>
 
-            {/* Bouton Son */}
             <button
               onClick={() => setIsSoundEnabled(!isSoundEnabled)}
               style={{
@@ -384,7 +414,6 @@ const Admin = () => {
               {isSoundEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
             </button>
 
-            {/* Bouton Refresh manuel */}
             <button
               onClick={manualRefresh}
               disabled={isRefreshing}
@@ -412,7 +441,7 @@ const Admin = () => {
           </div>
         </div>
 
-        {/* 🔔 Badge "Nouveau vote !" */}
+        {/* Badge Nouveau vote */}
         {newParticipants.length > 0 && (
           <div style={{
             background: 'linear-gradient(135deg, #F59E0B 0%, #EF4444 100%)',
@@ -428,6 +457,26 @@ const Admin = () => {
             </div>
             <div style={{ color: 'rgba(255,255,255,0.9)', fontSize: '13px', marginTop: '6px' }}>
               {newParticipants.join(', ')} {newParticipants.length > 1 ? 'ont' : 'a'} voté !
+            </div>
+          </div>
+        )}
+
+        {/* Badge Relance réussie */}
+        {reminderSuccess && (
+          <div style={{
+            background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+            padding: '16px',
+            borderRadius: '12px',
+            marginBottom: '20px',
+            animation: 'flash 0.5s ease-in-out',
+            boxShadow: '0 4px 12px rgba(16, 185, 129, 0.4)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'white', fontWeight: '700', fontSize: '15px' }}>
+              <CheckCircle size={20} />
+              Relance envoyée avec succès ! 📧
+            </div>
+            <div style={{ color: 'rgba(255,255,255,0.9)', fontSize: '13px', marginTop: '6px' }}>
+              Vérifie ton email pour le message à partager
             </div>
           </div>
         )}
@@ -461,7 +510,6 @@ const Admin = () => {
           gap: '16px',
           marginBottom: '28px'
         }}>
-          {/* Participants attendus */}
           {event.expectedParticipants && (
             <div style={{
               background: 'linear-gradient(135deg, #EEF2FF 0%, #DBEAFE 100%)',
@@ -478,7 +526,6 @@ const Admin = () => {
             </div>
           )}
 
-          {/* Réponses reçues */}
           <div style={{
             background: 'linear-gradient(135deg, #F0FDF4 0%, #D1FAE5 100%)',
             padding: '20px',
@@ -493,7 +540,6 @@ const Admin = () => {
             </div>
           </div>
 
-          {/* Date favorite */}
           {bestDate && (
             <div style={{
               background: 'linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%)',
@@ -578,7 +624,6 @@ const Admin = () => {
                 </span>
               </div>
               
-              {/* Barre de progression */}
               <div style={{
                 width: '100%',
                 height: '8px',
@@ -595,7 +640,6 @@ const Admin = () => {
                 }}></div>
               </div>
 
-              {/* Participants disponibles */}
               {date.voters && date.voters.length > 0 && (
                 <div style={{ fontSize: '12px', color: '#6B7280' }}>
                   👥 {date.voters.join(', ')}
@@ -658,6 +702,49 @@ const Admin = () => {
           <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#1E1B4B', marginBottom: '16px' }}>
             ⚡ Actions rapides
           </h3>
+          
+          {/* 🆕 BOUTON RELANCER LES NON-VOTANTS */}
+          {remainingParticipants > 0 && (
+            <div style={{
+              background: 'linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%)',
+              padding: '20px',
+              borderRadius: '12px',
+              marginBottom: '16px',
+              border: '2px solid #FCD34D'
+            }}>
+              <div style={{ fontSize: '14px', fontWeight: '600', color: '#1E1B4B', marginBottom: '12px' }}>
+                📣 Relancer les participants
+              </div>
+              <div style={{ fontSize: '13px', color: '#92400E', marginBottom: '12px' }}>
+                {remainingParticipants} personne{remainingParticipants > 1 ? 's' : ''} n'{remainingParticipants > 1 ? 'ont' : 'a'} pas encore voté
+              </div>
+              <button
+                onClick={sendReminder}
+                disabled={isSendingReminder}
+                style={{
+                  width: '100%',
+                  padding: '14px',
+                  background: isSendingReminder 
+                    ? '#D1D5DB' 
+                    : 'linear-gradient(135deg, #F59E0B 0%, #EF4444 100%)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '15px',
+                  fontWeight: '700',
+                  cursor: isSendingReminder ? 'not-allowed' : 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  boxShadow: isSendingReminder ? 'none' : '0 4px 12px rgba(245, 158, 11, 0.3)'
+                }}
+              >
+                <Bell size={18} />
+                {isSendingReminder ? 'Envoi en cours...' : 'Relancer les non-votants'}
+              </button>
+            </div>
+          )}
           
           {/* Partager le lien */}
           <div style={{
@@ -756,7 +843,7 @@ const Admin = () => {
         </button>
       </div>
 
-      {/* 🎨 ANIMATIONS CSS */}
+      {/* Animations CSS */}
       <style>{`
         @keyframes pulse {
           0%, 100% {

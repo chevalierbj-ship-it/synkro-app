@@ -13,6 +13,9 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
+  // Normaliser participantEmail (peut être undefined, null, ou string vide)
+  const normalizedEmail = participantEmail && participantEmail.trim() !== '' ? participantEmail.trim() : null;
+
   // Configuration Airtable
   const AIRTABLE_API_TOKEN = process.env.AIRTABLE_API_TOKEN || process.env.VITE_AIRTABLE_API_TOKEN;
   const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID || process.env.VITE_AIRTABLE_BASE_ID;
@@ -53,7 +56,7 @@ export default async function handler(req, res) {
 
     const newParticipant = {
       name: participantName,
-      email: participantEmail || '',
+      email: normalizedEmail || '',
       availabilities: availabilities,
       votedAt: new Date().toISOString()
     };
@@ -112,11 +115,11 @@ export default async function handler(req, res) {
       throw new Error('Failed to update event');
     }
 
-    // 4. 📧 ENVOI EMAIL CONFIRMATION PARTICIPANT
-    if (participantEmail) {
+    // 4. 📧 ENVOI EMAIL CONFIRMATION PARTICIPANT (seulement si email fourni)
+    if (normalizedEmail) {
       await sendParticipantConfirmationEmail({
         participantName,
-        participantEmail,
+        participantEmail: normalizedEmail,
         eventType: event.type,
         organizerName: event.organizerName,
         location: event.location,

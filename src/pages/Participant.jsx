@@ -10,7 +10,6 @@ const Participant = () => {
   const [step, setStep] = useState(1);
   const [userName, setUserName] = useState('');
   const [userEmail, setUserEmail] = useState(''); // 🆕 Email optionnel
-  const [userEmail, setUserEmail] = useState(''); // 🆕 Email optionnel pour confirmation
   const [selectedDate, setSelectedDate] = useState(null);
   const [availabilities, setAvailabilities] = useState({});
   const [event, setEvent] = useState(null);
@@ -103,7 +102,7 @@ const Participant = () => {
         // Initialiser les availabilities avec null pour chaque date
         const initialAvailabilities = {};
         eventData.dates.forEach(date => {
-          initialAvailabilities[date.id] = null;
+          initialAvailabilities[date.label] = null;
         });
         setAvailabilities(initialAvailabilities);
         
@@ -118,9 +117,9 @@ const Participant = () => {
     fetchEvent();
   }, [eventId]);
 
-  const handleAvailabilityToggle = (dateId) => {
+  const handleAvailabilityToggle = (dateLabel) => {
     setAvailabilities(prev => {
-      const current = prev[dateId];
+      const current = prev[dateLabel];
       let newValue;
       
       if (current === null) {
@@ -131,7 +130,7 @@ const Participant = () => {
         newValue = null; // Aucune réponse
       }
       
-      return { ...prev, [dateId]: newValue };
+      return { ...prev, [dateLabel]: newValue };
     });
   };
 
@@ -476,7 +475,7 @@ const Participant = () => {
             <div style={{ marginBottom: '32px' }}>
               {event.dates.map((date, index) => {
                 const badge = getBadge(date);
-                const availability = availabilities[date.id];
+                const availability = availabilities[date.label];
                 
                 return (
                   <div 
@@ -507,7 +506,7 @@ const Participant = () => {
 
                     {/* Bouton de sélection */}
                     <button
-                      onClick={() => handleAvailabilityToggle(date.id)}
+                      onClick={() => handleAvailabilityToggle(date.label)}
                       style={{
                         width: '100%',
                         padding: '20px',

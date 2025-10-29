@@ -20,7 +20,7 @@ export default async function handler(req, res) {
   // Configuration Airtable
   const AIRTABLE_API_TOKEN = process.env.AIRTABLE_API_TOKEN || process.env.VITE_AIRTABLE_API_TOKEN;
   const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID || process.env.VITE_AIRTABLE_BASE_ID;
-  const AIRTABLE_TABLE_ID = 'Events';
+  const AIRTABLE_TABLE_ID = 'Synkro_Events';
 
   if (!AIRTABLE_API_TOKEN || !AIRTABLE_BASE_ID) {
     console.error('Missing Airtable configuration');

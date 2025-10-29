@@ -194,10 +194,17 @@ export default async function handler(req, res) {
       );
     }
 
+    // 6. Retourner l'événement mis à jour pour le frontend
     return res.status(200).json({
       success: true,
       message: 'Vote enregistré avec succès',
-      celebrationSent: currentPercentage >= 70 && previousPercentage < 70
+      celebrationSent: currentPercentage >= 70 && previousPercentage < 70,
+      event: {
+        ...event,
+        participants: updatedParticipants,
+        dates: updatedDates,
+        totalResponded: totalResponded
+      }
     });
 
   } catch (error) {

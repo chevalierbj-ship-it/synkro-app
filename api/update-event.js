@@ -1,5 +1,5 @@
 // API : Mettre à jour un événement avec les votes d'un participant + envoyer emails
-// ✅ VERSION DEBUG - Avec logs détaillés
+// ✅ VERSION FINALE - eventId corrigé
 
 export default async function handler(req, res) {
   // Autoriser uniquement POST
@@ -8,8 +8,6 @@ export default async function handler(req, res) {
   }
 
   const { eventId, participantName, participantEmail, availabilities } = req.body;
-
-  console.log('📥 Request received:', { eventId, participantName, hasEmail: !!participantEmail });
 
   // Validation
   if (!eventId || !participantName || !availabilities) {
@@ -25,71 +23,35 @@ export default async function handler(req, res) {
   const AIRTABLE_TABLE_ID = 'Events';
 
   if (!AIRTABLE_API_TOKEN || !AIRTABLE_BASE_ID) {
-    console.error('❌ Missing Airtable configuration');
+    console.error('Missing Airtable configuration');
     return res.status(500).json({ error: 'Server configuration error' });
   }
 
-  console.log('🔧 Airtable config:', { 
-    baseId: AIRTABLE_BASE_ID, 
-    tableId: AIRTABLE_TABLE_ID,
-    hasToken: !!AIRTABLE_API_TOKEN 
-  });
-
   try {
-    // 1. 🔍 RECHERCHER l'événement par son champ "id" custom
-    
-    // ✅ Essayer différentes syntaxes de filterByFormula
-    const searchUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}?filterByFormula={id}="${eventId}"`;
-    
-    console.log('🔍 Searching event with URL:', searchUrl);
-
-    const searchResponse = await fetch(searchUrl, {
-      headers: {
-        'Authorization': `Bearer ${AIRTABLE_API_TOKEN}`,
-        'Content-Type': 'application/json'
+    // 1. 🔍 RECHERCHER l'événement par son champ "eventId" (corrigé !)
+    console.log('🔍 Searching for event:', eventId);
+    const searchResponse = await fetch(
+      `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}?filterByFormula={eventId}="${eventId}"`,
+      {
+        headers: {
+          'Authorization': `Bearer ${AIRTABLE_API_TOKEN}`,
+          'Content-Type': 'application/json'
+        }
       }
-    });
-
-    console.log('📡 Search response status:', searchResponse.status);
+    );
 
     if (!searchResponse.ok) {
       const errorText = await searchResponse.text();
-      console.error('❌ Search failed:', errorText);
-      throw new Error(`Failed to search event: ${errorText}`);
+      console.error('Failed to search event:', errorText);
+      throw new Error('Failed to search event');
     }
 
     const searchData = await searchResponse.json();
-    console.log('📦 Search results:', { 
-      recordsFound: searchData.records?.length || 0,
-      records: searchData.records?.map(r => ({ id: r.id, fields: Object.keys(r.fields || {}) }))
-    });
     
     // Vérifier si l'événement existe
     if (!searchData.records || searchData.records.length === 0) {
-      console.error('❌ Event not found with id:', eventId);
-      
-      // 🔍 DEBUG: Lister tous les événements pour voir leur structure
-      console.log('🔍 Fetching all events to debug...');
-      const allEventsResponse = await fetch(
-        `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}?maxRecords=3`,
-        {
-          headers: {
-            'Authorization': `Bearer ${AIRTABLE_API_TOKEN}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-      
-      if (allEventsResponse.ok) {
-        const allEventsData = await allEventsResponse.json();
-        console.log('📊 Sample events structure:', JSON.stringify(allEventsData.records?.slice(0, 2), null, 2));
-      }
-      
-      return res.status(404).json({ 
-        error: 'Event not found',
-        eventId: eventId,
-        hint: 'Check the logs to see the event structure'
-      });
+      console.error('Event not found with eventId:', eventId);
+      return res.status(404).json({ error: 'Event not found' });
     }
 
     // Récupérer le record Airtable (avec son vrai record ID)
@@ -97,21 +59,11 @@ export default async function handler(req, res) {
     const airtableRecordId = airtableRecord.id;
     const event = airtableRecord.fields;
 
-    console.log('✅ Event found!', { 
-      eventId, 
-      airtableRecordId,
-      eventType: event.type,
-      organizerName: event.organizerName
-    });
+    console.log('✅ Event found:', eventId, '→ Airtable Record ID:', airtableRecordId);
 
     // 2. Mettre à jour les données de l'événement
     const existingParticipants = event.participants ? JSON.parse(event.participants) : [];
     const existingDates = event.dates ? JSON.parse(event.dates) : [];
-
-    console.log('📊 Current data:', {
-      participantsCount: existingParticipants.length,
-      datesCount: existingDates.length
-    });
 
     // Vérifier si le participant a déjà voté
     const existingParticipantIndex = existingParticipants.findIndex(
@@ -127,11 +79,11 @@ export default async function handler(req, res) {
 
     let updatedParticipants;
     if (existingParticipantIndex !== -1) {
-      console.log('🔄 Updating existing participant vote');
+      // Mise à jour d'un vote existant
       updatedParticipants = [...existingParticipants];
       updatedParticipants[existingParticipantIndex] = newParticipant;
     } else {
-      console.log('➕ Adding new participant');
+      // Nouveau participant
       updatedParticipants = [...existingParticipants, newParticipant];
     }
 
@@ -156,14 +108,7 @@ export default async function handler(req, res) {
 
     const totalResponded = updatedParticipants.length;
 
-    console.log('📊 Updated data:', {
-      totalResponded,
-      updatedDatesVotes: updatedDates.map(d => ({ label: d.label, votes: d.votes }))
-    });
-
     // 3. ✅ Sauvegarder dans Airtable AVEC LE BON RECORD ID
-    console.log('💾 Saving to Airtable...');
-    
     const updateResponse = await fetch(
       `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}/${airtableRecordId}`,
       {
@@ -184,15 +129,14 @@ export default async function handler(req, res) {
 
     if (!updateResponse.ok) {
       const errorText = await updateResponse.text();
-      console.error('❌ Failed to update event:', errorText);
-      throw new Error(`Failed to update event: ${errorText}`);
+      console.error('Failed to update event:', errorText);
+      throw new Error('Failed to update event');
     }
 
-    console.log('✅ Event updated successfully!');
+    console.log('✅ Event updated successfully');
 
     // 4. 📧 ENVOI EMAIL CONFIRMATION PARTICIPANT (seulement si email fourni)
     if (normalizedEmail) {
-      console.log('📧 Sending confirmation email to:', normalizedEmail);
       await sendParticipantConfirmationEmail({
         participantName,
         participantEmail: normalizedEmail,
@@ -212,17 +156,8 @@ export default async function handler(req, res) {
       ? Math.round((totalResponded / expectedParticipants) * 100) 
       : 0;
 
-    console.log('📊 Participation rate:', {
-      previous: previousPercentage,
-      current: currentPercentage,
-      totalResponded,
-      expectedParticipants
-    });
-
     // Si on vient d'atteindre 70% (et qu'on n'était pas déjà à 70% avant)
     if (currentPercentage >= 70 && previousPercentage < 70) {
-      console.log('🎉 70% reached! Sending celebration emails...');
-      
       // Trouver la date gagnante
       const bestDate = updatedDates.reduce((prev, current) => 
         current.votes > prev.votes ? current : prev
@@ -259,8 +194,6 @@ export default async function handler(req, res) {
       );
     }
 
-    console.log('✅ All done!');
-
     return res.status(200).json({
       success: true,
       message: 'Vote enregistré avec succès',
@@ -268,7 +201,7 @@ export default async function handler(req, res) {
     });
 
   } catch (error) {
-    console.error('❌ Error updating event:', error);
+    console.error('Error updating event:', error);
     return res.status(500).json({ 
       error: 'Failed to update event',
       details: error.message 

@@ -1,4 +1,5 @@
 // API : Mettre à jour un événement avec les votes d'un participant + envoyer emails
+// ✅ VERSION CORRIGÉE - Recherche par ID custom
 
 export default async function handler(req, res) {
   // Autoriser uniquement POST
@@ -27,9 +28,9 @@ export default async function handler(req, res) {
   }
 
   try {
-    // 1. Récupérer l'événement actuel
-    const getResponse = await fetch(
-      `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}/${eventId}`,
+    // 1. 🔍 RECHERCHER l'événement par son champ "id" custom (pas le record ID)
+    const searchResponse = await fetch(
+      `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}?filterByFormula={id}='${eventId}'`,
       {
         headers: {
           'Authorization': `Bearer ${AIRTABLE_API_TOKEN}`,
@@ -38,12 +39,24 @@ export default async function handler(req, res) {
       }
     );
 
-    if (!getResponse.ok) {
-      throw new Error('Event not found');
+    if (!searchResponse.ok) {
+      throw new Error('Failed to search event');
     }
 
-    const eventData = await getResponse.json();
-    const event = eventData.fields;
+    const searchData = await searchResponse.json();
+    
+    // Vérifier si l'événement existe
+    if (!searchData.records || searchData.records.length === 0) {
+      console.error('Event not found with id:', eventId);
+      return res.status(404).json({ error: 'Event not found' });
+    }
+
+    // Récupérer le record Airtable (avec son vrai record ID)
+    const airtableRecord = searchData.records[0];
+    const airtableRecordId = airtableRecord.id; // ✅ Le vrai record ID (recXXXXXXXXXX)
+    const event = airtableRecord.fields;
+
+    console.log('✅ Event found:', eventId, '→ Airtable Record ID:', airtableRecordId);
 
     // 2. Mettre à jour les données de l'événement
     const existingParticipants = event.participants ? JSON.parse(event.participants) : [];
@@ -92,9 +105,9 @@ export default async function handler(req, res) {
 
     const totalResponded = updatedParticipants.length;
 
-    // 3. Sauvegarder dans Airtable
+    // 3. ✅ Sauvegarder dans Airtable AVEC LE BON RECORD ID
     const updateResponse = await fetch(
-      `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}/${eventId}`,
+      `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}/${airtableRecordId}`,
       {
         method: 'PATCH',
         headers: {
@@ -112,8 +125,12 @@ export default async function handler(req, res) {
     );
 
     if (!updateResponse.ok) {
+      const errorText = await updateResponse.text();
+      console.error('Failed to update event:', errorText);
       throw new Error('Failed to update event');
     }
+
+    console.log('✅ Event updated successfully');
 
     // 4. 📧 ENVOI EMAIL CONFIRMATION PARTICIPANT (seulement si email fourni)
     if (normalizedEmail) {
@@ -158,7 +175,7 @@ export default async function handler(req, res) {
 
       // Sauvegarder qu'on a atteint 70%
       await fetch(
-        `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}/${eventId}`,
+        `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}/${airtableRecordId}`,
         {
           method: 'PATCH',
           headers: {
@@ -229,14 +246,14 @@ async function sendParticipantConfirmationEmail({
     
     <!-- Header -->
     <tr>
-      <td style="background: linear-gradient(135deg, #10B981 0%, #059669 100%); padding: 40px; text-align: center;">
-        <div style="width: 80px; height: 80px; background: white; border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 24px rgba(0,0,0,0.15);">
-          <span style="font-size: 48px;">✓</span>
+      <td style="background: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%); padding: 40px; text-align: center;">
+        <div style="font-size: 64px; margin-bottom: 12px;">
+          ✅
         </div>
-        <h1 style="margin: 0; font-size: 32px; color: white; font-weight: 800;">
+        <h1 style="margin: 0; font-size: 32px; color: white; font-weight: 800; text-shadow: 0 2px 10px rgba(0,0,0,0.1);">
           Vote confirmé !
         </h1>
-        <p style="margin: 12px 0 0 0; font-size: 16px; color: rgba(255,255,255,0.9);">
+        <p style="margin: 12px 0 0 0; font-size: 16px; color: rgba(255,255,255,0.9); font-weight: 500;">
           Merci ${participantName} ! 🎉
         </p>
       </td>
@@ -246,66 +263,57 @@ async function sendParticipantConfirmationEmail({
     <tr>
       <td style="padding: 40px;">
         
-        <!-- Message principal -->
-        <div style="text-align: center; margin-bottom: 32px;">
-          <p style="font-size: 18px; color: #1E1B4B; margin: 0 0 12px 0; line-height: 1.6;">
-            Ton vote a bien été enregistré pour l'événement :
-          </p>
-          <div style="background: linear-gradient(135deg, #F5F3FF 0%, #E9D5FF 100%); padding: 20px; border-radius: 12px; border: 2px solid #E9D5FF;">
-            <div style="font-size: 16px; color: #8B5CF6; font-weight: 700; margin-bottom: 8px;">
-              🎯 ${eventType}
-            </div>
-            <div style="font-size: 20px; color: #1E1B4B; font-weight: 700; margin-bottom: 8px;">
-              Organisé par ${organizerName}
-            </div>
-            ${location ? `
-              <div style="font-size: 14px; color: #8B5CF6; font-weight: 600;">
-                📍 ${location}
-              </div>
-            ` : ''}
+        <!-- Info événement -->
+        <div style="background: linear-gradient(135deg, #F5F3FF 0%, #E9D5FF 100%); padding: 24px; border-radius: 12px; margin-bottom: 28px; border: 2px solid #E9D5FF;">
+          <div style="font-size: 14px; color: #8B5CF6; font-weight: 700; margin-bottom: 8px;">
+            🎯 ${eventType}
           </div>
+          <div style="font-size: 18px; color: #1E1B4B; font-weight: 700; margin-bottom: 8px;">
+            Organisé par ${organizerName}
+          </div>
+          ${location ? `
+            <div style="font-size: 14px; color: #8B5CF6; font-weight: 600;">
+              📍 ${location}
+            </div>
+          ` : ''}
         </div>
 
-        <!-- Dates votées -->
-        <div style="margin-bottom: 32px;">
+        <!-- Tes disponibilités -->
+        <div style="margin-bottom: 28px;">
           <h2 style="font-size: 18px; color: #1E1B4B; font-weight: 700; margin: 0 0 16px 0;">
             📅 Tes disponibilités
           </h2>
-          <div style="background: #F0FDF4; padding: 20px; border-radius: 12px; border: 2px solid #D1FAE5;">
-            <p style="margin: 0; font-size: 16px; color: #065F46; font-weight: 600; line-height: 1.8;">
+          <div style="background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%); padding: 20px; border-radius: 12px; border: 2px solid #FCD34D;">
+            <div style="font-size: 15px; color: #92400E; font-weight: 600; line-height: 1.7;">
               ${votedDates || 'Aucune date sélectionnée'}
-            </p>
+            </div>
           </div>
         </div>
 
-        <!-- Message organisateur -->
-        <div style="background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%); padding: 20px; border-radius: 12px; margin-bottom: 32px;">
-          <p style="margin: 0; font-size: 14px; color: #92400E; line-height: 1.6;">
-            💡 <strong>${organizerName}</strong> sera notifié de ton vote et te contactera dès qu'une date sera confirmée !
+        <!-- Message info -->
+        <div style="background: linear-gradient(135deg, #E0E7FF 0%, #C7D2FE 100%); padding: 20px; border-radius: 12px; margin-bottom: 28px;">
+          <p style="margin: 0; font-size: 14px; color: #1E40AF; line-height: 1.6;">
+            💡 <strong>Besoin de modifier ?</strong><br>
+            Tu peux revenir sur le lien à tout moment pour changer tes disponibilités !
           </p>
         </div>
 
-        <!-- Boutons d'action -->
-        <div style="text-align: center; margin-bottom: 32px;">
-          <a href="${participantLink}" style="display: inline-block; padding: 16px 32px; background: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%); color: white; text-decoration: none; border-radius: 12px; font-weight: 700; font-size: 16px; box-shadow: 0 8px 20px rgba(139, 92, 246, 0.3); margin: 8px;">
-            ✏️ Modifier mon vote
+        <!-- CTA -->
+        <div style="text-align: center; margin-bottom: 28px;">
+          <a href="${participantLink}" style="display: inline-block; padding: 18px 32px; background: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%); color: white; text-decoration: none; border-radius: 14px; font-size: 16px; font-weight: 700; box-shadow: 0 8px 20px rgba(139, 92, 246, 0.3); transition: all 0.3s ease;">
+            🔗 Voir l'événement
           </a>
         </div>
 
-        <!-- Séparateur -->
-        <div style="border-top: 2px solid #E9D5FF; margin: 32px 0;"></div>
-
         <!-- Prochaines étapes -->
-        <div>
-          <h3 style="font-size: 16px; color: #1E1B4B; font-weight: 700; margin: 0 0 16px 0;">
-            📋 Et maintenant ?
+        <div style="background: #F9FAFB; padding: 20px; border-radius: 12px; border: 1px solid #E5E7EB;">
+          <h3 style="font-size: 15px; color: #1E1B4B; font-weight: 700; margin: 0 0 12px 0;">
+            🚀 Prochaines étapes
           </h3>
-          <div style="background: #F9FAFB; padding: 16px; border-radius: 8px; margin-bottom: 12px;">
-            <div style="font-size: 14px; color: #6B7280; line-height: 1.8;">
-              <strong style="color: #1E1B4B;">1.</strong> ${organizerName} attend que tout le monde vote<br>
-              <strong style="color: #1E1B4B;">2.</strong> La date avec le plus de votes sera choisie<br>
-              <strong style="color: #1E1B4B;">3.</strong> Tu recevras un email de confirmation avec tous les détails
-            </div>
+          <div style="font-size: 14px; color: #6B7280; line-height: 1.8;">
+            <strong style="color: #1E1B4B;">1.</strong> D'autres participants vont voter 👋<br>
+            <strong style="color: #1E1B4B;">2.</strong> La date avec le plus de votes sera choisie<br>
+            <strong style="color: #1E1B4B;">3.</strong> Tu recevras un email de confirmation avec tous les détails
           </div>
         </div>
 

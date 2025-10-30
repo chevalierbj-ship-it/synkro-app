@@ -16,6 +16,9 @@ const Organizer = () => {
   const [eventLink, setEventLink] = useState('');
   const [showShareMenu, setShowShareMenu] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+const [showEditModal, setShowEditModal] = useState(false);
+const [createdEvent, setCreatedEvent] = useState(null);
 
   const eventTypes = [
     { id: 'dinner', label: '🍽️ Dîner/Soirée', suggestion: 'Vendredi ou samedi soir, 19h30-21h', defaultTime: '20:00' },
@@ -1033,3 +1036,4 @@ body: JSON.stringify({
 };
 
 export default Organizer;
+

@@ -1,5 +1,5 @@
 // API : Mettre à jour un événement avec les votes d'un participant + envoyer emails
-// ✅ VERSION FINALE - eventId corrigé
+// ✅ VERSION CORRIGÉE - Gère correctement les votes modifiés
 
 export default async function handler(req, res) {
   // Autoriser uniquement POST
@@ -16,6 +16,9 @@ export default async function handler(req, res) {
 
   // Normaliser participantEmail (peut être undefined, null, ou string vide)
   const normalizedEmail = participantEmail && participantEmail.trim() !== '' ? participantEmail.trim() : null;
+  
+  // Normaliser le nom du participant (trim + lowercase pour comparaison)
+  const normalizedName = participantName.trim();
 
   // Configuration Airtable
   const AIRTABLE_API_TOKEN = process.env.AIRTABLE_API_TOKEN || process.env.VITE_AIRTABLE_API_TOKEN;
@@ -28,7 +31,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    // 1. 🔍 RECHERCHER l'événement par son champ "eventId" (corrigé !)
+    // 1. 🔍 RECHERCHER l'événement par son champ "eventId"
     console.log('🔍 Searching for event:', eventId);
     const searchResponse = await fetch(
       `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}?filterByFormula={eventId}="${eventId}"`,
@@ -65,25 +68,31 @@ export default async function handler(req, res) {
     const existingParticipants = event.participants ? JSON.parse(event.participants) : [];
     const existingDates = event.dates ? JSON.parse(event.dates) : [];
 
-    // Vérifier si le participant a déjà voté
+    // 🔧 CORRECTION : Vérifier si le participant a déjà voté (comparaison normalisée)
     const existingParticipantIndex = existingParticipants.findIndex(
-      p => p.name.toLowerCase() === participantName.toLowerCase()
+      p => p.name.trim().toLowerCase() === normalizedName.toLowerCase()
     );
 
+    const isUpdate = existingParticipantIndex !== -1;
+
+    console.log(`📊 Participant "${normalizedName}": ${isUpdate ? 'UPDATE' : 'NEW'}`);
+
     const newParticipant = {
-      name: participantName,
+      name: normalizedName,
       email: normalizedEmail || '',
       availabilities: availabilities,
       votedAt: new Date().toISOString()
     };
 
     let updatedParticipants;
-    if (existingParticipantIndex !== -1) {
-      // Mise à jour d'un vote existant
+    if (isUpdate) {
+      // ✅ Mise à jour d'un vote existant (REMPLACEMENT)
+      console.log(`🔄 Updating existing participant at index ${existingParticipantIndex}`);
       updatedParticipants = [...existingParticipants];
       updatedParticipants[existingParticipantIndex] = newParticipant;
     } else {
-      // Nouveau participant
+      // ✅ Nouveau participant (AJOUT)
+      console.log('➕ Adding new participant');
       updatedParticipants = [...existingParticipants, newParticipant];
     }
 
@@ -107,6 +116,8 @@ export default async function handler(req, res) {
     });
 
     const totalResponded = updatedParticipants.length;
+
+    console.log(`📈 Total participants: ${totalResponded}`);
 
     // 3. ✅ Sauvegarder dans Airtable AVEC LE BON RECORD ID
     const updateResponse = await fetch(
@@ -138,14 +149,15 @@ export default async function handler(req, res) {
     // 4. 📧 ENVOI EMAIL CONFIRMATION PARTICIPANT (seulement si email fourni)
     if (normalizedEmail) {
       await sendParticipantConfirmationEmail({
-        participantName,
+        participantName: normalizedName,
         participantEmail: normalizedEmail,
         eventType: event.type,
         organizerName: event.organizerName,
         location: event.location,
         dates: existingDates,
         availabilities,
-        eventId
+        eventId,
+        isUpdate // ✅ Indiquer si c'est une mise à jour
       });
     }
 
@@ -197,7 +209,8 @@ export default async function handler(req, res) {
     // 6. Retourner l'événement mis à jour pour le frontend
     return res.status(200).json({
       success: true,
-      message: 'Vote enregistré avec succès',
+      message: isUpdate ? 'Vote mis à jour avec succès' : 'Vote enregistré avec succès',
+      isUpdate: isUpdate,
       celebrationSent: currentPercentage >= 70 && previousPercentage < 70,
       event: {
         ...event,
@@ -225,7 +238,8 @@ async function sendParticipantConfirmationEmail({
   location,
   dates,
   availabilities,
-  eventId
+  eventId,
+  isUpdate = false
 }) {
   const RESEND_API_KEY = process.env.RESEND_API_KEY || process.env.VITE_RESEND_API_KEY;
 
@@ -234,97 +248,88 @@ async function sendParticipantConfirmationEmail({
     return;
   }
 
-  // Créer la liste des dates votées
-  const votedDates = dates
-    .filter(date => availabilities[date.label])
-    .map(date => date.label)
-    .join(', ');
-
-  const participantLink = `${process.env.VERCEL_URL || 'https://synkro-app-bice.vercel.app'}/participant?id=${eventId}`;
-
+  // Récupérer les dates disponibles
+  const availableDates = dates.filter(d => availabilities[d.label]);
+  
   const emailHtml = `
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Vote confirmé !</title>
+  <title>${isUpdate ? 'Vote mis à jour' : 'Vote confirmé'}</title>
 </head>
-<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: linear-gradient(135deg, #8B5CF6 0%, #EC4899 50%, #06B6D4 100%); min-height: 100vh; padding: 40px 20px;">
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f3f4f6;">
   
-  <table role="presentation" style="max-width: 600px; margin: 0 auto; background: white; border-radius: 24px; overflow: hidden; box-shadow: 0 24px 60px rgba(139, 92, 246, 0.3);">
+  <table role="presentation" style="max-width: 600px; margin: 40px auto; background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.1);">
     
     <!-- Header -->
     <tr>
       <td style="background: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%); padding: 40px; text-align: center;">
-        <div style="font-size: 64px; margin-bottom: 12px;">
-          ✅
+        <div style="width: 80px; height: 80px; background: white; border-radius: 50%; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center; font-size: 48px;">
+          ${isUpdate ? '🔄' : '✅'}
         </div>
-        <h1 style="margin: 0; font-size: 32px; color: white; font-weight: 800; text-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-          Vote confirmé !
+        <h1 style="color: white; margin: 0; font-size: 32px; font-weight: 800; text-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+          ${isUpdate ? 'Vote mis à jour !' : 'Merci d\'avoir voté !'}
         </h1>
-        <p style="margin: 12px 0 0 0; font-size: 16px; color: rgba(255,255,255,0.9); font-weight: 500;">
-          Merci ${participantName} ! 🎉
+        <p style="color: rgba(255,255,255,0.95); margin: 8px 0 0 0; font-size: 16px;">
+          ${eventType}
         </p>
       </td>
     </tr>
 
-    <!-- Contenu -->
+    <!-- Content -->
     <tr>
       <td style="padding: 40px;">
         
-        <!-- Info événement -->
-        <div style="background: linear-gradient(135deg, #F5F3FF 0%, #E9D5FF 100%); padding: 24px; border-radius: 12px; margin-bottom: 28px; border: 2px solid #E9D5FF;">
-          <div style="font-size: 14px; color: #8B5CF6; font-weight: 700; margin-bottom: 8px;">
-            🎯 ${eventType}
-          </div>
-          <div style="font-size: 18px; color: #1E1B4B; font-weight: 700; margin-bottom: 8px;">
-            Organisé par ${organizerName}
-          </div>
-          ${location ? `
-            <div style="font-size: 14px; color: #8B5CF6; font-weight: 600;">
-              📍 ${location}
-            </div>
-          ` : ''}
-        </div>
+        <p style="color: #6B7280; margin: 0 0 24px 0; font-size: 16px; line-height: 1.6;">
+          Salut ${participantName} ! 👋<br><br>
+          ${isUpdate 
+            ? 'Ton vote a été <strong>mis à jour</strong> avec succès pour l\'événement <strong>"' + eventType + '"</strong> organisé par ' + organizerName + '.' 
+            : 'Merci d\'avoir voté pour l\'événement <strong>"' + eventType + '"</strong> organisé par ' + organizerName + '.'}
+        </p>
 
-        <!-- Tes disponibilités -->
-        <div style="margin-bottom: 28px;">
-          <h2 style="font-size: 18px; color: #1E1B4B; font-weight: 700; margin: 0 0 16px 0;">
-            📅 Tes disponibilités
-          </h2>
-          <div style="background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%); padding: 20px; border-radius: 12px; border: 2px solid #FCD34D;">
-            <div style="font-size: 15px; color: #92400E; font-weight: 600; line-height: 1.7;">
-              ${votedDates || 'Aucune date sélectionnée'}
-            </div>
-          </div>
-        </div>
-
-        <!-- Message info -->
-        <div style="background: linear-gradient(135deg, #E0E7FF 0%, #C7D2FE 100%); padding: 20px; border-radius: 12px; margin-bottom: 28px;">
-          <p style="margin: 0; font-size: 14px; color: #1E40AF; line-height: 1.6;">
-            💡 <strong>Besoin de modifier ?</strong><br>
-            Tu peux revenir sur le lien à tout moment pour changer tes disponibilités !
+        ${location ? `
+        <div style="background: linear-gradient(135deg, #F5F3FF 0%, #E9D5FF 100%); padding: 16px; border-radius: 12px; margin-bottom: 24px; border-left: 4px solid #8B5CF6;">
+          <p style="margin: 0; font-size: 14px; color: #8B5CF6; font-weight: 700;">
+            📍 Lieu : ${location}
           </p>
         </div>
+        ` : ''}
 
-        <!-- CTA -->
-        <div style="text-align: center; margin-bottom: 28px;">
-          <a href="${participantLink}" style="display: inline-block; padding: 18px 32px; background: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%); color: white; text-decoration: none; border-radius: 14px; font-size: 16px; font-weight: 700; box-shadow: 0 8px 20px rgba(139, 92, 246, 0.3); transition: all 0.3s ease;">
-            🔗 Voir l'événement
-          </a>
+        <!-- Dates disponibles -->
+        <div style="background: #F9FAFB; padding: 24px; border-radius: 12px; margin-bottom: 24px;">
+          <h3 style="margin: 0 0 16px 0; font-size: 18px; color: #1E1B4B; font-weight: 700;">
+            ✅ Tes disponibilités
+          </h3>
+          ${availableDates.length > 0 ? `
+            <div style="display: grid; gap: 8px;">
+              ${availableDates.map(d => `
+                <div style="background: white; padding: 12px; border-radius: 8px; border: 2px solid #10B981;">
+                  <span style="color: #059669; font-weight: 600;">${d.label}</span>
+                </div>
+              `).join('')}
+            </div>
+          ` : `
+            <p style="margin: 0; color: #EF4444; font-weight: 600;">
+              ❌ Aucune disponibilité sélectionnée
+            </p>
+          `}
         </div>
 
-        <!-- Prochaines étapes -->
-        <div style="background: #F9FAFB; padding: 20px; border-radius: 12px; border: 1px solid #E5E7EB;">
-          <h3 style="font-size: 15px; color: #1E1B4B; font-weight: 700; margin: 0 0 12px 0;">
-            🚀 Prochaines étapes
-          </h3>
-          <div style="font-size: 14px; color: #6B7280; line-height: 1.8;">
-            <strong style="color: #1E1B4B;">1.</strong> D'autres participants vont voter 👋<br>
-            <strong style="color: #1E1B4B;">2.</strong> La date avec le plus de votes sera choisie<br>
-            <strong style="color: #1E1B4B;">3.</strong> Tu recevras un email de confirmation avec tous les détails
-          </div>
+        <!-- Info modification -->
+        ${isUpdate ? `
+        <div style="background: #DBEAFE; border-radius: 12px; padding: 16px; border-left: 4px solid #3B82F6; margin-bottom: 24px;">
+          <p style="margin: 0; font-size: 14px; color: #1E40AF; line-height: 1.6;">
+            <strong>ℹ️ Note :</strong> Ton vote précédent a été remplacé par ces nouvelles disponibilités.
+          </p>
+        </div>
+        ` : ''}
+
+        <div style="background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%); border-radius: 12px; padding: 20px; border: 2px solid #FDE68A;">
+          <p style="margin: 0; font-size: 14px; color: #92400E; line-height: 1.6; text-align: center;">
+            💡 <strong>Tu peux modifier ton vote</strong> à tout moment en revotant avec le même nom !
+          </p>
         </div>
 
       </td>
@@ -357,7 +362,7 @@ async function sendParticipantConfirmationEmail({
       body: JSON.stringify({
         from: 'Synkro <onboarding@resend.dev>',
         to: participantEmail,
-        subject: `✅ Vote confirmé : ${eventType}`,
+        subject: `${isUpdate ? '🔄 Vote mis à jour' : '✅ Vote confirmé'} : ${eventType}`,
         html: emailHtml
       })
     });
@@ -365,7 +370,7 @@ async function sendParticipantConfirmationEmail({
     if (!response.ok) {
       console.error('Failed to send participant confirmation email:', await response.text());
     } else {
-      console.log('✅ Participant confirmation email sent to:', participantEmail);
+      console.log(`✅ ${isUpdate ? 'Update' : 'Confirmation'} email sent to:`, participantEmail);
     }
   } catch (error) {
     console.error('Error sending participant confirmation email:', error);

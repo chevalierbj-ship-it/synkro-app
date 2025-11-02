@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, Clock, Send, CheckCircle, Sparkles, ChevronLeft, ChevronRight, MapPin, Users as UsersIcon, Share2, User } from 'lucide-react';
+import { Calendar, Clock, Send, CheckCircle, Sparkles, ChevronLeft, ChevronRight, MapPin, Users as UsersIcon, Share2, User, Pencil } from 'lucide-react';
+import ShareModal from '../components/ShareModal';
+import EditEventModal from '../components/EditEventModal';
 
 const Organizer = () => {
   const navigate = useNavigate();
@@ -17,8 +19,8 @@ const Organizer = () => {
   const [showShareMenu, setShowShareMenu] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
-const [showEditModal, setShowEditModal] = useState(false);
-const [createdEvent, setCreatedEvent] = useState(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [createdEvent, setCreatedEvent] = useState(null);
 
   const eventTypes = [
     { id: 'dinner', label: '🍽️ Dîner/Soirée', suggestion: 'Vendredi ou samedi soir, 19h30-21h', defaultTime: '20:00' },
@@ -140,15 +142,15 @@ const [createdEvent, setCreatedEvent] = useState(null);
         headers: {
           'Content-Type': 'application/json'
         },
-body: JSON.stringify({
-  eventId: eventId,
-  organizerName: organizerName,
-  organizerEmail: organizerEmail || null,  // 🆕 EMAIL AJOUTÉ !
-  type: eventType === 'other' ? customEvent : selectedEventType.label,
-  location: location || '',
-  expectedParticipants: expectedParticipants ? parseInt(expectedParticipants) : 0,
-  dates: dates  // ✅ Envoyer directement l'objet
-})
+        body: JSON.stringify({
+          eventId: eventId,
+          organizerName: organizerName,
+          organizerEmail: organizerEmail || null,
+          type: eventType === 'other' ? customEvent : selectedEventType.label,
+          location: location || '',
+          expectedParticipants: expectedParticipants ? parseInt(expectedParticipants) : 0,
+          dates: dates
+        })
       });
       
       if (!response.ok) {
@@ -159,6 +161,19 @@ body: JSON.stringify({
       
       const result = await response.json();
       console.log('Event created successfully:', result);
+      
+      // 🆕 Stocker l'événement créé pour les modals
+      setCreatedEvent({
+        eventId: result.eventId,
+        type: eventType === 'other' ? customEvent : selectedEventType.label,
+        organizerName: organizerName,
+        organizerEmail: organizerEmail || null,
+        location: location || '',
+        expectedParticipants: expectedParticipants ? parseInt(expectedParticipants) : 0,
+        dates: dates,
+        participants: [],
+        totalResponded: 0
+      });
       
       // Créer le lien
       const fullLink = `${window.location.origin}/participant?id=${result.eventId}`;
@@ -201,21 +216,7 @@ body: JSON.stringify({
     setShowShareMenu(false);
   };
 
-  const selectedEventType = eventTypes.find(e => e.id === eventType);
-  const monthYear = currentMonth.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
-
   return (
-    <div style={{ 
-      minHeight: '100vh', 
-      background: 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 50%, #06B6D4 100%)',
-      padding: '20px',
-      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-    }}>
-      <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-        <div 
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
             gap: '10px',
             marginBottom: '10px',
             cursor: 'pointer'
@@ -831,7 +832,8 @@ body: JSON.stringify({
           </div>
         )}
 
-        {/* Step 6: Link generated with share buttons */}
+
+        {/* Step 6: Link generated with NEW share & edit buttons */}
         {step === 6 && (
           <div style={{ textAlign: 'center' }}>
             <div style={{
@@ -888,13 +890,18 @@ body: JSON.stringify({
               </div>
             </div>
 
-            {/* Share buttons */}
-            <div style={{ position: 'relative', marginBottom: '12px' }}>
+            {/* 🆕 NOUVEAUX BOUTONS - Grid 2 colonnes */}
+            <div style={{ 
+              display: 'grid', 
+              gridTemplateColumns: '1fr 1fr', 
+              gap: '12px', 
+              marginBottom: '16px' 
+            }}>
+              {/* Bouton Partager */}
               <button
-                onClick={() => setShowShareMenu(!showShareMenu)}
+                onClick={() => setShowShareModal(true)}
                 style={{
-                  width: '100%',
-                  padding: '18px',
+                  padding: '18px 16px',
                   background: 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)',
                   color: 'white',
                   border: 'none',
@@ -907,74 +914,36 @@ body: JSON.stringify({
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: '10px'
+                  gap: '8px'
                 }}
               >
                 <Share2 size={20} />
-                📤 Partager
+                Partager
               </button>
 
-              {showShareMenu && (
-                <div style={{
-                  position: 'absolute',
-                  top: '70px',
-                  left: 0,
-                  right: 0,
-                  background: 'white',
-                  border: '2px solid #E9D5FF',
+              {/* Bouton Modifier */}
+              <button
+                onClick={() => setShowEditModal(true)}
+                style={{
+                  padding: '18px 16px',
+                  background: 'linear-gradient(135deg, #3B82F6 0%, #6366F1 100%)',
+                  color: 'white',
+                  border: 'none',
                   borderRadius: '14px',
-                  padding: '12px',
-                  boxShadow: '0 8px 20px rgba(139, 92, 246, 0.2)',
-                  zIndex: 10
-                }}>
-                  {[
-                    { id: 'whatsapp', label: 'WhatsApp', emoji: '💬' },
-                    { id: 'messenger', label: 'Messenger', emoji: '💙' },
-                    { id: 'linkedin', label: 'LinkedIn', emoji: '💼' },
-                    { id: 'email', label: 'Email', emoji: '📧' },
-                    { id: 'sms', label: 'SMS', emoji: '💬' },
-                  ].map(platform => (
-                    <button
-                      key={platform.id}
-                      onClick={() => shareVia(platform.id)}
-                      style={{
-                        width: '100%',
-                        padding: '12px',
-                        background: 'linear-gradient(135deg, #F5F3FF 0%, #E9D5FF 100%)',
-                        border: 'none',
-                        borderRadius: '10px',
-                        fontSize: '14px',
-                        fontWeight: '600',
-                        color: '#1E1B4B',
-                        cursor: 'pointer',
-                        marginBottom: '8px',
-                        textAlign: 'left',
-                        transition: 'all 0.2s'
-                      }}
-                      onMouseEnter={(e) => e.target.style.background = '#E9D5FF'}
-                      onMouseLeave={(e) => e.target.style.background = 'linear-gradient(135deg, #F5F3FF 0%, #E9D5FF 100%)'}
-                    >
-                      {platform.emoji} {platform.label}
-                    </button>
-                  ))}
-                  <button
-                    onClick={copyLink}
-                    style={{
-                      width: '100%',
-                      padding: '12px',
-                      background: 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)',
-                      border: 'none',
-                      borderRadius: '10px',
-                      fontSize: '14px',
-                      fontWeight: '700',
-                      color: 'white',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    📋 Copier le lien
-                  </button>
-                </div>
-              )}
+                  fontSize: '16px',
+                  fontWeight: '700',
+                  cursor: 'pointer',
+                  boxShadow: '0 8px 20px rgba(59, 130, 246, 0.3)',
+                  transition: 'all 0.3s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px'
+                }}
+              >
+                <Pencil size={20} />
+                Modifier
+              </button>
             </div>
 
             <button
@@ -989,6 +958,9 @@ body: JSON.stringify({
                 setSelectedDates([]);
                 setEventLink('');
                 setShowShareMenu(false);
+                setShowShareModal(false);
+                setShowEditModal(false);
+                setCreatedEvent(null);
               }}
               style={{
                 width: '100%',
@@ -1023,6 +995,24 @@ body: JSON.stringify({
         )}
       </div>
 
+      {/* 🆕 MODALS */}
+      <ShareModal 
+        isOpen={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        eventLink={eventLink}
+        eventType={eventType === 'other' ? customEvent : eventTypes.find(e => e.id === eventType)?.label.split(' ')[1]}
+      />
+
+      <EditEventModal 
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        event={createdEvent}
+        onSave={(updatedEvent) => {
+          setCreatedEvent(updatedEvent);
+          alert('Modifications enregistrées !');
+        }}
+      />
+
       <div style={{ 
         textAlign: 'center', 
         marginTop: '40px',
@@ -1036,4 +1026,3 @@ body: JSON.stringify({
 };
 
 export default Organizer;
-

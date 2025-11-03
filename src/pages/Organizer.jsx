@@ -992,9 +992,38 @@ const Organizer = () => {
               ← Retour à l'accueil
             </button>
           </div>
+          </div>
         )}
+      </div>
+
+      {/* 🆕 MODALS */}
+      <ShareModal 
+        isOpen={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        eventLink={eventLink}
+        eventType={eventType === 'other' ? customEvent : eventTypes.find(e => e.id === eventType)?.label.split(' ')[1]}
+      />
+
+      <EditEventModal 
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        event={createdEvent}
+        onSave={(updatedEvent) => {
+          setCreatedEvent(updatedEvent);
+          alert('Modifications enregistrées !');
+        }}
+      />
+
+      <div style={{ 
+        textAlign: 'center', 
+        marginTop: '40px',
+        color: 'rgba(255,255,255,0.9)',
+        fontSize: '14px'
+      }}>
+        <p style={{ margin: '0 0 8px 0' }}>✨ Synkro v4.0 - API Serverless</p>
+      </div>
+    </div>
+  );
+};
 
 export default Organizer;
-
-
-

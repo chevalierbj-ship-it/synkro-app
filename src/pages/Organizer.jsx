@@ -142,15 +142,15 @@ const Organizer = () => {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          eventId: eventId,
-          organizerName: organizerName,
-          organizerEmail: organizerEmail || null,
-          type: eventType === 'other' ? customEvent : selectedEventType.label,
-          location: location || '',
-          expectedParticipants: expectedParticipants ? parseInt(expectedParticipants) : 0,
-          dates: dates
-        })
+body: JSON.stringify({
+  eventId: eventId,
+  organizerName: organizerName,
+  organizerEmail: organizerEmail || null,  // 🆕 EMAIL AJOUTÉ !
+  type: eventType === 'other' ? customEvent : selectedEventType.label,
+  location: location || '',
+  expectedParticipants: expectedParticipants ? parseInt(expectedParticipants) : 0,
+  dates: dates  // ✅ Envoyer directement l'objet
+})
       });
       
       if (!response.ok) {
@@ -216,7 +216,21 @@ const Organizer = () => {
     setShowShareMenu(false);
   };
 
+  const selectedEventType = eventTypes.find(e => e.id === eventType);
+  const monthYear = currentMonth.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+
   return (
+    <div style={{ 
+      minHeight: '100vh', 
+      background: 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 50%, #06B6D4 100%)',
+      padding: '20px',
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+    }}>
+      <div style={{ textAlign: 'center', marginBottom: '30px' }}>
+        <div 
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
             gap: '10px',
             marginBottom: '10px',
             cursor: 'pointer'
@@ -832,8 +846,7 @@ const Organizer = () => {
           </div>
         )}
 
-
-{/* Step 6: Link generated with NEW share & edit buttons */}
+        {/* Step 6: Link generated with NEW share & edit buttons */}
         {step === 6 && (
           <div style={{ textAlign: 'center' }}>
             <div style={{
@@ -991,7 +1004,6 @@ const Organizer = () => {
             >
               ← Retour à l'accueil
             </button>
-          </div>
           </div>
         )}
       </div>

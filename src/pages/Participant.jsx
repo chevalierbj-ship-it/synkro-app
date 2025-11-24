@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Calendar, Users, CheckCircle, Clock, Download, Sparkles, MapPin, AlertCircle } from 'lucide-react';
+import { Calendar, Users, CheckCircle, Clock, Download, Sparkles, MapPin, AlertCircle, ExternalLink, PiggyBank } from 'lucide-react';
 
 const Participant = () => {
   const navigate = useNavigate();
@@ -694,6 +694,46 @@ const Participant = () => {
               </div>
             )}
 
+            {/* Bouton cagnotte */}
+            {event.cagnotteLink && (
+              <div style={{ marginBottom: '32px' }}>
+                <a
+                  href={event.cagnotteLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '12px',
+                    width: '100%',
+                    padding: '18px',
+                    background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '14px',
+                    fontSize: '16px',
+                    fontWeight: '700',
+                    textDecoration: 'none',
+                    boxShadow: '0 6px 16px rgba(16, 185, 129, 0.3)',
+                    transition: 'all 0.3s'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.transform = 'translateY(-2px)';
+                    e.target.style.boxShadow = '0 8px 20px rgba(16, 185, 129, 0.4)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.transform = 'translateY(0)';
+                    e.target.style.boxShadow = '0 6px 16px rgba(16, 185, 129, 0.3)';
+                  }}
+                >
+                  <PiggyBank size={20} />
+                  Participer à la cagnotte
+                  <ExternalLink size={16} />
+                </a>
+              </div>
+            )}
+
             <div style={{ display: 'flex', gap: '12px' }}>
               <button
                 onClick={() => setStep(1)}
@@ -711,15 +751,15 @@ const Participant = () => {
               >
                 ← Retour
               </button>
-              
+
               <button
                 onClick={handleSubmit}
                 disabled={!canSubmit}
                 style={{
                   flex: 2,
                   padding: '18px',
-                  background: canSubmit 
-                    ? 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)' 
+                  background: canSubmit
+                    ? 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)'
                     : '#E9D5FF',
                   color: canSubmit ? 'white' : '#C4B5FD',
                   border: 'none',

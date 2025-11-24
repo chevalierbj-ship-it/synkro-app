@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Calendar, Users, CheckCircle, Clock, Share2, Copy, Sparkles, MapPin, AlertCircle, TrendingUp, BarChart, Pause, Play, Volume2, VolumeX, RefreshCw, Bell } from 'lucide-react';
+import { Calendar, Users, CheckCircle, Clock, Share2, Copy, Sparkles, MapPin, AlertCircle, TrendingUp, BarChart, Pause, Play, Volume2, VolumeX, RefreshCw, Bell, ExternalLink, PiggyBank } from 'lucide-react';
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -502,6 +502,64 @@ const Admin = () => {
             </div>
           )}
         </div>
+
+        {/* Lien cagnotte */}
+        {event.cagnotteLink && (
+          <div style={{
+            background: 'linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%)',
+            padding: '20px',
+            borderRadius: '16px',
+            marginBottom: '28px',
+            border: '2px solid #10B981'
+          }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              marginBottom: '12px',
+              fontSize: '15px',
+              fontWeight: '700',
+              color: '#065F46'
+            }}>
+              <PiggyBank size={20} />
+              Cagnotte
+            </div>
+            <div style={{
+              background: 'white',
+              padding: '12px',
+              borderRadius: '8px',
+              marginBottom: '12px',
+              fontSize: '13px',
+              color: '#065F46',
+              wordBreak: 'break-all',
+              fontFamily: 'monospace'
+            }}>
+              {event.cagnotteLink}
+            </div>
+            <a
+              href={event.cagnotteLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '10px 16px',
+                background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '14px',
+                fontWeight: '600',
+                textDecoration: 'none',
+                cursor: 'pointer'
+              }}
+            >
+              <ExternalLink size={16} />
+              Ouvrir la cagnotte
+            </a>
+          </div>
+        )}
 
         {/* Statistiques */}
         <div style={{

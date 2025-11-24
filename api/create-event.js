@@ -73,7 +73,8 @@ export default async function handler(req, res) {
               votes: 0,
               voters: []
             })))
-          : null
+          : null,
+        cagnotteLink: eventData.cagnotteLink || ''
       }
     };
 

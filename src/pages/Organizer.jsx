@@ -18,6 +18,7 @@ const Organizer = () => {
     '50-100€',
     'Plus de 100€'
   ]);
+  const [cagnotteLink, setCagnotteLink] = useState('');
   const [selectedDates, setSelectedDates] = useState([]);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [eventLink, setEventLink] = useState('');
@@ -154,6 +155,7 @@ body: JSON.stringify({
   expectedParticipants: expectedParticipants ? parseInt(expectedParticipants) : 0,
   budgetVoteEnabled: budgetVoteEnabled,
   budgetRanges: budgetVoteEnabled ? budgetRanges : [],
+  cagnotteLink: budgetVoteEnabled ? cagnotteLink : '',
   dates: dates
 })
       });
@@ -918,6 +920,46 @@ body: JSON.stringify({
                       ))}
                     </div>
                   )}
+
+                  {/* Lien cagnotte */}
+                  <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #FCD34D' }}>
+                    <label style={{
+                      display: 'block',
+                      fontSize: '13px',
+                      color: '#92400E',
+                      marginBottom: '8px',
+                      fontWeight: '600'
+                    }}>
+                      💰 Lien vers la cagnotte (optionnel)
+                    </label>
+                    <input
+                      type="url"
+                      value={cagnotteLink}
+                      onChange={(e) => setCagnotteLink(e.target.value)}
+                      placeholder="https://www.leetchi.com/c/ma-cagnotte"
+                      style={{
+                        width: '100%',
+                        padding: '12px',
+                        fontSize: '14px',
+                        border: '2px solid #FCD34D',
+                        borderRadius: '8px',
+                        boxSizing: 'border-box',
+                        outline: 'none',
+                        background: 'white'
+                      }}
+                      onFocus={(e) => e.target.style.borderColor = '#F59E0B'}
+                      onBlur={(e) => e.target.style.borderColor = '#FCD34D'}
+                    />
+                    <p style={{
+                      fontSize: '12px',
+                      color: '#92400E',
+                      marginTop: '6px',
+                      marginBottom: '0',
+                      fontStyle: 'italic'
+                    }}>
+                      Crée ta cagnotte sur Leetchi, Pot Commun ou Lydia puis colle le lien ici
+                    </p>
+                  </div>
                 </div>
               </div>
             )}
@@ -1131,6 +1173,7 @@ body: JSON.stringify({
                 setExpectedParticipants('');
                 setBudgetVoteEnabled(false);
                 setBudgetRanges(['Moins de 50€', '50-100€', 'Plus de 100€']);
+                setCagnotteLink('');
                 setSelectedDates([]);
                 setEventLink('');
                 setShowShareMenu(false);

@@ -12,6 +12,7 @@ const Participant = () => {
   const [userEmail, setUserEmail] = useState(''); // 🆕 Email optionnel
   const [selectedDate, setSelectedDate] = useState(null);
   const [availabilities, setAvailabilities] = useState({});
+  const [selectedBudget, setSelectedBudget] = useState(null); // 🆕 Vote budget
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -205,7 +206,8 @@ const Participant = () => {
           eventId: eventId,
           participantName: userName.trim(),
           participantEmail: userEmail.trim() || undefined,
-          availabilities: availabilities
+          availabilities: availabilities,
+          selectedBudget: selectedBudget || undefined
         })
       });
 
@@ -588,8 +590,8 @@ const Participant = () => {
               marginBottom: '24px',
               border: '2px solid #FCD34D'
             }}>
-              <p style={{ 
-                fontSize: '13px', 
+              <p style={{
+                fontSize: '13px',
                 color: '#92400E',
                 margin: 0,
                 lineHeight: '1.5',
@@ -598,6 +600,99 @@ const Participant = () => {
                 💡 <strong>Astuce :</strong> Tu peux changer d'avis en tapant plusieurs fois sur la même date !
               </p>
             </div>
+
+            {/* Section Vote Budget */}
+            {event.budgetVoteEnabled && event.budgetVotes && (
+              <div style={{ marginBottom: '32px' }}>
+                <h3 style={{ fontSize: '18px', marginBottom: '12px', color: '#1E1B4B', fontWeight: '700' }}>
+                  💰 Budget préféré
+                </h3>
+                <p style={{ color: '#6B7280', marginBottom: '16px', fontSize: '14px' }}>
+                  Sélectionne la tranche de budget qui te convient
+                </p>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {event.budgetVotes.map((budgetOption, index) => {
+                    const isSelected = selectedBudget === budgetOption.range;
+                    const maxVotes = Math.max(...event.budgetVotes.map(b => b.votes));
+                    const isPopular = budgetOption.votes === maxVotes && budgetOption.votes > 0;
+
+                    return (
+                      <button
+                        key={index}
+                        onClick={() => setSelectedBudget(budgetOption.range)}
+                        style={{
+                          padding: '16px 20px',
+                          background: isSelected
+                            ? 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)'
+                            : 'white',
+                          color: isSelected ? 'white' : '#1E1B4B',
+                          border: isSelected
+                            ? '2px solid #8B5CF6'
+                            : '2px solid #E9D5FF',
+                          borderRadius: '12px',
+                          fontSize: '15px',
+                          fontWeight: '600',
+                          cursor: 'pointer',
+                          transition: 'all 0.3s',
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          position: 'relative'
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <div style={{
+                            width: '20px',
+                            height: '20px',
+                            borderRadius: '50%',
+                            border: isSelected
+                              ? '2px solid white'
+                              : '2px solid #E9D5FF',
+                            background: isSelected
+                              ? 'white'
+                              : 'transparent',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          }}>
+                            {isSelected && (
+                              <div style={{
+                                width: '10px',
+                                height: '10px',
+                                borderRadius: '50%',
+                                background: '#8B5CF6'
+                              }}></div>
+                            )}
+                          </div>
+                          {budgetOption.range}
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          {isPopular && (
+                            <span style={{
+                              fontSize: '11px',
+                              background: isSelected ? 'rgba(255,255,255,0.3)' : '#10B981',
+                              color: 'white',
+                              padding: '2px 8px',
+                              borderRadius: '10px',
+                              fontWeight: '700'
+                            }}>
+                              Populaire
+                            </span>
+                          )}
+                          <span style={{
+                            fontSize: '13px',
+                            opacity: isSelected ? 1 : 0.7
+                          }}>
+                            {budgetOption.votes} vote{budgetOption.votes !== 1 ? 's' : ''}
+                          </span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             <div style={{ display: 'flex', gap: '12px' }}>
               <button

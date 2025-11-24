@@ -12,6 +12,12 @@ const Organizer = () => {
   const [location, setLocation] = useState('');
   const [eventSchedule, setEventSchedule] = useState('');
   const [expectedParticipants, setExpectedParticipants] = useState('');
+  const [budgetVoteEnabled, setBudgetVoteEnabled] = useState(false);
+  const [budgetRanges, setBudgetRanges] = useState([
+    'Moins de 50€',
+    '50-100€',
+    'Plus de 100€'
+  ]);
   const [selectedDates, setSelectedDates] = useState([]);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [eventLink, setEventLink] = useState('');
@@ -146,6 +152,8 @@ body: JSON.stringify({
   location: location || '',
   eventSchedule: eventSchedule || '',
   expectedParticipants: expectedParticipants ? parseInt(expectedParticipants) : 0,
+  budgetVoteEnabled: budgetVoteEnabled,
+  budgetRanges: budgetVoteEnabled ? budgetRanges : [],
   dates: dates
 })
       });
@@ -825,6 +833,95 @@ body: JSON.stringify({
               />
             </div>
 
+            {/* Vote de budget - uniquement pour EVG, EVF, Anniversaire */}
+            {['evg', 'evf', 'birthday'].includes(eventType) && (
+              <div style={{ marginBottom: '24px' }}>
+                <div style={{
+                  background: 'linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%)',
+                  padding: '20px',
+                  borderRadius: '12px',
+                  border: '2px solid #FCD34D'
+                }}>
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    marginBottom: budgetVoteEnabled ? '16px' : '0'
+                  }}>
+                    <div>
+                      <div style={{ fontSize: '15px', fontWeight: '700', color: '#92400E', marginBottom: '4px' }}>
+                        💰 Activer le vote de budget
+                      </div>
+                      <div style={{ fontSize: '13px', color: '#92400E' }}>
+                        Les participants pourront voter pour une tranche de budget
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setBudgetVoteEnabled(!budgetVoteEnabled)}
+                      style={{
+                        width: '52px',
+                        height: '28px',
+                        borderRadius: '14px',
+                        border: 'none',
+                        background: budgetVoteEnabled
+                          ? 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)'
+                          : '#D1D5DB',
+                        cursor: 'pointer',
+                        position: 'relative',
+                        transition: 'background 0.3s'
+                      }}
+                    >
+                      <div style={{
+                        width: '22px',
+                        height: '22px',
+                        borderRadius: '50%',
+                        background: 'white',
+                        position: 'absolute',
+                        top: '3px',
+                        left: budgetVoteEnabled ? '27px' : '3px',
+                        transition: 'left 0.3s',
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                      }}></div>
+                    </button>
+                  </div>
+
+                  {budgetVoteEnabled && (
+                    <div>
+                      <div style={{ fontSize: '13px', color: '#92400E', marginBottom: '12px', fontWeight: '600' }}>
+                        Définir les 3 tranches de budget :
+                      </div>
+                      {budgetRanges.map((range, index) => (
+                        <input
+                          key={index}
+                          type="text"
+                          value={range}
+                          onChange={(e) => {
+                            const newRanges = [...budgetRanges];
+                            newRanges[index] = e.target.value;
+                            setBudgetRanges(newRanges);
+                          }}
+                          placeholder={`Tranche ${index + 1}`}
+                          style={{
+                            width: '100%',
+                            padding: '12px',
+                            fontSize: '14px',
+                            border: '2px solid #FCD34D',
+                            borderRadius: '8px',
+                            marginBottom: '8px',
+                            boxSizing: 'border-box',
+                            outline: 'none',
+                            background: 'white'
+                          }}
+                          onFocus={(e) => e.target.style.borderColor = '#F59E0B'}
+                          onBlur={(e) => e.target.style.borderColor = '#FCD34D'}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             <button
               onClick={generateLink}
               disabled={isCreating}
@@ -1032,6 +1129,8 @@ body: JSON.stringify({
                 setLocation('');
                 setEventSchedule('');
                 setExpectedParticipants('');
+                setBudgetVoteEnabled(false);
+                setBudgetRanges(['Moins de 50€', '50-100€', 'Plus de 100€']);
                 setSelectedDates([]);
                 setEventLink('');
                 setShowShareMenu(false);

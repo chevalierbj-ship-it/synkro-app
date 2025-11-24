@@ -74,6 +74,8 @@ export default async function handler(req, res) {
     // Parser les champs JSON
     const dates = record.fields.dates ? JSON.parse(record.fields.dates) : [];
     const participants = record.fields.participants ? JSON.parse(record.fields.participants) : [];
+    const budgetRanges = record.fields.budgetRanges ? JSON.parse(record.fields.budgetRanges) : [];
+    const budgetVotes = record.fields.budgetVotes ? JSON.parse(record.fields.budgetVotes) : [];
 
     // Construire l'objet événement
     const event = {
@@ -83,12 +85,16 @@ export default async function handler(req, res) {
       organizerName: record.fields.organizerName,
       organizerEmail: record.fields.organizerEmail || null,
       location: record.fields.location || null,
+      eventSchedule: record.fields.eventSchedule || null,
       expectedParticipants: record.fields.expectedParticipants || 0,
       totalResponded: record.fields.totalResponded || 0,
       dates: dates,
       participants: participants,
       status: record.fields.status || 'active',
-      createdAt: record.fields.createdAt
+      createdAt: record.fields.createdAt,
+      budgetVoteEnabled: record.fields.budgetVoteEnabled || false,
+      budgetRanges: budgetRanges,
+      budgetVotes: budgetVotes
     };
 
     return res.status(200).json({

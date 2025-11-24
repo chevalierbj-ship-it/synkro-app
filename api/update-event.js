@@ -167,6 +167,7 @@ export default async function handler(req, res) {
         organizerName: event.organizerName,
         location: event.location,
         eventSchedule: event.eventSchedule,
+        cagnotteLink: event.cagnotteLink,
         dates: existingDates,
         availabilities,
         eventId
@@ -249,6 +250,7 @@ async function sendParticipantConfirmationEmail({
   organizerName,
   location,
   eventSchedule,
+  cagnotteLink,
   dates,
   availabilities,
   eventId
@@ -338,6 +340,21 @@ async function sendParticipantConfirmationEmail({
             Tu peux revenir sur le lien à tout moment pour changer tes disponibilités !
           </p>
         </div>
+
+        ${cagnotteLink ? `
+        <!-- Cagnotte -->
+        <div style="background: linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%); padding: 20px; border-radius: 12px; margin-bottom: 28px; border: 2px solid #10B981;">
+          <div style="font-size: 16px; color: #065F46; font-weight: 700; margin-bottom: 12px;">
+            💰 Cagnotte
+          </div>
+          <p style="margin: 0 0 16px 0; font-size: 14px; color: #065F46; line-height: 1.6;">
+            Une cagnotte a été créée pour cet événement. N'oublie pas d'y participer !
+          </p>
+          <a href="${cagnotteLink}" style="display: inline-block; padding: 14px 24px; background: linear-gradient(135deg, #10B981 0%, #059669 100%); color: white; text-decoration: none; border-radius: 10px; font-size: 15px; font-weight: 700; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);">
+            🐷 Participer à la cagnotte
+          </a>
+        </div>
+        ` : ''}
 
         <!-- CTA -->
         <div style="text-align: center; margin-bottom: 28px;">

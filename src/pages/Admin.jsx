@@ -649,6 +649,75 @@ const Admin = () => {
           ))}
         </div>
 
+        {/* Résultats du vote budget */}
+        {event.budgetVoteEnabled && event.budgetVotes && event.budgetVotes.length > 0 && (
+          <div style={{ marginBottom: '28px' }}>
+            <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#1E1B4B', marginBottom: '16px' }}>
+              💰 Vote budget
+            </h3>
+            {(() => {
+              const maxBudgetVotes = Math.max(...event.budgetVotes.map(b => b.votes));
+              return event.budgetVotes.map((budget, index) => {
+                const isBest = budget.votes === maxBudgetVotes && budget.votes > 0;
+                return (
+                  <div key={index} style={{
+                    background: isBest ? 'linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%)' : 'white',
+                    border: isBest ? '2px solid #10B981' : '2px solid #E9D5FF',
+                    borderRadius: '12px',
+                    padding: '16px',
+                    marginBottom: '12px'
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontSize: '15px', fontWeight: '600', color: '#1E1B4B' }}>
+                          {budget.range}
+                        </span>
+                        {isBest && (
+                          <span style={{
+                            fontSize: '11px',
+                            background: '#10B981',
+                            color: 'white',
+                            padding: '2px 8px',
+                            borderRadius: '10px',
+                            fontWeight: '700'
+                          }}>
+                            Majoritaire
+                          </span>
+                        )}
+                      </div>
+                      <span style={{ fontSize: '16px', fontWeight: '700', color: isBest ? '#059669' : '#8B5CF6' }}>
+                        {budget.votes} vote{budget.votes !== 1 ? 's' : ''}
+                      </span>
+                    </div>
+
+                    <div style={{
+                      width: '100%',
+                      height: '8px',
+                      background: isBest ? '#A7F3D0' : '#E9D5FF',
+                      borderRadius: '20px',
+                      overflow: 'hidden',
+                      marginBottom: '8px'
+                    }}>
+                      <div style={{
+                        width: event.totalResponded > 0 ? `${Math.min((budget.votes / event.totalResponded) * 100, 100)}%` : '0%',
+                        height: '100%',
+                        background: isBest ? 'linear-gradient(90deg, #10B981 0%, #059669 100%)' : 'linear-gradient(90deg, #8B5CF6 0%, #EC4899 100%)',
+                        transition: 'width 0.5s ease'
+                      }}></div>
+                    </div>
+
+                    {budget.voters && budget.voters.length > 0 && (
+                      <div style={{ fontSize: '12px', color: '#6B7280' }}>
+                        👥 {budget.voters.join(', ')}
+                      </div>
+                    )}
+                  </div>
+                );
+              });
+            })()}
+          </div>
+        )}
+
         {/* Liste des participants */}
         {event.participants && event.participants.length > 0 && (
           <div style={{ marginBottom: '28px' }}>

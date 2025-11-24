@@ -62,7 +62,18 @@ export default async function handler(req, res) {
         dates: JSON.stringify(eventData.dates),
         participants: JSON.stringify([]),
         totalResponded: 0,
-        status: 'active'
+        status: 'active',
+        budgetVoteEnabled: eventData.budgetVoteEnabled || false,
+        budgetRanges: eventData.budgetVoteEnabled
+          ? JSON.stringify(eventData.budgetRanges)
+          : null,
+        budgetVotes: eventData.budgetVoteEnabled
+          ? JSON.stringify(eventData.budgetRanges.map(range => ({
+              range: range,
+              votes: 0,
+              voters: []
+            })))
+          : null
       }
     };
 

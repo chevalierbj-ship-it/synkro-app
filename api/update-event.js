@@ -7,7 +7,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { eventId, participantName, participantEmail, availabilities } = req.body;
+  const { eventId, participantName, participantEmail, availabilities, selectedBudget } = req.body;
 
   // Validation
   if (!eventId || !participantName || !availabilities) {
@@ -64,6 +64,7 @@ export default async function handler(req, res) {
     // 2. Mettre à jour les données de l'événement
     const existingParticipants = event.participants ? JSON.parse(event.participants) : [];
     const existingDates = event.dates ? JSON.parse(event.dates) : [];
+    const existingBudgetVotes = event.budgetVotes ? JSON.parse(event.budgetVotes) : [];
 
     // Vérifier si le participant a déjà voté
     const existingParticipantIndex = existingParticipants.findIndex(
@@ -74,6 +75,7 @@ export default async function handler(req, res) {
       name: participantName,
       email: normalizedEmail || '',
       availabilities: availabilities,
+      selectedBudget: selectedBudget || null,
       votedAt: new Date().toISOString()
     };
 
@@ -106,6 +108,26 @@ export default async function handler(req, res) {
       });
     });
 
+    // Recalculer les votes de budget
+    let updatedBudgetVotes = existingBudgetVotes;
+    if (existingBudgetVotes.length > 0) {
+      updatedBudgetVotes = existingBudgetVotes.map(bv => ({
+        ...bv,
+        votes: 0,
+        voters: []
+      }));
+
+      updatedParticipants.forEach(participant => {
+        if (participant.selectedBudget) {
+          const budgetIndex = updatedBudgetVotes.findIndex(b => b.range === participant.selectedBudget);
+          if (budgetIndex !== -1) {
+            updatedBudgetVotes[budgetIndex].votes += 1;
+            updatedBudgetVotes[budgetIndex].voters.push(participant.name);
+          }
+        }
+      });
+    }
+
     const totalResponded = updatedParticipants.length;
 
     // 3. ✅ Sauvegarder dans Airtable AVEC LE BON RECORD ID
@@ -121,7 +143,8 @@ export default async function handler(req, res) {
           fields: {
             participants: JSON.stringify(updatedParticipants),
             dates: JSON.stringify(updatedDates),
-            totalResponded: totalResponded
+            totalResponded: totalResponded,
+            budgetVotes: existingBudgetVotes.length > 0 ? JSON.stringify(updatedBudgetVotes) : null
           }
         })
       }

@@ -10,6 +10,7 @@ const Organizer = () => {
   const [eventType, setEventType] = useState('');
   const [customEvent, setCustomEvent] = useState('');
   const [location, setLocation] = useState('');
+  const [eventSchedule, setEventSchedule] = useState('');
   const [expectedParticipants, setExpectedParticipants] = useState('');
   const [selectedDates, setSelectedDates] = useState([]);
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -140,11 +141,12 @@ const Organizer = () => {
 body: JSON.stringify({
   eventId: eventId,
   organizerName: organizerName,
-  organizerEmail: organizerEmail || null,  // 🆕 EMAIL AJOUTÉ !
+  organizerEmail: organizerEmail || null,
   type: eventType === 'other' ? customEvent : selectedEventType.label,
   location: location || '',
+  eventSchedule: eventSchedule || '',
   expectedParticipants: expectedParticipants ? parseInt(expectedParticipants) : 0,
-  dates: dates  // ✅ Envoyer directement l'objet
+  dates: dates
 })
       });
       
@@ -523,6 +525,52 @@ body: JSON.stringify({
                   onFocus={(e) => e.target.style.borderColor = '#8B5CF6'}
                   onBlur={(e) => e.target.style.borderColor = '#E9D5FF'}
                 />
+              </div>
+
+              {/* Déroulé de la soirée (optionnel) */}
+              <div style={{ marginBottom: '24px' }}>
+                <label style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  marginBottom: '10px',
+                  fontSize: '14px',
+                  color: '#1E1B4B',
+                  fontWeight: '600'
+                }}>
+                  <Clock size={18} color="#8B5CF6" />
+                  Déroulé de la soirée (optionnel)
+                </label>
+                <textarea
+                  value={eventSchedule}
+                  onChange={(e) => setEventSchedule(e.target.value.slice(0, 500))}
+                  placeholder="Ex: 18h apéro, 20h resto, 22h bowling..."
+                  maxLength={500}
+                  rows={3}
+                  style={{
+                    width: '100%',
+                    padding: '14px',
+                    fontSize: '15px',
+                    border: '2px solid #E9D5FF',
+                    borderRadius: '12px',
+                    boxSizing: 'border-box',
+                    outline: 'none',
+                    transition: 'all 0.3s',
+                    resize: 'vertical',
+                    minHeight: '80px',
+                    fontFamily: 'inherit'
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = '#8B5CF6'}
+                  onBlur={(e) => e.target.style.borderColor = '#E9D5FF'}
+                />
+                <div style={{
+                  textAlign: 'right',
+                  fontSize: '12px',
+                  color: eventSchedule.length >= 450 ? '#EF4444' : '#6B7280',
+                  marginTop: '6px'
+                }}>
+                  {eventSchedule.length}/500 caractères
+                </div>
               </div>
 
               <h3 style={{ fontSize: '18px', marginBottom: '16px', color: '#1E1B4B', fontWeight: '600' }}>
@@ -982,6 +1030,7 @@ body: JSON.stringify({
                 setEventType('');
                 setCustomEvent('');
                 setLocation('');
+                setEventSchedule('');
                 setExpectedParticipants('');
                 setSelectedDates([]);
                 setEventLink('');

@@ -57,6 +57,7 @@ export default async function handler(req, res) {
         organizerName: eventData.organizerName,
         organizerEmail: eventData.organizerEmail || '',
         location: eventData.location || '',
+        eventSchedule: eventData.eventSchedule || '',
         expectedParticipants: eventData.expectedParticipants || 0,
         dates: JSON.stringify(eventData.dates),
         participants: JSON.stringify([]),
@@ -115,7 +116,8 @@ export default async function handler(req, res) {
             adminLink: adminLink,
             organizerName: eventData.organizerName,
             dates: eventData.dates,
-            location: eventData.location || null
+            location: eventData.location || null,
+            eventSchedule: eventData.eventSchedule || null
           });
           
           // Envoyer directement via Resend
@@ -173,7 +175,7 @@ export default async function handler(req, res) {
 // ========================================
 
 function getOrganizerCreatedEmail(data) {
-  const { eventType, eventLink, adminLink, organizerName, dates, location } = data;
+  const { eventType, eventLink, adminLink, organizerName, dates, location, eventSchedule } = data;
   
   return `
 <!DOCTYPE html>
@@ -223,7 +225,16 @@ function getOrganizerCreatedEmail(data) {
                   ${location}
                 </p>
                 ` : ''}
-                
+
+                ${eventSchedule ? `
+                <p style="color: #6B7280; margin: 0 0 8px 0; font-size: 13px; font-weight: 600;">
+                  📋 Déroulé prévu
+                </p>
+                <p style="color: #1E1B4B; margin: 0 0 16px 0; font-size: 14px; font-weight: 500; line-height: 1.6;">
+                  ${eventSchedule}
+                </p>
+                ` : ''}
+
                 <p style="color: #6B7280; margin: 0 0 8px 0; font-size: 13px; font-weight: 600;">
                   📆 Dates proposées
                 </p>

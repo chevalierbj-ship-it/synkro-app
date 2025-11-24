@@ -363,6 +363,11 @@ const Participant = () => {
                   {event.location}
                 </div>
               )}
+              {event.eventSchedule && (
+                <div style={{ fontSize: '13px', color: '#6B7280', marginTop: '8px', lineHeight: '1.5' }}>
+                  📋 {event.eventSchedule}
+                </div>
+              )}
             </div>
 
             <h2 style={{ fontSize: '24px', marginBottom: '12px', color: '#1E1B4B', fontWeight: '700' }}>
@@ -716,6 +721,17 @@ const Participant = () => {
                   </div>
                   <div style={{ fontSize: '16px', fontWeight: '600', color: '#1E1B4B' }}>
                     {event.location}
+                  </div>
+                </div>
+              )}
+
+              {event.eventSchedule && (
+                <div style={{ marginBottom: '18px' }}>
+                  <div style={{ fontSize: '13px', color: '#6B7280', marginBottom: '6px', fontWeight: '600' }}>
+                    📋 Déroulé prévu
+                  </div>
+                  <div style={{ fontSize: '14px', color: '#1E1B4B', lineHeight: '1.5' }}>
+                    {event.eventSchedule}
                   </div>
                 </div>
               )}

@@ -143,6 +143,7 @@ export default async function handler(req, res) {
         eventType: event.type,
         organizerName: event.organizerName,
         location: event.location,
+        eventSchedule: event.eventSchedule,
         dates: existingDates,
         availabilities,
         eventId
@@ -170,6 +171,7 @@ export default async function handler(req, res) {
         organizerName: event.organizerName,
         organizerEmail: event.organizerEmail,
         location: event.location,
+        eventSchedule: event.eventSchedule,
         bestDate,
         totalResponded,
         expectedParticipants,
@@ -223,6 +225,7 @@ async function sendParticipantConfirmationEmail({
   eventType,
   organizerName,
   location,
+  eventSchedule,
   dates,
   availabilities,
   eventId
@@ -284,6 +287,11 @@ async function sendParticipantConfirmationEmail({
           ${location ? `
             <div style="font-size: 14px; color: #8B5CF6; font-weight: 600;">
               📍 ${location}
+            </div>
+          ` : ''}
+          ${eventSchedule ? `
+            <div style="font-size: 13px; color: #6B7280; margin-top: 8px; line-height: 1.5;">
+              📋 ${eventSchedule}
             </div>
           ` : ''}
         </div>
@@ -379,6 +387,7 @@ async function sendCelebrationEmail({
   organizerName,
   organizerEmail,
   location,
+  eventSchedule,
   bestDate,
   totalResponded,
   expectedParticipants,
@@ -456,6 +465,11 @@ async function sendCelebrationEmail({
           ${location ? `
             <div style="font-size: 14px; color: #8B5CF6; font-weight: 600;">
               📍 ${location}
+            </div>
+          ` : ''}
+          ${eventSchedule ? `
+            <div style="font-size: 13px; color: #6B7280; margin-top: 8px; line-height: 1.5;">
+              📋 ${eventSchedule}
             </div>
           ` : ''}
         </div>

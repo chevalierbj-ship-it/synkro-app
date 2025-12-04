@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, Clock, Send, CheckCircle, Sparkles, ChevronLeft, ChevronRight, MapPin, Users as UsersIcon, Share2, User } from 'lucide-react';
+import { Calendar, Clock, Send, CheckCircle, Sparkles, ChevronLeft, ChevronRight, MapPin, Users as UsersIcon, Share2, User, Lock, Crown } from 'lucide-react';
+import { useUser } from '../contexts/UserContext';
+import UpgradeModal from '../components/UpgradeModal';
 
 const Organizer = () => {
   const navigate = useNavigate();
+  const { user } = useUser();
   const [step, setStep] = useState(1);
   const [organizerName, setOrganizerName] = useState('');
   const [organizerEmail, setOrganizerEmail] = useState('');
@@ -24,6 +27,15 @@ const Organizer = () => {
   const [eventLink, setEventLink] = useState('');
   const [showShareMenu, setShowShareMenu] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+
+  // États pour les modals d'upgrade
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [upgradeFeature, setUpgradeFeature] = useState('');
+  const [upgradePlan, setUpgradePlan] = useState('Pro');
+  const [upgradePrice, setUpgradePrice] = useState('19€/mois');
+
+  // Liste d'emails participants pour la limitation
+  const [participantEmails, setParticipantEmails] = useState([]);
 
   const eventTypes = [
     { id: 'dinner', label: '🍽️ Dîner/Soirée', suggestion: 'Vendredi ou samedi soir, 19h30-21h', defaultTime: '20:00' },
@@ -82,21 +94,32 @@ const Organizer = () => {
 
   const handleDateClick = (date) => {
     if (!date || isPastDate(date)) return;
-    
-    const alreadySelected = selectedDates.find(selected => 
+
+    const alreadySelected = selectedDates.find(selected =>
       selected.date.toDateString() === date.toDateString()
     );
 
     if (alreadySelected) {
-      setSelectedDates(selectedDates.filter(selected => 
+      setSelectedDates(selectedDates.filter(selected =>
         selected.date.toDateString() !== date.toDateString()
       ));
-    } else if (selectedDates.length < 3) {
-      const selectedEventType = eventTypes.find(e => e.id === eventType);
-      setSelectedDates([...selectedDates, { 
-        date: date, 
-        time: selectedEventType?.defaultTime || '18:00' 
-      }]);
+    } else {
+      // Limitation selon le plan utilisateur
+      const maxDates = user.plan === 'gratuit' ? user.datesLimit : Infinity;
+
+      if (selectedDates.length < maxDates) {
+        const selectedEventType = eventTypes.find(e => e.id === eventType);
+        setSelectedDates([...selectedDates, {
+          date: date,
+          time: selectedEventType?.defaultTime || '18:00'
+        }]);
+      } else if (user.plan === 'gratuit') {
+        // Afficher le modal d'upgrade si limite atteinte
+        setShowUpgradeModal(true);
+        setUpgradeFeature('Dates illimitées');
+        setUpgradePlan('Pro');
+        setUpgradePrice('19€/mois');
+      }
     }
   };
 
@@ -221,7 +244,7 @@ body: JSON.stringify({
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
     }}>
       <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-        <div 
+        <div
           style={{
             display: 'inline-flex',
             alignItems: 'center',
@@ -232,9 +255,9 @@ body: JSON.stringify({
           onClick={() => navigate('/')}
         >
           <Sparkles size={32} color="white" style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))' }} />
-          <h1 style={{ 
-            fontSize: '36px', 
-            fontWeight: 'bold', 
+          <h1 style={{
+            fontSize: '36px',
+            fontWeight: 'bold',
             color: 'white',
             margin: 0,
             textShadow: '0 2px 8px rgba(0,0,0,0.2)'
@@ -245,6 +268,41 @@ body: JSON.stringify({
         <p style={{ color: 'rgba(255,255,255,0.95)', margin: 0, fontSize: '16px' }}>
           Une date en 1 minute ⚡
         </p>
+
+        {/* Compteur d'événements (Priorité 1) */}
+        {user.plan === 'gratuit' && (
+          <div style={{
+            background: user.eventsThisMonth >= user.eventsLimit
+              ? 'linear-gradient(135deg, #EF4444 0%, #DC2626 100%)'
+              : 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
+            padding: '12px 20px',
+            borderRadius: '12px',
+            marginTop: '16px',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '10px',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+            cursor: 'pointer',
+            transition: 'transform 0.2s',
+          }}
+          onClick={() => navigate('/pricing')}
+          onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+          onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+          >
+            <Calendar size={20} color="white" />
+            <span style={{
+              color: 'white',
+              fontSize: '14px',
+              fontWeight: '700'
+            }}>
+              {user.eventsThisMonth >= user.eventsLimit
+                ? '🚫 Limite atteinte ! Passez en Pro pour continuer'
+                : `${user.eventsThisMonth}/${user.eventsLimit} événements ce mois · Plan Gratuit`
+              }
+            </span>
+            <Crown size={18} color="white" />
+          </div>
+        )}
       </div>
 
       <div style={{
@@ -584,8 +642,53 @@ body: JSON.stringify({
               </div>
 
               <h3 style={{ fontSize: '18px', marginBottom: '16px', color: '#1E1B4B', fontWeight: '600' }}>
-                Sélectionne 3 dates ({selectedDates.length}/3) :
+                Sélectionne {user.plan === 'gratuit' ? '3 dates' : 'tes dates'} ({selectedDates.length}/{user.plan === 'gratuit' ? user.datesLimit : '∞'}) :
               </h3>
+
+              {/* Badge limitation dates PRO (Priorité 3) */}
+              {user.plan === 'gratuit' && selectedDates.length >= user.datesLimit && (
+                <div
+                  style={{
+                    background: 'linear-gradient(135deg, #F5F3FF 0%, #E9D5FF 100%)',
+                    padding: '16px',
+                    borderRadius: '12px',
+                    marginBottom: '16px',
+                    border: '2px solid #E9D5FF',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                  }}
+                  onClick={() => {
+                    setShowUpgradeModal(true);
+                    setUpgradeFeature('Dates illimitées');
+                    setUpgradePlan('Pro');
+                    setUpgradePrice('19€/mois');
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(139, 92, 246, 0.2)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = 'none';
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <Lock size={20} color="#8B5CF6" />
+                    <div>
+                      <div style={{ fontSize: '14px', fontWeight: '700', color: '#1E1B4B' }}>
+                        🔒 Proposer plus de dates
+                      </div>
+                      <div style={{ fontSize: '12px', color: '#6B7280', marginTop: '2px' }}>
+                        Dates illimitées avec le plan Pro
+                      </div>
+                    </div>
+                  </div>
+                  <Crown size={20} color="#8B5CF6" />
+                </div>
+              )}
 
               <div style={{
                 background: 'linear-gradient(135deg, #F5F3FF 0%, #E9D5FF 100%)',
@@ -802,11 +905,11 @@ body: JSON.stringify({
             </p>
 
             <div style={{ marginBottom: '24px' }}>
-              <label style={{ 
+              <label style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
-                marginBottom: '10px', 
+                marginBottom: '10px',
                 fontSize: '14px',
                 color: '#1E1B4B',
                 fontWeight: '600'
@@ -817,8 +920,26 @@ body: JSON.stringify({
               <input
                 type="number"
                 min="2"
+                max={user.plan === 'gratuit' ? user.participantsLimit : user.plan === 'pro' ? 50 : undefined}
                 value={expectedParticipants}
-                onChange={(e) => setExpectedParticipants(e.target.value)}
+                onChange={(e) => {
+                  const value = parseInt(e.target.value) || 0;
+                  // Limitation selon le plan
+                  if (user.plan === 'gratuit' && value > user.participantsLimit) {
+                    setShowUpgradeModal(true);
+                    setUpgradeFeature('50 participants max');
+                    setUpgradePlan('Pro');
+                    setUpgradePrice('19€/mois');
+                    return;
+                  } else if (user.plan === 'pro' && value > 50) {
+                    setShowUpgradeModal(true);
+                    setUpgradeFeature('Participants illimités');
+                    setUpgradePlan('Entreprise');
+                    setUpgradePrice('49€/mois');
+                    return;
+                  }
+                  setExpectedParticipants(e.target.value);
+                }}
                 placeholder="Ex: 6"
                 style={{
                   width: '100%',
@@ -833,6 +954,63 @@ body: JSON.stringify({
                 onFocus={(e) => e.target.style.borderColor = '#8B5CF6'}
                 onBlur={(e) => e.target.style.borderColor = '#E9D5FF'}
               />
+
+              {/* Compteur de participants avec limitation (Priorité 2) */}
+              {user.plan === 'gratuit' && (
+                <div style={{
+                  marginTop: '8px',
+                  padding: '12px',
+                  background: parseInt(expectedParticipants) >= user.participantsLimit
+                    ? 'linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%)'
+                    : 'linear-gradient(135deg, #F5F3FF 0%, #E9D5FF 100%)',
+                  borderRadius: '8px',
+                  border: parseInt(expectedParticipants) >= user.participantsLimit
+                    ? '2px solid #F59E0B'
+                    : '2px solid #E9D5FF',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{
+                      fontSize: '14px',
+                      fontWeight: '600',
+                      color: parseInt(expectedParticipants) >= user.participantsLimit ? '#92400E' : '#1E1B4B'
+                    }}>
+                      {parseInt(expectedParticipants) || 0}/{user.participantsLimit} participants (plan Gratuit)
+                    </span>
+                  </div>
+                  {parseInt(expectedParticipants) >= user.participantsLimit && (
+                    <button
+                      onClick={() => {
+                        setShowUpgradeModal(true);
+                        setUpgradeFeature('50 participants max');
+                        setUpgradePlan('Pro');
+                        setUpgradePrice('19€/mois');
+                      }}
+                      style={{
+                        background: 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '6px',
+                        padding: '6px 12px',
+                        fontSize: '12px',
+                        fontWeight: '700',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        transition: 'transform 0.2s'
+                      }}
+                      onMouseEnter={(e) => e.target.style.transform = 'scale(1.05)'}
+                      onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
+                    >
+                      <Lock size={12} />
+                      Passer en Pro
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Vote de budget - uniquement pour EVG, EVF, Anniversaire */}
@@ -1211,14 +1389,23 @@ body: JSON.stringify({
         )}
       </div>
 
-      <div style={{ 
-        textAlign: 'center', 
+      <div style={{
+        textAlign: 'center',
         marginTop: '40px',
         color: 'rgba(255,255,255,0.9)',
         fontSize: '14px'
       }}>
         <p style={{ margin: '0 0 8px 0' }}>✨ Synkro v4.0 - API Serverless</p>
       </div>
+
+      {/* Modal d'upgrade */}
+      <UpgradeModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        feature={upgradeFeature}
+        plan={upgradePlan}
+        price={upgradePrice}
+      />
     </div>
   );
 };

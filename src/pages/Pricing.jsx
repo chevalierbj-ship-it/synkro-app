@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Check, X, Zap, Users, BarChart3 } from 'lucide-react';
 
-export default function Pricing() {
+export default function PricingPage() {
   const [isAnnual, setIsAnnual] = useState(false);
 
   const plans = [

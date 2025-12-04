@@ -12,11 +12,11 @@ export default async function handler(req, res) {
   }
 
   // Configuration Airtable
-  const AIRTABLE_API_TOKEN = process.env.AIRTABLE_API_TOKEN || process.env.VITE_AIRTABLE_API_TOKEN;
-  const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID || process.env.VITE_AIRTABLE_BASE_ID;
-  const AIRTABLE_TABLE_ID = 'Events';
+  const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN;
+  const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
+  const AIRTABLE_TABLE_ID = process.env.AIRTABLE_EVENTS_TABLE_ID;
 
-  if (!AIRTABLE_API_TOKEN || !AIRTABLE_BASE_ID) {
+  if (!AIRTABLE_TOKEN || !AIRTABLE_BASE_ID || !AIRTABLE_TABLE_ID) {
     return res.status(500).json({ error: 'Server configuration error' });
   }
 
@@ -26,7 +26,7 @@ export default async function handler(req, res) {
       `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}/${eventId}`,
       {
         headers: {
-          'Authorization': `Bearer ${AIRTABLE_API_TOKEN}`,
+          'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
           'Content-Type': 'application/json'
         }
       }
@@ -93,7 +93,7 @@ async function sendReminderToOrganizer({
   expectedParticipants,
   remaining
 }) {
-  const RESEND_API_KEY = process.env.RESEND_API_KEY || process.env.VITE_RESEND_API_KEY;
+  const RESEND_API_KEY = process.env.RESEND_API_KEY;
 
   if (!RESEND_API_KEY) {
     console.error('Resend API key not configured');

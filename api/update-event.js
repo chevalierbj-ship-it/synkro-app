@@ -18,11 +18,11 @@ export default async function handler(req, res) {
   const normalizedEmail = participantEmail && participantEmail.trim() !== '' ? participantEmail.trim() : null;
 
   // Configuration Airtable
-  const AIRTABLE_API_TOKEN = process.env.AIRTABLE_API_TOKEN || process.env.VITE_AIRTABLE_API_TOKEN;
-  const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID || process.env.VITE_AIRTABLE_BASE_ID;
-  const AIRTABLE_TABLE_ID = 'Synkro_Events';
+  const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN;
+  const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
+  const AIRTABLE_TABLE_ID = process.env.AIRTABLE_EVENTS_TABLE_ID;
 
-  if (!AIRTABLE_API_TOKEN || !AIRTABLE_BASE_ID) {
+  if (!AIRTABLE_TOKEN || !AIRTABLE_BASE_ID || !AIRTABLE_TABLE_ID) {
     console.error('Missing Airtable configuration');
     return res.status(500).json({ error: 'Server configuration error' });
   }
@@ -34,7 +34,7 @@ export default async function handler(req, res) {
       `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}?filterByFormula={eventId}="${eventId}"`,
       {
         headers: {
-          'Authorization': `Bearer ${AIRTABLE_API_TOKEN}`,
+          'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
           'Content-Type': 'application/json'
         }
       }
@@ -136,7 +136,7 @@ export default async function handler(req, res) {
       {
         method: 'PATCH',
         headers: {
-          'Authorization': `Bearer ${AIRTABLE_API_TOKEN}`,
+          'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
@@ -208,7 +208,7 @@ export default async function handler(req, res) {
         {
           method: 'PATCH',
           headers: {
-            'Authorization': `Bearer ${AIRTABLE_API_TOKEN}`,
+            'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
@@ -255,7 +255,7 @@ async function sendParticipantConfirmationEmail({
   availabilities,
   eventId
 }) {
-  const RESEND_API_KEY = process.env.RESEND_API_KEY || process.env.VITE_RESEND_API_KEY;
+  const RESEND_API_KEY = process.env.RESEND_API_KEY;
 
   if (!RESEND_API_KEY) {
     console.error('Resend API key not configured');
@@ -433,7 +433,7 @@ async function sendCelebrationEmail({
   expectedParticipants,
   percentage
 }) {
-  const RESEND_API_KEY = process.env.RESEND_API_KEY || process.env.VITE_RESEND_API_KEY;
+  const RESEND_API_KEY = process.env.RESEND_API_KEY;
 
   if (!RESEND_API_KEY) {
     console.error('Resend API key not configured');

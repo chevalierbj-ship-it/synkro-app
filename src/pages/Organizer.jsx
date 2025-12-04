@@ -191,7 +191,42 @@ body: JSON.stringify({
       
       const result = await response.json();
       console.log('Event created successfully:', result);
-      
+
+      // Tracker l'événement si l'email organisateur est fourni
+      if (organizerEmail) {
+        try {
+          const eventName = eventType === 'other' ? customEvent : selectedEventType.label;
+          const trackResponse = await fetch('/api/track-event', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              userEmail: organizerEmail,
+              eventName: eventName,
+              participantsCount: expectedParticipants ? parseInt(expectedParticipants) : 0
+            })
+          });
+
+          const trackData = await trackResponse.json();
+
+          // Si limite atteinte, afficher un message
+          if (!trackResponse.ok && trackData.error === 'Limite atteinte') {
+            alert(`⚠️ ${trackData.message}\n\nVous avez créé ${trackData.currentCount}/${trackData.limit} événements ce mois-ci.`);
+            // Note: On continue quand même, l'événement a été créé
+          } else if (trackResponse.ok) {
+            console.log('Event tracked:', trackData);
+            // Informer l'utilisateur de sa progression
+            if (trackData.plan === 'gratuit' && trackData.remainingEvents !== 'illimité') {
+              console.log(`Événements restants ce mois-ci: ${trackData.remainingEvents}`);
+            }
+          }
+        } catch (trackError) {
+          // Ne pas bloquer si le tracking échoue
+          console.error('Erreur tracking (non-bloquant):', trackError);
+        }
+      }
+
       // Créer le lien
       const fullLink = `${window.location.origin}/participant?id=${result.eventId}`;
       setEventLink(fullLink);

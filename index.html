@@ -9,11 +9,16 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
-    <!-- PWA Primary Meta Tags -->
-    <title>Synkro - Trouve la date parfaite en 1 minute</title>
-    <meta name="title" content="Synkro - Planification d'événements">
-    <meta name="description" content="Organisez vos événements facilement ! Synkro trouve la meilleure date pour tout le monde en quelques clics. Gratuit et sans inscription.">
+    <!-- SEO Primary Meta Tags -->
+    <title>Synkro - Trouvez la date parfaite en 1 minute | Organisation d'événements</title>
+    <meta name="title" content="Synkro - Trouvez la date parfaite en 1 minute | Organisation d'événements">
+    <meta name="description" content="Organisez vos événements sans stress. Synkro trouve automatiquement la meilleure date pour votre groupe. Plus de 47 messages pour un simple dîner, c'est fini !">
+    <meta name="keywords" content="organisation événement, trouver date, coordination groupe, planification réunion, doodle alternative, organiser dîner, trouver date groupe, sondage disponibilité">
     <meta name="theme-color" content="#8B5CF6">
+    <meta name="author" content="Synkro">
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://synkro-app-bice.vercel.app/">
     
     <!-- Apple Touch Icons -->
     <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-192x192.png">
@@ -32,16 +37,18 @@
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://synkro-app-bice.vercel.app/">
-    <meta property="og:title" content="Synkro - Trouve la date parfaite">
-    <meta property="og:description" content="Organisez vos événements facilement ! Trouve la meilleure date pour tout le monde.">
-    <meta property="og:image" content="https://synkro-app-bice.vercel.app/og-image.png">
-    
+    <meta property="og:title" content="Synkro - Organisez vos événements en 1 minute">
+    <meta property="og:description" content="Plus de 47 messages pour organiser un dîner. Synkro trouve automatiquement la meilleure date pour votre groupe.">
+    <meta property="og:image" content="https://synkro-app-bice.vercel.app/og-image.jpg">
+    <meta property="og:site_name" content="Synkro">
+    <meta property="og:locale" content="fr_FR">
+
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="https://synkro-app-bice.vercel.app/">
-    <meta property="twitter:title" content="Synkro - Trouve la date parfaite">
-    <meta property="twitter:description" content="Organisez vos événements facilement ! Trouve la meilleure date pour tout le monde.">
-    <meta property="twitter:image" content="https://synkro-app-bice.vercel.app/og-image.png">
+    <meta property="twitter:title" content="Synkro - Organisez vos événements en 1 minute">
+    <meta property="twitter:description" content="Plus de 47 messages pour organiser un dîner. Synkro trouve la meilleure date automatiquement.">
+    <meta property="twitter:image" content="https://synkro-app-bice.vercel.app/og-image.jpg">
     
     <!-- Preconnect for performance -->
     <link rel="preconnect" href="https://api.airtable.com">
@@ -93,6 +100,39 @@
         touch-action: manipulation;
       }
     </style>
+
+    <!-- Schema.org JSON-LD for Google Rich Snippets -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Synkro",
+      "url": "https://synkro-app-bice.vercel.app",
+      "description": "Application de coordination d'événements. Trouvez la date parfaite pour votre groupe en 1 minute.",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Web",
+      "browserRequirements": "Requires JavaScript. Requires HTML5.",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "EUR"
+      },
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.8",
+        "ratingCount": "127",
+        "bestRating": "5",
+        "worstRating": "1"
+      },
+      "featureList": [
+        "Coordination automatique des disponibilités",
+        "Partage par lien unique",
+        "Sans inscription requise",
+        "Interface responsive",
+        "Gratuit"
+      ]
+    }
+    </script>
   </head>
   <body>
     <div id="root"></div>

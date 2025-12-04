@@ -1,0 +1,20 @@
+# robots.txt pour Synkro
+User-agent: *
+Allow: /
+
+# Désactiver l'accès aux pages admin ou API
+Disallow: /admin
+Disallow: /api/
+
+# Autoriser tous les crawlers populaires
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+# Sitemap
+Sitemap: https://synkro-app-bice.vercel.app/sitemap.xml
+
+# Délai entre les requêtes (optionnel, en secondes)
+Crawl-delay: 1

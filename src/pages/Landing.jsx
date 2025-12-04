@@ -20,13 +20,122 @@ const Landing = () => {
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
       color: '#1E1B4B'
     }}>
+      {/* Header Navigation - NOUVEAU */}
+      <nav style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        background: 'rgba(255, 255, 255, 0.95)',
+        backdropFilter: 'blur(10px)',
+        padding: '16px 40px',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        boxShadow: '0 2px 20px rgba(0,0,0,0.08)',
+        zIndex: 1000,
+        borderBottom: '1px solid rgba(139, 92, 246, 0.1)'
+      }}>
+        {/* Logo */}
+        <div 
+          onClick={() => navigate('/')}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            cursor: 'pointer'
+          }}
+        >
+          <Sparkles size={28} color="#8B5CF6" />
+          <span style={{
+            fontSize: '24px',
+            fontWeight: '800',
+            background: 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text'
+          }}>
+            Synkro
+          </span>
+        </div>
+
+        {/* Navigation Links */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '32px'
+        }}>
+          <button
+            onClick={() => navigate('/')}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: '#1E1B4B',
+              fontSize: '16px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              padding: '8px 0',
+              transition: 'color 0.3s'
+            }}
+            onMouseEnter={(e) => e.target.style.color = '#8B5CF6'}
+            onMouseLeave={(e) => e.target.style.color = '#1E1B4B'}
+          >
+            Accueil
+          </button>
+          
+          <button
+            onClick={() => navigate('/pricing')}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: '#1E1B4B',
+              fontSize: '16px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              padding: '8px 0',
+              transition: 'color 0.3s'
+            }}
+            onMouseEnter={(e) => e.target.style.color = '#8B5CF6'}
+            onMouseLeave={(e) => e.target.style.color = '#1E1B4B'}
+          >
+            Tarifs
+          </button>
+
+          <button
+            onClick={() => navigate('/create')}
+            style={{
+              padding: '12px 24px',
+              background: 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)',
+              color: 'white',
+              border: 'none',
+              borderRadius: '10px',
+              fontSize: '16px',
+              fontWeight: '700',
+              cursor: 'pointer',
+              boxShadow: '0 4px 12px rgba(139, 92, 246, 0.3)',
+              transition: 'all 0.3s'
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.transform = 'translateY(-2px)';
+              e.target.style.boxShadow = '0 6px 16px rgba(139, 92, 246, 0.4)';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.transform = 'translateY(0)';
+              e.target.style.boxShadow = '0 4px 12px rgba(139, 92, 246, 0.3)';
+            }}
+          >
+            Créer un événement
+          </button>
+        </div>
+      </nav>
+
       {/* Hero Section */}
       <section style={{
         background: 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 50%, #06B6D4 100%)',
         minHeight: '100vh',
         display: 'flex',
         alignItems: 'center',
-        padding: '40px 20px',
+        padding: '100px 20px 40px', // Ajouté padding-top pour compenser le header fixe
         position: 'relative',
         overflow: 'hidden'
       }}>
@@ -372,6 +481,62 @@ const Landing = () => {
           <h3 style={{ fontSize: '24px', color: 'white', marginBottom: '8px' }}>Synkro</h3>
           <p style={{ margin: 0, fontSize: '14px' }}>Une date en 1 minute ⚡</p>
         </div>
+        
+        {/* Navigation Footer - NOUVEAU */}
+        <div style={{
+          display: 'flex',
+          gap: '24px',
+          justifyContent: 'center',
+          marginBottom: '24px',
+          flexWrap: 'wrap'
+        }}>
+          <button
+            onClick={() => navigate('/')}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: 'rgba(255,255,255,0.7)',
+              fontSize: '14px',
+              cursor: 'pointer',
+              transition: 'color 0.3s'
+            }}
+            onMouseEnter={(e) => e.target.style.color = 'white'}
+            onMouseLeave={(e) => e.target.style.color = 'rgba(255,255,255,0.7)'}
+          >
+            Accueil
+          </button>
+          <button
+            onClick={() => navigate('/pricing')}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: 'rgba(255,255,255,0.7)',
+              fontSize: '14px',
+              cursor: 'pointer',
+              transition: 'color 0.3s'
+            }}
+            onMouseEnter={(e) => e.target.style.color = 'white'}
+            onMouseLeave={(e) => e.target.style.color = 'rgba(255,255,255,0.7)'}
+          >
+            Tarifs
+          </button>
+          <button
+            onClick={() => navigate('/create')}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: 'rgba(255,255,255,0.7)',
+              fontSize: '14px',
+              cursor: 'pointer',
+              transition: 'color 0.3s'
+            }}
+            onMouseEnter={(e) => e.target.style.color = 'white'}
+            onMouseLeave={(e) => e.target.style.color = 'rgba(255,255,255,0.7)'}
+          >
+            Créer un événement
+          </button>
+        </div>
+        
         <p style={{ fontSize: '14px', margin: '0 0 20px 0' }}>
           Créé avec 💜 en France
         </p>

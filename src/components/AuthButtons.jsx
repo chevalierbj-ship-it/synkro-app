@@ -2,9 +2,33 @@ import React, { useEffect } from 'react';
 import { useAuth, useUser, useClerk } from '@clerk/clerk-react';
 
 const AuthButtons = ({ onAuthSuccess }) => {
-  const { isSignedIn } = useAuth();
-  const { user } = useUser();
-  const { openSignIn } = useClerk();
+  // Check if Clerk is available
+  const isClerkAvailable = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+
+  // Only use hooks if Clerk is available
+  let isSignedIn = false;
+  let user = null;
+  let openSignIn = null;
+
+  try {
+    if (isClerkAvailable) {
+      const auth = useAuth();
+      const userData = useUser();
+      const clerk = useClerk();
+
+      isSignedIn = auth.isSignedIn;
+      user = userData.user;
+      openSignIn = clerk.openSignIn;
+    }
+  } catch (error) {
+    // Clerk not available, component won't render
+    console.log('Clerk not configured');
+  }
+
+  // Don't render if Clerk is not available
+  if (!isClerkAvailable) {
+    return null;
+  }
 
   // Automatically fill form when user signs in
   useEffect(() => {

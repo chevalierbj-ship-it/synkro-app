@@ -586,8 +586,8 @@ body: JSON.stringify({
                   {selectedEventType?.label || customEvent}
                 </h2>
                 {selectedEventType && selectedEventType.suggestion && (
-                  <p style={{ 
-                    color: '#6B7280', 
+                  <p style={{
+                    color: '#6B7280',
                     fontSize: '14px',
                     background: 'linear-gradient(135deg, #F5F3FF 0%, #E9D5FF 100%)',
                     padding: '14px',
@@ -598,6 +598,118 @@ body: JSON.stringify({
                     💡 {selectedEventType.suggestion}
                   </p>
                 )}
+              </div>
+
+              {/* 🆕 UI Toggle : Choix mode IA vs Manuel */}
+              <div style={{
+                background: 'linear-gradient(135deg, #F5F3FF 0%, #E9D5FF 100%)',
+                padding: '24px',
+                borderRadius: '16px',
+                marginBottom: '32px',
+                border: '2px solid #E9D5FF'
+              }}>
+                <h3 style={{
+                  fontSize: '18px',
+                  marginBottom: '16px',
+                  color: '#1E1B4B',
+                  fontWeight: '700',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}>
+                  <Sparkles size={20} color="#8B5CF6" />
+                  Méthode de vote
+                </h3>
+
+                <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
+                  <button
+                    onClick={() => setUseAI(true)}
+                    style={{
+                      flex: 1,
+                      padding: '20px 16px',
+                      background: useAI
+                        ? 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)'
+                        : 'white',
+                      color: useAI ? 'white' : '#1E1B4B',
+                      border: useAI ? 'none' : '2px solid #E9D5FF',
+                      borderRadius: '14px',
+                      cursor: 'pointer',
+                      transition: 'all 0.3s',
+                      fontSize: '15px',
+                      fontWeight: '600',
+                      boxShadow: useAI ? '0 6px 16px rgba(139, 92, 246, 0.3)' : 'none'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!useAI) {
+                        e.target.style.background = '#F5F3FF';
+                        e.target.style.borderColor = '#8B5CF6';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!useAI) {
+                        e.target.style.background = 'white';
+                        e.target.style.borderColor = '#E9D5FF';
+                      }
+                    }}
+                  >
+                    <div style={{ fontSize: '28px', marginBottom: '8px' }}>🤖</div>
+                    <div style={{ fontWeight: '700', marginBottom: '4px' }}>IA Rapide</div>
+                    <div style={{ fontSize: '13px', opacity: useAI ? 0.95 : 0.7 }}>
+                      2 questions (30s)
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => setUseAI(false)}
+                    style={{
+                      flex: 1,
+                      padding: '20px 16px',
+                      background: !useAI
+                        ? 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)'
+                        : 'white',
+                      color: !useAI ? 'white' : '#1E1B4B',
+                      border: !useAI ? 'none' : '2px solid #E9D5FF',
+                      borderRadius: '14px',
+                      cursor: 'pointer',
+                      transition: 'all 0.3s',
+                      fontSize: '15px',
+                      fontWeight: '600',
+                      boxShadow: !useAI ? '0 6px 16px rgba(139, 92, 246, 0.3)' : 'none'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (useAI) {
+                        e.target.style.background = '#F5F3FF';
+                        e.target.style.borderColor = '#8B5CF6';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (useAI) {
+                        e.target.style.background = 'white';
+                        e.target.style.borderColor = '#E9D5FF';
+                      }
+                    }}
+                  >
+                    <div style={{ fontSize: '28px', marginBottom: '8px' }}>📅</div>
+                    <div style={{ fontWeight: '700', marginBottom: '4px' }}>Vote Manuel</div>
+                    <div style={{ fontSize: '13px', opacity: !useAI ? 0.95 : 0.7 }}>
+                      Grille classique
+                    </div>
+                  </button>
+                </div>
+
+                <div style={{
+                  padding: '12px 16px',
+                  background: useAI ? '#FEF3C7' : '#E0E7FF',
+                  borderRadius: '10px',
+                  fontSize: '13px',
+                  color: useAI ? '#92400E' : '#1E40AF',
+                  lineHeight: '1.5'
+                }}>
+                  💡 {useAI
+                    ? <><strong>Recommandé :</strong> L'IA trouve la meilleure date en 30 secondes ! Vos invités répondent à 2 questions simples.</>
+                    : <><strong>Classique :</strong> Vos invités votent manuellement disponible/indisponible sur chaque date.</>
+                  }
+                </div>
               </div>
 
               {/* Lieu (optionnel) */}

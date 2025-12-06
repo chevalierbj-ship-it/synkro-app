@@ -94,7 +94,12 @@ export default async function handler(req, res) {
       createdAt: record.fields.createdAt,
       budgetVoteEnabled: record.fields.budgetVoteEnabled || false,
       budgetRanges: budgetRanges,
-      budgetVotes: budgetVotes
+      budgetVotes: budgetVotes,
+      // AI Smart Questions
+      useAI: record.fields.useAI || false,
+      ai_preferences: record.fields.ai_preferences || null,
+      // Cagnotte link
+      cagnotteLink: record.fields.cagnotteLink || null
     };
 
     return res.status(200).json({

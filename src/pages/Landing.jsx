@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Calendar, Clock, Users, Zap, CheckCircle, Sparkles, ArrowRight, MessageSquare } from 'lucide-react';
+import Header from '../components/Header';
 
 const Landing = () => {
   const navigate = useNavigate();
@@ -16,118 +17,12 @@ const Landing = () => {
   };
 
   return (
-    <div style={{ 
+    <div style={{
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
       color: '#1E1B4B'
     }}>
-      {/* Header Navigation - NOUVEAU */}
-      <nav style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        background: 'rgba(255, 255, 255, 0.95)',
-        backdropFilter: 'blur(10px)',
-        padding: '16px 40px',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        boxShadow: '0 2px 20px rgba(0,0,0,0.08)',
-        zIndex: 1000,
-        borderBottom: '1px solid rgba(139, 92, 246, 0.1)'
-      }}>
-        {/* Logo */}
-        <div 
-          onClick={() => navigate('/')}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            cursor: 'pointer'
-          }}
-        >
-          <Sparkles size={28} color="#8B5CF6" />
-          <span style={{
-            fontSize: '24px',
-            fontWeight: '800',
-            background: 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text'
-          }}>
-            Synkro
-          </span>
-        </div>
-
-        {/* Navigation Links */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '32px'
-        }}>
-          <button
-            onClick={() => navigate('/')}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: '#1E1B4B',
-              fontSize: '16px',
-              fontWeight: '600',
-              cursor: 'pointer',
-              padding: '8px 0',
-              transition: 'color 0.3s'
-            }}
-            onMouseEnter={(e) => e.target.style.color = '#8B5CF6'}
-            onMouseLeave={(e) => e.target.style.color = '#1E1B4B'}
-          >
-            Accueil
-          </button>
-          
-          <button
-            onClick={() => navigate('/pricing')}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: '#1E1B4B',
-              fontSize: '16px',
-              fontWeight: '600',
-              cursor: 'pointer',
-              padding: '8px 0',
-              transition: 'color 0.3s'
-            }}
-            onMouseEnter={(e) => e.target.style.color = '#8B5CF6'}
-            onMouseLeave={(e) => e.target.style.color = '#1E1B4B'}
-          >
-            Tarifs
-          </button>
-
-          <button
-            onClick={() => navigate('/create')}
-            style={{
-              padding: '12px 24px',
-              background: 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)',
-              color: 'white',
-              border: 'none',
-              borderRadius: '10px',
-              fontSize: '16px',
-              fontWeight: '700',
-              cursor: 'pointer',
-              boxShadow: '0 4px 12px rgba(139, 92, 246, 0.3)',
-              transition: 'all 0.3s'
-            }}
-            onMouseEnter={(e) => {
-              e.target.style.transform = 'translateY(-2px)';
-              e.target.style.boxShadow = '0 6px 16px rgba(139, 92, 246, 0.4)';
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.transform = 'translateY(0)';
-              e.target.style.boxShadow = '0 4px 12px rgba(139, 92, 246, 0.3)';
-            }}
-          >
-            Créer un événement
-          </button>
-        </div>
-      </nav>
+      {/* Header Navigation */}
+      <Header />
 
       {/* Hero Section */}
       <section style={{

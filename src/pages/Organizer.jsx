@@ -37,6 +37,9 @@ const Organizer = () => {
   // Liste d'emails participants pour la limitation
   const [participantEmails, setParticipantEmails] = useState([]);
 
+  // 🆕 Mode IA vs Manuel
+  const [useAI, setUseAI] = useState(true); // Par défaut: IA activée
+
   const eventTypes = [
     { id: 'dinner', label: '🍽️ Dîner/Soirée', suggestion: 'Vendredi ou samedi soir, 19h30-21h', defaultTime: '20:00' },
     { id: 'lunch', label: '☕ Déjeuner pro', suggestion: 'Mardi-jeudi, 12h-14h', defaultTime: '12:30' },
@@ -179,6 +182,7 @@ body: JSON.stringify({
   budgetVoteEnabled: budgetVoteEnabled,
   budgetRanges: budgetVoteEnabled ? budgetRanges : [],
   cagnotteLink: budgetVoteEnabled ? cagnotteLink : '',
+  useAI: useAI, // 🆕 Mode IA activé ou non
   dates: dates
 })
       });

@@ -7,17 +7,22 @@ import './index.css'
 // Import your Publishable Key from Clerk Dashboard
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
 
-// Conditionally wrap with ClerkProvider only if key is available
-const AppWithAuth = PUBLISHABLE_KEY ? (
-  <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
-    <App />
-  </ClerkProvider>
-) : (
-  <App />
-)
+// Warn in development if Clerk key is missing
+if (!PUBLISHABLE_KEY) {
+  console.warn(
+    '⚠️ Missing VITE_CLERK_PUBLISHABLE_KEY - Clerk authentication will not be available.\n' +
+    'Add VITE_CLERK_PUBLISHABLE_KEY to your .env.local file or Vercel environment variables.'
+  )
+}
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    {AppWithAuth}
+    {PUBLISHABLE_KEY ? (
+      <ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl="/">
+        <App />
+      </ClerkProvider>
+    ) : (
+      <App />
+    )}
   </React.StrictMode>,
 )

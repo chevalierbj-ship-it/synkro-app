@@ -1,63 +1,42 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useAuth, useUser, useClerk } from '@clerk/clerk-react';
 
 const AuthButtons = ({ onAuthSuccess }) => {
-  const handleGoogleAuth = async () => {
-    try {
-      // TODO: Implémenter l'authentification Google
-      // Pour l'instant, on simule une réponse
-      console.log('Google auth clicked');
+  const { isSignedIn } = useAuth();
+  const { user } = useUser();
+  const { openSignIn } = useClerk();
 
-      // Exemple de données retournées après auth
+  // Automatically fill form when user signs in
+  useEffect(() => {
+    if (isSignedIn && user) {
       const userData = {
-        name: 'John Doe',
-        email: 'john.doe@gmail.com',
-        provider: 'google'
+        name: user.fullName || user.firstName || '',
+        email: user.primaryEmailAddress?.emailAddress || '',
+        provider: user.externalAccounts?.[0]?.provider || 'clerk'
       };
 
+      console.log('User signed in:', userData);
       onAuthSuccess(userData);
-    } catch (error) {
-      console.error('Google auth error:', error);
-      alert('Erreur lors de la connexion avec Google');
     }
+  }, [isSignedIn, user, onAuthSuccess]);
+
+  const handleSignIn = (strategy) => {
+    openSignIn({
+      redirectUrl: window.location.href,
+      appearance: {
+        elements: {
+          rootBox: "mx-auto",
+          card: "shadow-xl"
+        }
+      },
+      // Force specific OAuth provider
+      ...(strategy && {
+        strategy: `oauth_${strategy}`
+      })
+    });
   };
 
-  const handleMicrosoftAuth = async () => {
-    try {
-      // TODO: Implémenter l'authentification Microsoft
-      console.log('Microsoft auth clicked');
-
-      const userData = {
-        name: 'John Doe',
-        email: 'john.doe@outlook.com',
-        provider: 'microsoft'
-      };
-
-      onAuthSuccess(userData);
-    } catch (error) {
-      console.error('Microsoft auth error:', error);
-      alert('Erreur lors de la connexion avec Microsoft');
-    }
-  };
-
-  const handleAppleAuth = async () => {
-    try {
-      // TODO: Implémenter l'authentification Apple
-      console.log('Apple auth clicked');
-
-      const userData = {
-        name: 'John Doe',
-        email: 'john.doe@icloud.com',
-        provider: 'apple'
-      };
-
-      onAuthSuccess(userData);
-    } catch (error) {
-      console.error('Apple auth error:', error);
-      alert('Erreur lors de la connexion avec Apple');
-    }
-  };
-
-  const buttonStyle = (color, hoverColor) => ({
+  const buttonStyle = {
     width: '100%',
     padding: '16px',
     background: 'white',
@@ -73,7 +52,7 @@ const AuthButtons = ({ onAuthSuccess }) => {
     justifyContent: 'center',
     gap: '12px',
     marginBottom: '12px'
-  });
+  };
 
   return (
     <div style={{ marginBottom: '24px' }}>
@@ -89,8 +68,8 @@ const AuthButtons = ({ onAuthSuccess }) => {
 
       {/* Google */}
       <button
-        onClick={handleGoogleAuth}
-        style={buttonStyle('#4285F4', '#357AE8')}
+        onClick={() => handleSignIn('google')}
+        style={buttonStyle}
         onMouseEnter={(e) => {
           e.target.style.borderColor = '#4285F4';
           e.target.style.boxShadow = '0 4px 12px rgba(66, 133, 244, 0.2)';
@@ -111,8 +90,8 @@ const AuthButtons = ({ onAuthSuccess }) => {
 
       {/* Microsoft */}
       <button
-        onClick={handleMicrosoftAuth}
-        style={buttonStyle('#00A4EF', '#0078D4')}
+        onClick={() => handleSignIn('microsoft')}
+        style={buttonStyle}
         onMouseEnter={(e) => {
           e.target.style.borderColor = '#00A4EF';
           e.target.style.boxShadow = '0 4px 12px rgba(0, 164, 239, 0.2)';
@@ -133,9 +112,9 @@ const AuthButtons = ({ onAuthSuccess }) => {
 
       {/* Apple */}
       <button
-        onClick={handleAppleAuth}
+        onClick={() => handleSignIn('apple')}
         style={{
-          ...buttonStyle('#000000', '#1a1a1a'),
+          ...buttonStyle,
           background: '#000000',
           color: 'white',
           border: '2px solid #000000'

@@ -2,33 +2,24 @@ import React, { useEffect } from 'react';
 import { useAuth, useUser, useClerk } from '@clerk/clerk-react';
 
 const AuthButtons = ({ onAuthSuccess }) => {
-  // Check if Clerk is available
+  // Check if Clerk is available BEFORE rendering the component
   const isClerkAvailable = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
-  // Only use hooks if Clerk is available
-  let isSignedIn = false;
-  let user = null;
-  let openSignIn = null;
-
-  try {
-    if (isClerkAvailable) {
-      const auth = useAuth();
-      const userData = useUser();
-      const clerk = useClerk();
-
-      isSignedIn = auth.isSignedIn;
-      user = userData.user;
-      openSignIn = clerk.openSignIn;
-    }
-  } catch (error) {
-    // Clerk not available, component won't render
-    console.log('Clerk not configured');
-  }
-
   // Don't render if Clerk is not available
+  // This must be checked BEFORE calling any hooks
   if (!isClerkAvailable) {
     return null;
   }
+
+  // ALWAYS call hooks at the top level - never conditionally
+  // Hooks must be called in the same order on every render
+  const auth = useAuth();
+  const userData = useUser();
+  const clerk = useClerk();
+
+  const isSignedIn = auth.isSignedIn;
+  const user = userData.user;
+  const openSignIn = clerk.openSignIn;
 
   // Automatically fill form when user signs in
   useEffect(() => {
@@ -44,20 +35,29 @@ const AuthButtons = ({ onAuthSuccess }) => {
     }
   }, [isSignedIn, user, onAuthSuccess]);
 
-  const handleSignIn = (strategy) => {
-    openSignIn({
-      redirectUrl: window.location.href,
-      appearance: {
-        elements: {
-          rootBox: "mx-auto",
-          card: "shadow-xl"
-        }
-      },
-      // Force specific OAuth provider
-      ...(strategy && {
-        strategy: `oauth_${strategy}`
-      })
-    });
+  const handleSignIn = async (strategy) => {
+    try {
+      console.log('Starting sign in with strategy:', strategy);
+
+      await openSignIn({
+        redirectUrl: window.location.href,
+        appearance: {
+          elements: {
+            rootBox: "mx-auto",
+            card: "shadow-xl"
+          }
+        },
+        // Force specific OAuth provider
+        ...(strategy && {
+          strategy: `oauth_${strategy}`
+        })
+      });
+
+      console.log('Sign in modal opened successfully');
+    } catch (error) {
+      console.error('Error opening sign in modal:', error);
+      alert('Erreur lors de l\'ouverture de la connexion. Veuillez réessayer.');
+    }
   };
 
   const buttonStyle = {

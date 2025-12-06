@@ -5,6 +5,7 @@ import { getQuestionsForEvent } from '../utils/smartQuestions';
 import { findBestDate } from '../utils/smartScoring';
 import SmartQuestionFlow from '../components/SmartQuestionFlow';
 import AIRecommendation from '../components/AIRecommendation';
+import AuthButtons from '../components/AuthButtons';
 
 const Participant = () => {
   const navigate = useNavigate();
@@ -642,11 +643,46 @@ const Participant = () => {
               )}
             </div>
 
-            <h2 style={{ fontSize: '24px', marginBottom: '12px', color: '#1E1B4B', fontWeight: '700' }}>
-              Comment t'appelles-tu ?
+            {/* Boutons d'authentification */}
+            <AuthButtons
+              onAuthSuccess={(userData) => {
+                setUserName(userData.name || '');
+                setUserEmail(userData.email || '');
+              }}
+            />
+
+            {/* Divider "ou" */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              marginBottom: '24px',
+              gap: '12px'
+            }}>
+              <div style={{
+                flex: 1,
+                height: '1px',
+                background: 'linear-gradient(to right, transparent, #E9D5FF, transparent)'
+              }}></div>
+              <div style={{
+                color: '#9CA3AF',
+                fontSize: '14px',
+                fontWeight: '600',
+                padding: '0 8px'
+              }}>
+                ou
+              </div>
+              <div style={{
+                flex: 1,
+                height: '1px',
+                background: 'linear-gradient(to left, transparent, #E9D5FF, transparent)'
+              }}></div>
+            </div>
+
+            <h2 style={{ fontSize: '20px', marginBottom: '12px', color: '#1E1B4B', fontWeight: '700' }}>
+              Continuer sans compte
             </h2>
-            <p style={{ color: '#6B7280', marginBottom: '24px', fontSize: '15px' }}>
-              💡 Optionnel mais recommandé pour que l'organisateur puisse te reconnaître
+            <p style={{ color: '#6B7280', marginBottom: '24px', fontSize: '14px' }}>
+              💡 Entre simplement ton nom et email (optionnel)
             </p>
 
             <input

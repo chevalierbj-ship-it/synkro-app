@@ -74,7 +74,9 @@ export default async function handler(req, res) {
               voters: []
             })))
           : null,
-        cagnotteLink: eventData.cagnotteLink || ''
+        cagnotteLink: eventData.cagnotteLink || '',
+        useAI: eventData.useAI !== undefined ? eventData.useAI : true, // 🆕 Mode IA par défaut
+        ai_preferences: JSON.stringify([]) // 🆕 Préférences IA vides au départ
       }
     };
 

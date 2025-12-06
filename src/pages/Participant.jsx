@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Calendar, Users, CheckCircle, Clock, Download, Sparkles, MapPin, AlertCircle, ExternalLink, PiggyBank } from 'lucide-react';
+import { getQuestionsForEvent } from '../utils/smartQuestions';
+import { findBestDate } from '../utils/smartScoring';
+import SmartQuestionFlow from '../components/SmartQuestionFlow';
+import AIRecommendation from '../components/AIRecommendation';
 
 const Participant = () => {
   const navigate = useNavigate();
@@ -17,6 +21,12 @@ const Participant = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+
+  // 🆕 États pour le mode IA
+  const [isAIMode, setIsAIMode] = useState(false);
+  const [showAIFlow, setShowAIFlow] = useState(false);
+  const [aiRecommendation, setAiRecommendation] = useState(null);
+  const [waitingForOthers, setWaitingForOthers] = useState(false);
 
   // 🆕 FONCTIONS CALENDRIER
   const addToGoogleCalendar = () => {
@@ -99,14 +109,20 @@ const Participant = () => {
         const responseData = await response.json();
         const eventData = responseData.event; // ✅ Extraire l'événement
         setEvent(eventData);
-        
+
+        // 🆕 Détecter si le mode IA est activé
+        if (eventData.useAI === true) {
+          setIsAIMode(true);
+          setShowAIFlow(true);
+        }
+
         // Initialiser les availabilities avec null pour chaque date
         const initialAvailabilities = {};
         eventData.dates.forEach(date => {
           initialAvailabilities[date.label] = null;
         });
         setAvailabilities(initialAvailabilities);
-        
+
         setLoading(false);
       } catch (err) {
         console.error('Error fetching event:', err);
@@ -188,6 +204,128 @@ const Participant = () => {
   };
 
   const canSubmit = Object.values(availabilities).some(v => v !== null);
+
+  // 🆕 HANDLER : Completion du flux IA (après les questions)
+  const handleAIComplete = async (answers) => {
+    if (!userName.trim()) {
+      alert('Veuillez entrer votre nom avant de continuer');
+      return;
+    }
+
+    try {
+      setIsAnalyzing(true);
+
+      // Sauvegarder les préférences IA dans Airtable
+      const response = await fetch('/api/save-ai-preferences', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          eventId: eventId,
+          participantName: userName.trim(),
+          participantEmail: userEmail.trim() || '',
+          preferences: answers
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save AI preferences');
+      }
+
+      const result = await response.json();
+      console.log('AI preferences saved:', result);
+
+      // Recharger l'événement pour avoir les préférences à jour
+      const eventResponse = await fetch(`/api/get-event?id=${eventId}`);
+      const eventData = await eventResponse.json();
+      const updatedEvent = eventData.event;
+      setEvent(updatedEvent);
+
+      // Vérifier si tous les participants ont répondu
+      const aiPreferences = updatedEvent.ai_preferences
+        ? JSON.parse(updatedEvent.ai_preferences)
+        : [];
+
+      const expectedParticipants = updatedEvent.expectedParticipants || 0;
+      const hasEnoughResponses = aiPreferences.length >= expectedParticipants;
+
+      if (hasEnoughResponses || aiPreferences.length >= 2) {
+        // Calculer la meilleure date avec l'algorithme IA
+        const recommendation = findBestDate(
+          updatedEvent.dates,
+          aiPreferences
+        );
+
+        setAiRecommendation(recommendation);
+        setShowAIFlow(false);
+      } else {
+        // Pas encore assez de réponses, afficher message d'attente
+        setWaitingForOthers(true);
+        setShowAIFlow(false);
+      }
+
+      setIsAnalyzing(false);
+    } catch (error) {
+      console.error('Error in AI flow:', error);
+      alert('Une erreur est survenue. Veuillez réessayer.');
+      setIsAnalyzing(false);
+    }
+  };
+
+  // 🆕 HANDLER : Confirmer la date recommandée par l'IA
+  const handleAIConfirm = async (selectedDateObj) => {
+    try {
+      setStep(3); // Loader
+
+      // Créer les availabilities : true pour la date sélectionnée, false pour les autres
+      const aiAvailabilities = {};
+      event.dates.forEach(date => {
+        aiAvailabilities[date.label] = (date.label === selectedDateObj.label);
+      });
+
+      // Sauvegarder le vote via l'API normale
+      const response = await fetch('/api/update-event', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          eventId: eventId,
+          participantName: userName.trim(),
+          participantEmail: userEmail.trim() || undefined,
+          availabilities: aiAvailabilities,
+          selectedBudget: selectedBudget || undefined
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save vote');
+      }
+
+      const result = await response.json();
+      setEvent(result.event);
+
+      setTimeout(() => {
+        setSelectedDate(selectedDateObj);
+        setStep(4);
+      }, 1500);
+
+    } catch (error) {
+      console.error('Error confirming AI recommendation:', error);
+      alert('Une erreur est survenue lors de la confirmation.');
+      setStep(2);
+    }
+  };
+
+  // 🆕 HANDLER : Basculer vers le vote manuel
+  const handleSwitchToManual = () => {
+    setIsAIMode(false);
+    setShowAIFlow(false);
+    setAiRecommendation(null);
+    setWaitingForOthers(false);
+    setStep(1); // Retour au début en mode manuel
+  };
 
   // 🔥 SAUVEGARDER les votes dans Airtable via API
   const handleSubmit = async () => {
@@ -297,6 +435,138 @@ const Participant = () => {
           >
             ← Retour à l'accueil
           </button>
+        </div>
+      </div>
+    );
+  }
+
+  // 🆕 MODE IA : Afficher le flux de questions intelligentes
+  if (isAIMode && showAIFlow && userName) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 50%, #06B6D4 100%)',
+        padding: '20px'
+      }}>
+        <SmartQuestionFlow
+          questions={getQuestionsForEvent(event.type)}
+          eventTitle={event.type}
+          participantName={userName}
+          onComplete={handleAIComplete}
+        />
+      </div>
+    );
+  }
+
+  // 🆕 MODE IA : Afficher la recommandation de l'IA
+  if (isAIMode && aiRecommendation) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 50%, #06B6D4 100%)',
+        padding: '20px'
+      }}>
+        <AIRecommendation
+          recommendation={aiRecommendation}
+          onConfirm={handleAIConfirm}
+          onShowManualVote={handleSwitchToManual}
+          eventData={event}
+        />
+      </div>
+    );
+  }
+
+  // 🆕 MODE IA : Message d'attente des autres participants
+  if (isAIMode && waitingForOthers) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 50%, #06B6D4 100%)',
+        padding: '20px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}>
+        <div style={{
+          maxWidth: '600px',
+          background: 'white',
+          borderRadius: '24px',
+          padding: '50px 40px',
+          textAlign: 'center',
+          boxShadow: '0 24px 60px rgba(139, 92, 246, 0.3)'
+        }}>
+          <div style={{
+            width: '80px',
+            height: '80px',
+            borderRadius: '50%',
+            background: 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 24px',
+            animation: 'pulse 2s ease-in-out infinite',
+            boxShadow: '0 10px 30px rgba(139, 92, 246, 0.4)'
+          }}>
+            <Users size={40} color="white" />
+          </div>
+
+          <h2 style={{
+            fontSize: '28px',
+            fontWeight: '800',
+            color: '#1E1B4B',
+            marginBottom: '16px'
+          }}>
+            Merci {userName} ! 🎉
+          </h2>
+
+          <p style={{
+            color: '#6B7280',
+            fontSize: '17px',
+            marginBottom: '32px',
+            lineHeight: '1.6'
+          }}>
+            Tes préférences ont été enregistrées.<br />
+            L'IA calculera la meilleure date une fois que tous les participants auront répondu.
+          </p>
+
+          <div style={{
+            padding: '20px',
+            background: 'linear-gradient(135deg, #F5F3FF 0%, #E9D5FF 100%)',
+            borderRadius: '16px',
+            marginBottom: '28px',
+            border: '2px solid #E9D5FF'
+          }}>
+            <div style={{ fontSize: '14px', color: '#6B7280', marginBottom: '8px' }}>
+              Réponses reçues
+            </div>
+            <div style={{ fontSize: '32px', fontWeight: '800', color: '#8B5CF6' }}>
+              {event.ai_preferences ? JSON.parse(event.ai_preferences).length : 1} / {event.expectedParticipants || '?'}
+            </div>
+          </div>
+
+          <button
+            onClick={handleSwitchToManual}
+            style={{
+              padding: '14px 28px',
+              background: 'white',
+              border: '2px solid #8B5CF6',
+              borderRadius: '12px',
+              color: '#8B5CF6',
+              fontSize: '15px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              marginBottom: '16px'
+            }}
+          >
+            Ou voter manuellement sur les dates
+          </button>
+
+          <style>{`
+            @keyframes pulse {
+              0%, 100% { transform: scale(1); opacity: 1; }
+              50% { transform: scale(1.05); opacity: 0.9; }
+            }
+          `}</style>
         </div>
       </div>
     );

@@ -55,7 +55,7 @@ const Admin = () => {
   const fetchEvent = async () => {
     try {
       setIsRefreshing(true);
-      const response = await fetch(`/api/get-event?id=${eventId}`);
+      const response = await fetch(`/api/events?action=get&id=${eventId}`);
       
       if (!response.ok) {
         throw new Error('Événement non trouvé');

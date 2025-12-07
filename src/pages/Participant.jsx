@@ -95,7 +95,7 @@ const Participant = () => {
   useEffect(() => {
     const fetchEvent = async () => {
       try {
-        const response = await fetch(`/api/get-event?id=${eventId}`);
+        const response = await fetch(`/api/events?action=get&id=${eventId}`);
         
         if (!response.ok) {
           if (response.status === 404) {
@@ -217,7 +217,7 @@ const Participant = () => {
       setIsAnalyzing(true);
 
       // Sauvegarder les préférences IA dans Airtable
-      const response = await fetch('/api/save-ai-preferences', {
+      const response = await fetch('/api/settings?action=ai-preferences', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -238,7 +238,7 @@ const Participant = () => {
       console.log('AI preferences saved:', result);
 
       // Recharger l'événement pour avoir les préférences à jour
-      const eventResponse = await fetch(`/api/get-event?id=${eventId}`);
+      const eventResponse = await fetch(`/api/events?action=get&id=${eventId}`);
       const eventData = await eventResponse.json();
       const updatedEvent = eventData.event;
       setEvent(updatedEvent);
@@ -286,7 +286,7 @@ const Participant = () => {
       });
 
       // Sauvegarder le vote via l'API normale
-      const response = await fetch('/api/update-event', {
+      const response = await fetch('/api/events?action=update', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -336,7 +336,7 @@ const Participant = () => {
       setStep(3); // Afficher le loader
 
       // Appeler l'API pour sauvegarder
-      const response = await fetch('/api/update-event', {
+      const response = await fetch('/api/events?action=update', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

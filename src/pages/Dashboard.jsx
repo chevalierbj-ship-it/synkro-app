@@ -1,26 +1,27 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Calendar, Users, TrendingUp, Sparkles, ArrowRight, Crown, Mail } from 'lucide-react';
+import { useUser } from '@clerk/clerk-react';
+import CustomizationPanel from '../components/CustomizationPanel';
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const { isSignedIn, user, isLoaded } = useUser();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [userEmail, setUserEmail] = useState('');
-  const [emailInput, setEmailInput] = useState('');
-  const [showEmailPrompt, setShowEmailPrompt] = useState(true);
 
   useEffect(() => {
-    // Récupérer l'email du localStorage si disponible
-    const savedEmail = localStorage.getItem('synkro_user_email');
-    if (savedEmail) {
-      setUserEmail(savedEmail);
-      setShowEmailPrompt(false);
-      fetchUserStats(savedEmail);
-    } else {
-      setLoading(false);
+    // Rediriger vers sign-in si non connecté
+    if (isLoaded && !isSignedIn) {
+      navigate('/sign-in');
+      return;
     }
-  }, []);
+
+    // Charger les stats si connecté
+    if (isSignedIn && user?.primaryEmailAddress?.emailAddress) {
+      fetchUserStats(user.primaryEmailAddress.emailAddress);
+    }
+  }, [isLoaded, isSignedIn, user, navigate]);
 
   const fetchUserStats = async (email) => {
     try {
@@ -33,26 +34,6 @@ export default function Dashboard() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleEmailSubmit = (e) => {
-    e.preventDefault();
-    if (emailInput && emailInput.includes('@')) {
-      localStorage.setItem('synkro_user_email', emailInput);
-      setUserEmail(emailInput);
-      setShowEmailPrompt(false);
-      fetchUserStats(emailInput);
-    } else {
-      alert('Veuillez entrer un email valide');
-    }
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem('synkro_user_email');
-    setUserEmail('');
-    setStats(null);
-    setShowEmailPrompt(true);
-    setEmailInput('');
   };
 
   const getPlanEmoji = (plan) => {
@@ -79,113 +60,8 @@ export default function Dashboard() {
     }
   };
 
-  // Écran de prompt email
-  if (showEmailPrompt) {
-    return (
-      <div style={{
-        minHeight: '100vh',
-        background: 'linear-gradient(135deg, #F5F3FF 0%, #E9D5FF 100%)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '20px'
-      }}>
-        <div style={{
-          background: 'white',
-          borderRadius: '20px',
-          padding: '60px 40px',
-          maxWidth: '500px',
-          width: '100%',
-          boxShadow: '0 10px 40px rgba(0,0,0,0.1)',
-          textAlign: 'center'
-        }}>
-          <Sparkles size={48} color="#8B5CF6" style={{ marginBottom: '20px' }} />
-          <h1 style={{ fontSize: '32px', fontWeight: '800', color: '#1E1B4B', marginBottom: '16px' }}>
-            Accédez à votre Dashboard
-          </h1>
-          <p style={{ color: '#6B7280', marginBottom: '32px', fontSize: '16px' }}>
-            Entrez votre email pour voir vos statistiques et événements
-          </p>
-
-          <form onSubmit={handleEmailSubmit}>
-            <div style={{ marginBottom: '24px', textAlign: 'left' }}>
-              <label style={{
-                display: 'block',
-                marginBottom: '8px',
-                color: '#1E1B4B',
-                fontWeight: '600',
-                fontSize: '14px'
-              }}>
-                <Mail size={16} style={{ display: 'inline', marginRight: '8px' }} />
-                Votre email
-              </label>
-              <input
-                type="email"
-                value={emailInput}
-                onChange={(e) => setEmailInput(e.target.value)}
-                placeholder="exemple@email.com"
-                required
-                style={{
-                  width: '100%',
-                  padding: '14px',
-                  border: '2px solid #E5E7EB',
-                  borderRadius: '12px',
-                  fontSize: '16px',
-                  transition: 'border-color 0.3s',
-                  outline: 'none'
-                }}
-                onFocus={(e) => e.target.style.borderColor = '#8B5CF6'}
-                onBlur={(e) => e.target.style.borderColor = '#E5E7EB'}
-              />
-            </div>
-
-            <button
-              type="submit"
-              style={{
-                width: '100%',
-                padding: '16px',
-                background: 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)',
-                color: 'white',
-                border: 'none',
-                borderRadius: '12px',
-                fontSize: '16px',
-                fontWeight: '700',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                transition: 'transform 0.3s'
-              }}
-              onMouseEnter={(e) => e.target.style.transform = 'translateY(-2px)'}
-              onMouseLeave={(e) => e.target.style.transform = 'translateY(0)'}
-            >
-              Voir mon dashboard
-              <ArrowRight size={20} />
-            </button>
-          </form>
-
-          <button
-            onClick={() => navigate('/')}
-            style={{
-              marginTop: '20px',
-              background: 'none',
-              border: 'none',
-              color: '#8B5CF6',
-              fontSize: '14px',
-              fontWeight: '600',
-              cursor: 'pointer'
-            }}
-          >
-            ← Retour à l'accueil
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   // Écran de chargement
-  if (loading) {
+  if (!isLoaded || loading) {
     return (
       <div style={{
         minHeight: '100vh',
@@ -232,7 +108,7 @@ export default function Dashboard() {
               Mon Dashboard
             </h1>
             <p style={{ color: '#6B7280', fontSize: '16px' }}>
-              {userEmail}
+              {user?.primaryEmailAddress?.emailAddress}
             </p>
           </div>
           <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
@@ -259,30 +135,6 @@ export default function Dashboard() {
               }}
             >
               ← Accueil
-            </button>
-            <button
-              onClick={handleLogout}
-              style={{
-                padding: '12px 24px',
-                background: 'white',
-                border: '2px solid #E5E7EB',
-                borderRadius: '10px',
-                fontSize: '14px',
-                fontWeight: '600',
-                color: '#EF4444',
-                cursor: 'pointer',
-                transition: 'all 0.3s'
-              }}
-              onMouseEnter={(e) => {
-                e.target.style.borderColor = '#EF4444';
-                e.target.style.background = '#FEF2F2';
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.borderColor = '#E5E7EB';
-                e.target.style.background = 'white';
-              }}
-            >
-              Se déconnecter
             </button>
           </div>
         </div>
@@ -433,6 +285,14 @@ export default function Dashboard() {
             </div>
           )}
 
+        </div>
+
+        {/* Section Personnalisation */}
+        <div style={{ marginBottom: '40px' }}>
+          <CustomizationPanel
+            userData={stats}
+            onSave={() => console.log('Saved')}
+          />
         </div>
 
         {/* Nouvelle section : Actions rapides */}

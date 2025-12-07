@@ -19,8 +19,8 @@ export default function Pricing() {
 
     try {
       const priceId = isAnnual
-        ? (plan.name === 'Pro' ? process.env.VITE_STRIPE_PRICE_PRO_YEARLY : process.env.VITE_STRIPE_PRICE_ENTERPRISE_YEARLY)
-        : (plan.name === 'Pro' ? process.env.VITE_STRIPE_PRICE_PRO_MONTHLY : process.env.VITE_STRIPE_PRICE_ENTERPRISE_MONTHLY);
+        ? (plan.name === 'Pro' ? import.meta.env.VITE_STRIPE_PRICE_PRO_YEARLY : import.meta.env.VITE_STRIPE_PRICE_ENTERPRISE_YEARLY)
+        : (plan.name === 'Pro' ? import.meta.env.VITE_STRIPE_PRICE_PRO_MONTHLY : import.meta.env.VITE_STRIPE_PRICE_ENTERPRISE_MONTHLY);
 
       if (!priceId) {
         alert('Stripe n\'est pas encore configuré. Veuillez configurer les Price IDs dans .env');

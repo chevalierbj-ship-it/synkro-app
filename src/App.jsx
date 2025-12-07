@@ -13,6 +13,8 @@ const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Analytics = lazy(() => import('./pages/Analytics'));
 const SignIn = lazy(() => import('./pages/SignIn'));
 const SignUp = lazy(() => import('./pages/SignUp'));
+const Success = lazy(() => import('./pages/Success'));
+const Cancel = lazy(() => import('./pages/Cancel'));
 
 // Composant de chargement pendant le lazy loading
 const LoadingFallback = () => (
@@ -46,10 +48,13 @@ function App() {
         <Suspense fallback={<LoadingFallback />}>
           <Routes>
             <Route path="/" element={<Landing />} />
+            <Route path="/organizer" element={<Organizer />} />
             <Route path="/create" element={<Organizer />} />
             <Route path="/participant" element={<Participant />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/pricing" element={<Pricing />} />
+            <Route path="/success" element={<Success />} />
+            <Route path="/cancel" element={<Cancel />} />
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
             <Route path="/sign-in/*" element={<SignIn />} />

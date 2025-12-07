@@ -1,8 +1,61 @@
 import React, { useState } from 'react';
 import { Check, X, Zap, Users, BarChart3 } from 'lucide-react';
+import { useUser } from '@clerk/clerk-react';
 
 export default function Pricing() {
   const [isAnnual, setIsAnnual] = useState(false);
+  const [loading, setLoading] = useState(null);
+  const { user } = useUser();
+
+  // Handle subscription
+  const handleSubscribe = async (plan) => {
+    if (plan.price.monthly === 0) {
+      // Free plan - redirect to organizer
+      window.location.href = '/organizer';
+      return;
+    }
+
+    setLoading(plan.name);
+
+    try {
+      const priceId = isAnnual
+        ? (plan.name === 'Pro' ? process.env.VITE_STRIPE_PRICE_PRO_YEARLY : process.env.VITE_STRIPE_PRICE_ENTERPRISE_YEARLY)
+        : (plan.name === 'Pro' ? process.env.VITE_STRIPE_PRICE_PRO_MONTHLY : process.env.VITE_STRIPE_PRICE_ENTERPRISE_MONTHLY);
+
+      if (!priceId) {
+        alert('Stripe n\'est pas encore configuré. Veuillez configurer les Price IDs dans .env');
+        setLoading(null);
+        return;
+      }
+
+      const response = await fetch('/api/create-checkout-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          priceId,
+          planName: plan.name,
+          planType: isAnnual ? 'yearly' : 'monthly',
+          userEmail: user?.primaryEmailAddress?.emailAddress || '',
+          userId: user?.id || '',
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.url) {
+        // Redirect to Stripe Checkout
+        window.location.href = data.url;
+      } else {
+        throw new Error(data.error || 'Failed to create checkout session');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Une erreur est survenue. Veuillez réessayer.');
+      setLoading(null);
+    }
+  };
 
   const plans = [
     {
@@ -151,13 +204,15 @@ export default function Pricing() {
 
               {/* CTA Button */}
               <button
+                onClick={() => handleSubscribe(plan)}
+                disabled={loading === plan.name}
                 className={`w-full py-3 px-6 rounded-lg font-semibold text-center transition-all mb-8 ${
                   plan.highlighted
-                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 shadow-lg'
-                    : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
+                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 shadow-lg disabled:opacity-50'
+                    : 'bg-gray-100 text-gray-900 hover:bg-gray-200 disabled:opacity-50'
                 }`}
               >
-                {plan.cta}
+                {loading === plan.name ? 'Redirection...' : plan.cta}
               </button>
 
               {/* Features */}
@@ -410,7 +465,10 @@ export default function Pricing() {
           <p className="text-xl mb-8 opacity-90">
             Rejoignez des centaines d'organisateurs qui ont dit adieu aux interminables conversations de groupe.
           </p>
-          <button className="bg-white text-blue-600 px-8 py-4 rounded-lg font-semibold text-lg hover:bg-gray-100 transition-all shadow-lg">
+          <button
+            onClick={() => window.location.href = '/organizer'}
+            className="bg-white text-blue-600 px-8 py-4 rounded-lg font-semibold text-lg hover:bg-gray-100 transition-all shadow-lg"
+          >
             Commencer gratuitement
           </button>
         </div>

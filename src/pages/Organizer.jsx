@@ -166,7 +166,7 @@ const Organizer = () => {
       }));
       
       // Créer l'événement via l'API serverless
-      const response = await fetch('/api/create-event', {
+      const response = await fetch('/api/events?action=create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -200,7 +200,7 @@ body: JSON.stringify({
       if (organizerEmail) {
         try {
           const eventName = eventType === 'other' ? customEvent : selectedEventType.label;
-          const trackResponse = await fetch('/api/track-event', {
+          const trackResponse = await fetch('/api/events?action=track', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'

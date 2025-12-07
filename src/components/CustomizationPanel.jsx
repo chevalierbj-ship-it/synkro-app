@@ -20,7 +20,7 @@ export default function CustomizationPanel({ userData, onSave }) {
     setSaving(true);
 
     try {
-      const response = await fetch('/api/save-customization', {
+      const response = await fetch('/api/settings?action=customization', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

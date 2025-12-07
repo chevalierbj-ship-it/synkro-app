@@ -190,32 +190,93 @@ async function handleCheckoutCompleted({ userId, email, subscriptionId, customer
 
   console.log('✅ Plan:', plan, '- Interval:', interval);
 
-  // ✅ 1. Enregistrer l'abonnement dans Airtable
+  // ✅ 1. Mettre à jour le plan de l'utilisateur dans Airtable (table Users)
   try {
     const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN;
     const BASE_ID = process.env.AIRTABLE_BASE_ID;
 
-    // Create subscriptions table if it doesn't exist yet
-    // For now, we'll store in a simple format
-    const subscriptionData = {
-      fields: {
-        userId: userId || 'anonymous',
-        email: email,
-        plan: planName,
-        interval: interval === 'year' ? 'Annuel' : 'Mensuel',
-        subscriptionId: subscriptionId,
-        customerId: customerId,
-        status: subscription.status,
-        amountPaid: amountPaid,
-        currentPeriodEnd: new Date(subscription.current_period_end * 1000).toISOString(),
-        createdAt: new Date().toISOString()
+    if (!AIRTABLE_TOKEN || !BASE_ID) {
+      console.error('❌ Airtable credentials missing');
+    } else {
+      // Chercher l'utilisateur dans Airtable par email
+      const searchResponse = await fetch(
+        `https://api.airtable.com/v0/${BASE_ID}/Users?filterByFormula={email}='${email}'`,
+        {
+          headers: {
+            'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      if (!searchResponse.ok) {
+        console.error('❌ Error searching user in Airtable:', await searchResponse.text());
+      } else {
+        const searchData = await searchResponse.json();
+
+        if (searchData.records && searchData.records.length > 0) {
+          // Utilisateur existe - mettre à jour son plan
+          const recordId = searchData.records[0].id;
+          const updateResponse = await fetch(
+            `https://api.airtable.com/v0/${BASE_ID}/Users/${recordId}`,
+            {
+              method: 'PATCH',
+              headers: {
+                'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                fields: {
+                  plan: plan,
+                  stripe_customer_id: customerId,
+                  stripe_subscription_id: subscriptionId,
+                  subscription_status: subscription.status,
+                  subscription_period_end: new Date(subscription.current_period_end * 1000).toISOString()
+                }
+              })
+            }
+          );
+
+          if (updateResponse.ok) {
+            console.log('✅ User plan updated in Airtable to:', plan);
+          } else {
+            console.error('❌ Error updating user in Airtable:', await updateResponse.text());
+          }
+        } else {
+          // Utilisateur n'existe pas - le créer
+          const createResponse = await fetch(
+            `https://api.airtable.com/v0/${BASE_ID}/Users`,
+            {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                fields: {
+                  email: email,
+                  clerk_user_id: userId,
+                  plan: plan,
+                  stripe_customer_id: customerId,
+                  stripe_subscription_id: subscriptionId,
+                  subscription_status: subscription.status,
+                  subscription_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+                  created_at: new Date().toISOString(),
+                  events_created_this_month: 0,
+                  events_limit: plan === 'gratuit' ? 5 : 999
+                }
+              })
+            }
+          );
+
+          if (createResponse.ok) {
+            console.log('✅ New user created in Airtable with plan:', plan);
+          } else {
+            console.error('❌ Error creating user in Airtable:', await createResponse.text());
+          }
+        }
       }
-    };
-
-    // Note: You'll need to create a "Subscriptions" table in Airtable manually
-    // with the fields: userId, email, plan, interval, subscriptionId, customerId, status, amountPaid, currentPeriodEnd, createdAt
-    console.log('💾 Subscription data ready for Airtable:', subscriptionData);
-
+    }
   } catch (error) {
     console.error('❌ Error saving to Airtable:', error);
   }
@@ -337,12 +398,58 @@ async function handleSubscriptionUpdated(subscription) {
   const subscriptionId = subscription.id;
   const status = subscription.status;
   const cancelAtPeriodEnd = subscription.cancel_at_period_end;
+  const customerId = subscription.customer;
 
   console.log('Status:', status);
   console.log('Cancel at period end:', cancelAtPeriodEnd);
 
-  // TODO: Mettre à jour dans votre base de données
-  // Gérer les cas : active, past_due, canceled, unpaid
+  // Mettre à jour le statut dans Airtable
+  try {
+    const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN;
+    const BASE_ID = process.env.AIRTABLE_BASE_ID;
+
+    if (AIRTABLE_TOKEN && BASE_ID) {
+      // Chercher l'utilisateur par stripe_subscription_id
+      const searchResponse = await fetch(
+        `https://api.airtable.com/v0/${BASE_ID}/Users?filterByFormula={stripe_subscription_id}='${subscriptionId}'`,
+        {
+          headers: {
+            'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      if (searchResponse.ok) {
+        const searchData = await searchResponse.json();
+        if (searchData.records && searchData.records.length > 0) {
+          const recordId = searchData.records[0].id;
+
+          // Mettre à jour le statut
+          await fetch(
+            `https://api.airtable.com/v0/${BASE_ID}/Users/${recordId}`,
+            {
+              method: 'PATCH',
+              headers: {
+                'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                fields: {
+                  subscription_status: status,
+                  subscription_period_end: new Date(subscription.current_period_end * 1000).toISOString()
+                }
+              })
+            }
+          );
+
+          console.log('✅ Subscription status updated in Airtable');
+        }
+      }
+    }
+  } catch (error) {
+    console.error('❌ Error updating subscription in Airtable:', error);
+  }
 
   if (cancelAtPeriodEnd) {
     console.log('⚠️ Subscription will be canceled at the end of the period');
@@ -357,7 +464,54 @@ async function handleSubscriptionDeleted(subscription) {
   const subscriptionId = subscription.id;
   const customerId = subscription.customer;
 
-  // ✅ 1. Révoquer l'accès premium - Update in Airtable
+  // ✅ 1. Révoquer l'accès premium dans Airtable
+  try {
+    const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN;
+    const BASE_ID = process.env.AIRTABLE_BASE_ID;
+
+    if (AIRTABLE_TOKEN && BASE_ID) {
+      const searchResponse = await fetch(
+        `https://api.airtable.com/v0/${BASE_ID}/Users?filterByFormula={stripe_subscription_id}='${subscriptionId}'`,
+        {
+          headers: {
+            'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      if (searchResponse.ok) {
+        const searchData = await searchResponse.json();
+        if (searchData.records && searchData.records.length > 0) {
+          const recordId = searchData.records[0].id;
+
+          // Révoquer l'accès premium - retour au plan gratuit
+          await fetch(
+            `https://api.airtable.com/v0/${BASE_ID}/Users/${recordId}`,
+            {
+              method: 'PATCH',
+              headers: {
+                'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                fields: {
+                  plan: 'gratuit',
+                  subscription_status: 'canceled',
+                  events_limit: 5
+                }
+              })
+            }
+          );
+
+          console.log('✅ User plan reverted to gratuit in Airtable');
+        }
+      }
+    }
+  } catch (error) {
+    console.error('❌ Error revoking premium access in Airtable:', error);
+  }
+
   console.log('🔴 Revoking premium access for subscription:', subscriptionId);
 
   // ✅ 2. Envoyer un email d'information

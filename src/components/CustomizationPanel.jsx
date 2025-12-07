@@ -18,10 +18,32 @@ export default function CustomizationPanel({ userData, onSave }) {
 
   const handleSave = async () => {
     setSaving(true);
-    // TODO : Appeler API pour sauvegarder
-    console.log('Saving:', { selectedColor, hideBranding });
-    setSaving(false);
-    alert('Sauvegardé !');
+
+    try {
+      const response = await fetch('/api/save-customization', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          clerkUserId: userData.clerk_user_id,
+          themeColor: selectedColor,
+          hideBranding: hideBranding
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        alert('Préférences sauvegardées !');
+        if (onSave) onSave();
+      } else {
+        alert('Erreur : ' + (data.error || 'Unknown error'));
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Erreur lors de la sauvegarde');
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (!isPro) {

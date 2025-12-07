@@ -166,10 +166,21 @@ async function getRawBody(req) {
 
 async function handleCheckoutCompleted({ userId, email, subscriptionId, customerId, session }) {
   console.log('📝 Processing checkout completion...');
+  console.log('🔍 User email:', email);
+  console.log('🔍 Customer ID:', customerId);
+  console.log('🔍 Subscription ID:', subscriptionId);
 
   // Récupérer les détails de l'abonnement
   const subscription = await stripe.subscriptions.retrieve(subscriptionId);
   const priceId = subscription.items.data[0].price.id;
+
+  console.log('🔍 Price ID:', priceId);
+  console.log('🔍 Available price IDs:', {
+    pro_monthly: process.env.STRIPE_PRICE_PRO_MONTHLY,
+    pro_yearly: process.env.STRIPE_PRICE_PRO_YEARLY,
+    enterprise_monthly: process.env.STRIPE_PRICE_ENTERPRISE_MONTHLY,
+    enterprise_yearly: process.env.STRIPE_PRICE_ENTERPRISE_YEARLY
+  });
 
   // Déterminer le plan
   let plan = 'gratuit';
@@ -188,16 +199,21 @@ async function handleCheckoutCompleted({ userId, email, subscriptionId, customer
   const interval = subscription.items.data[0].price.recurring.interval; // 'month' ou 'year'
   const amountPaid = subscription.items.data[0].price.unit_amount / 100; // Convert from cents
 
-  console.log('✅ Plan:', plan, '- Interval:', interval);
+  console.log('✅ Determined plan:', plan, '- Interval:', interval, '- Amount:', amountPaid);
 
   // ✅ 1. Mettre à jour le plan de l'utilisateur dans Airtable (table Users)
+  let airtableUpdateSuccess = false;
   try {
     const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN;
     const BASE_ID = process.env.AIRTABLE_BASE_ID;
 
     if (!AIRTABLE_TOKEN || !BASE_ID) {
       console.error('❌ Airtable credentials missing');
+      console.error('AIRTABLE_TOKEN exists:', !!AIRTABLE_TOKEN);
+      console.error('AIRTABLE_BASE_ID exists:', !!BASE_ID);
     } else {
+      console.log('🔍 Searching for user in Airtable with email:', email);
+
       // Chercher l'utilisateur dans Airtable par email
       const searchResponse = await fetch(
         `https://api.airtable.com/v0/${BASE_ID}/Users?filterByFormula={email}='${email}'`,
@@ -210,13 +226,32 @@ async function handleCheckoutCompleted({ userId, email, subscriptionId, customer
       );
 
       if (!searchResponse.ok) {
-        console.error('❌ Error searching user in Airtable:', await searchResponse.text());
+        const errorText = await searchResponse.text();
+        console.error('❌ Error searching user in Airtable:', errorText);
+        console.error('❌ Response status:', searchResponse.status);
       } else {
         const searchData = await searchResponse.json();
+        console.log('🔍 Airtable search results:', JSON.stringify(searchData, null, 2));
 
         if (searchData.records && searchData.records.length > 0) {
           // Utilisateur existe - mettre à jour son plan
           const recordId = searchData.records[0].id;
+          console.log('✅ User found in Airtable, record ID:', recordId);
+          console.log('🔍 Current user data:', JSON.stringify(searchData.records[0].fields, null, 2));
+
+          const updatePayload = {
+            fields: {
+              plan: plan,
+              stripe_customer_id: customerId,
+              stripe_subscription_id: subscriptionId,
+              subscription_status: subscription.status,
+              subscription_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+              events_limit: plan === 'pro' ? 15 : (plan === 'entreprise' ? 999 : 5)
+            }
+          };
+
+          console.log('🔍 Update payload:', JSON.stringify(updatePayload, null, 2));
+
           const updateResponse = await fetch(
             `https://api.airtable.com/v0/${BASE_ID}/Users/${recordId}`,
             {
@@ -225,25 +260,41 @@ async function handleCheckoutCompleted({ userId, email, subscriptionId, customer
                 'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
                 'Content-Type': 'application/json'
               },
-              body: JSON.stringify({
-                fields: {
-                  plan: plan,
-                  stripe_customer_id: customerId,
-                  stripe_subscription_id: subscriptionId,
-                  subscription_status: subscription.status,
-                  subscription_period_end: new Date(subscription.current_period_end * 1000).toISOString()
-                }
-              })
+              body: JSON.stringify(updatePayload)
             }
           );
 
           if (updateResponse.ok) {
+            const updatedData = await updateResponse.json();
             console.log('✅ User plan updated in Airtable to:', plan);
+            console.log('✅ Updated user data:', JSON.stringify(updatedData.fields, null, 2));
+            airtableUpdateSuccess = true;
           } else {
-            console.error('❌ Error updating user in Airtable:', await updateResponse.text());
+            const errorText = await updateResponse.text();
+            console.error('❌ Error updating user in Airtable:', errorText);
+            console.error('❌ Response status:', updateResponse.status);
           }
         } else {
           // Utilisateur n'existe pas - le créer
+          console.log('⚠️ User not found in Airtable, creating new user...');
+
+          const createPayload = {
+            fields: {
+              email: email,
+              clerk_user_id: userId,
+              plan: plan,
+              stripe_customer_id: customerId,
+              stripe_subscription_id: subscriptionId,
+              subscription_status: subscription.status,
+              subscription_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+              created_at: new Date().toISOString(),
+              events_created_this_month: 0,
+              events_limit: plan === 'pro' ? 15 : (plan === 'entreprise' ? 999 : 5)
+            }
+          };
+
+          console.log('🔍 Create payload:', JSON.stringify(createPayload, null, 2));
+
           const createResponse = await fetch(
             `https://api.airtable.com/v0/${BASE_ID}/Users`,
             {
@@ -252,33 +303,76 @@ async function handleCheckoutCompleted({ userId, email, subscriptionId, customer
                 'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
                 'Content-Type': 'application/json'
               },
-              body: JSON.stringify({
-                fields: {
-                  email: email,
-                  clerk_user_id: userId,
-                  plan: plan,
-                  stripe_customer_id: customerId,
-                  stripe_subscription_id: subscriptionId,
-                  subscription_status: subscription.status,
-                  subscription_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
-                  created_at: new Date().toISOString(),
-                  events_created_this_month: 0,
-                  events_limit: plan === 'gratuit' ? 5 : 999
-                }
-              })
+              body: JSON.stringify(createPayload)
             }
           );
 
           if (createResponse.ok) {
+            const createdData = await createResponse.json();
             console.log('✅ New user created in Airtable with plan:', plan);
+            console.log('✅ Created user data:', JSON.stringify(createdData.fields, null, 2));
+            airtableUpdateSuccess = true;
           } else {
-            console.error('❌ Error creating user in Airtable:', await createResponse.text());
+            const errorText = await createResponse.text();
+            console.error('❌ Error creating user in Airtable:', errorText);
+            console.error('❌ Response status:', createResponse.status);
           }
         }
       }
     }
   } catch (error) {
     console.error('❌ Error saving to Airtable:', error);
+    console.error('❌ Error stack:', error.stack);
+  }
+
+  // ✅ 1.5. Enregistrer l'événement de paiement dans EventsLog pour traçabilité
+  try {
+    const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN;
+    const BASE_ID = process.env.AIRTABLE_BASE_ID;
+
+    if (AIRTABLE_TOKEN && BASE_ID) {
+      console.log('🔍 Logging payment event to EventsLog...');
+
+      const logResponse = await fetch(
+        `https://api.airtable.com/v0/${BASE_ID}/EventsLog`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            fields: {
+              user_email: email,
+              event_name: `Payment: ${planName} - ${interval === 'year' ? 'Yearly' : 'Monthly'}`,
+              stripe_customer_id: customerId,
+              stripe_subscription_id: subscriptionId,
+              subscription_status: subscription.status,
+              subscription_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+              created_at: new Date().toISOString(),
+              last_event_date: new Date().toISOString(),
+              status: 'completed',
+              participants_count: 0
+            }
+          })
+        }
+      );
+
+      if (logResponse.ok) {
+        console.log('✅ Payment event logged to EventsLog');
+      } else {
+        console.error('❌ Error logging to EventsLog:', await logResponse.text());
+      }
+    }
+  } catch (error) {
+    console.error('❌ Error logging to EventsLog:', error);
+  }
+
+  // Log final status
+  if (airtableUpdateSuccess) {
+    console.log('✅✅✅ CHECKOUT COMPLETED SUCCESSFULLY - User plan updated to:', plan);
+  } else {
+    console.error('❌❌❌ CHECKOUT COMPLETED BUT AIRTABLE UPDATE FAILED');
   }
 
   // ✅ 2. Envoyer un email de confirmation

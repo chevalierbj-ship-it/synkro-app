@@ -71,11 +71,14 @@ export default async function handler(req, res) {
     // Retourner les statistiques complètes
     return res.status(200).json({
       email: user.email,
+      clerk_user_id: user.clerk_user_id || null,
       plan,
       eventsCreatedThisMonth: user.events_created_this_month || 0,
       eventsLimit: isPremium ? 'illimité' : (user.events_limit || 5),
       lastEventDate: user.last_event_date || null,
       createdAt: user.created_at || null,
+      theme_color: user.theme_color || 'violet',
+      hide_branding: user.hide_branding || false,
 
       // Permissions basées sur le plan
       canRemoveBranding: isPremium,

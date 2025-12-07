@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Calendar, Users, TrendingUp, Sparkles, ArrowRight, Crown, Mail } from 'lucide-react';
+import CustomizationPanel from '../components/CustomizationPanel';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -433,6 +434,14 @@ export default function Dashboard() {
             </div>
           )}
 
+        </div>
+
+        {/* Section Personnalisation */}
+        <div style={{ marginBottom: '40px' }}>
+          <CustomizationPanel
+            userData={stats}
+            onSave={() => console.log('Saved')}
+          />
         </div>
 
         {/* Nouvelle section : Actions rapides */}

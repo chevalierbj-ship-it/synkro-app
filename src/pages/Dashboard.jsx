@@ -30,7 +30,7 @@ export default function Dashboard() {
   const fetchUserStats = async (email) => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/analytics?type=stats&email=${encodeURIComponent(email)}`);
+      const response = await fetch(`/api/user?action=stats&email=${encodeURIComponent(email)}`);
       const data = await response.json();
       setStats(data);
     } catch (error) {
@@ -45,7 +45,7 @@ export default function Dashboard() {
       setLoadingEvents(true);
       console.log('📧 Loading events for:', email);
 
-      const response = await fetch(`/api/get-user-events?email=${encodeURIComponent(email)}`);
+      const response = await fetch(`/api/event-utils?action=list&email=${encodeURIComponent(email)}`);
       const data = await response.json();
 
       console.log('📊 API Response:', data);

@@ -27,7 +27,7 @@ export default function Analytics() {
 
   const checkUserPlan = async (email) => {
     try {
-      const response = await fetch(`/api/analytics?type=stats&email=${encodeURIComponent(email)}`);
+      const response = await fetch(`/api/user?action=stats&email=${encodeURIComponent(email)}`);
       const data = await response.json();
       setUserPlan(data.plan || 'gratuit');
     } catch (error) {
@@ -39,7 +39,7 @@ export default function Analytics() {
 
   const loadAnalytics = async (email) => {
     try {
-      const response = await fetch(`/api/analytics?type=detailed&email=${encodeURIComponent(email)}`);
+      const response = await fetch(`/api/user?action=analytics&email=${encodeURIComponent(email)}`);
       const data = await response.json();
       if (data.success) {
         setAnalytics(data.analytics);

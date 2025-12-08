@@ -36,7 +36,7 @@ export default function AcceptInvitation() {
 
   const loadInvitation = async () => {
     try {
-      const response = await fetch(`/api/accept-invitation?token=${token}`);
+      const response = await fetch(`/api/team?action=invitation&token=${token}`);
       const data = await response.json();
 
       if (data.success) {
@@ -67,7 +67,7 @@ export default function AcceptInvitation() {
     setAccepting(true);
 
     try {
-      const response = await fetch('/api/accept-invitation', {
+      const response = await fetch('/api/team?action=accept', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

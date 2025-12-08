@@ -2,6 +2,7 @@ import React, { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { UserProvider } from './contexts/UserContext';
 import ProtectedRoute from './components/ProtectedRoute';
+import ErrorBoundary from './components/ErrorBoundary';
 
 // Lazy loading des pages pour optimiser les performances
 const Landing = lazy(() => import('./pages/Landing'));
@@ -15,6 +16,7 @@ const SignIn = lazy(() => import('./pages/SignIn'));
 const SignUp = lazy(() => import('./pages/SignUp'));
 const Success = lazy(() => import('./pages/Success'));
 const Cancel = lazy(() => import('./pages/Cancel'));
+const NotFound = lazy(() => import('./pages/NotFound'));
 
 // Composant de chargement pendant le lazy loading
 const LoadingFallback = () => (
@@ -43,26 +45,31 @@ const LoadingFallback = () => (
 
 function App() {
   return (
-    <UserProvider>
-      <Router>
-        <Suspense fallback={<LoadingFallback />}>
-          <Routes>
-            <Route path="/" element={<Landing />} />
-            <Route path="/organizer" element={<Organizer />} />
-            <Route path="/create" element={<Organizer />} />
-            <Route path="/participant" element={<Participant />} />
-            <Route path="/admin" element={<Admin />} />
-            <Route path="/pricing" element={<Pricing />} />
-            <Route path="/success" element={<Success />} />
-            <Route path="/cancel" element={<Cancel />} />
-            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-            <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
-            <Route path="/sign-in/*" element={<SignIn />} />
-            <Route path="/sign-up/*" element={<SignUp />} />
-          </Routes>
-        </Suspense>
-      </Router>
-    </UserProvider>
+    <ErrorBoundary>
+      <UserProvider>
+        <Router>
+          <Suspense fallback={<LoadingFallback />}>
+            <Routes>
+              <Route path="/" element={<Landing />} />
+              <Route path="/organizer" element={<Organizer />} />
+              <Route path="/create" element={<Organizer />} />
+              <Route path="/participant" element={<Participant />} />
+              <Route path="/admin" element={<Admin />} />
+              <Route path="/admin/:eventId" element={<Admin />} />
+              <Route path="/pricing" element={<Pricing />} />
+              <Route path="/success" element={<Success />} />
+              <Route path="/cancel" element={<Cancel />} />
+              <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+              <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
+              <Route path="/sign-in/*" element={<SignIn />} />
+              <Route path="/sign-up/*" element={<SignUp />} />
+              {/* Route 404 - doit être en dernier */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Suspense>
+        </Router>
+      </UserProvider>
+    </ErrorBoundary>
   );
 }
 

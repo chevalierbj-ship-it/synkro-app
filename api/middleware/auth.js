@@ -125,8 +125,8 @@ export async function canAccessEvent(clerkUserId, eventId) {
 
   // 3. Vérifier l'accès
 
-  // Si c'est le propriétaire de l'événement (par email ou owner_user_id)
-  if (event.organizerEmail === accountInfo.email || event.owner_user_id === clerkUserId) {
+  // Si c'est le propriétaire de l'événement (par email)
+  if (event.organizerEmail === accountInfo.email) {
     return { canAccess: true, permission: 'owner', role: 'owner' };
   }
 
@@ -135,7 +135,7 @@ export async function canAccessEvent(clerkUserId, eventId) {
     const parentInfo = await getUserAccountInfo(accountInfo.parentUserId);
 
     // Vérifier si le parent est le propriétaire
-    if (event.organizerEmail === parentInfo.email || event.owner_user_id === accountInfo.parentUserId) {
+    if (event.organizerEmail === parentInfo.email) {
       // Le parent est propriétaire, donc le sous-compte a accès selon son rôle
       return {
         canAccess: true,
@@ -225,10 +225,10 @@ export async function getAccessibleEvents(clerkUserId) {
     const parentInfo = await getUserAccountInfo(accountInfo.parentUserId);
 
     // Événements du parent OU événements partagés avec ce sous-compte
-    filterFormula = `OR({organizerEmail}='${parentInfo.email}',{owner_user_id}='${accountInfo.parentUserId}',FIND('${clerkUserId}',{shared_with})>0)`;
+    filterFormula = `OR({organizerEmail}='${parentInfo.email}',FIND('${clerkUserId}',{shared_with})>0)`;
   } else {
     // Événements de l'utilisateur
-    filterFormula = `OR({organizerEmail}='${accountInfo.email}',{owner_user_id}='${clerkUserId}')`;
+    filterFormula = `{organizerEmail}='${accountInfo.email}'`;
   }
 
   const eventsResponse = await fetch(

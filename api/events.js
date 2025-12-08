@@ -162,7 +162,6 @@ async function createEvent(req, res) {
       type: eventData.type,
       organizerName: eventData.organizerName,
       organizerEmail: eventData.organizerEmail || '',
-      owner_user_id: eventData.clerkUserId || '',
       location: eventData.location || '',
       eventSchedule: eventData.eventSchedule || '',
       expectedParticipants: eventData.expectedParticipants || 0,

@@ -182,10 +182,12 @@ async function createEvent(req, res) {
         : null,
       cagnotteLink: eventData.cagnotteLink || '',
       useAI: eventData.useAI !== undefined ? eventData.useAI : true,
-      ai_preferences: JSON.stringify([]),
-      shared_with: JSON.stringify([])
+      ai_preferences: JSON.stringify([])
     }
   };
+
+  // Ajouter shared_with pour les fonctionnalités de partage d'équipe
+  airtableData.fields.shared_with = JSON.stringify([]);
 
   console.log('Creating event with ID:', eventId);
 

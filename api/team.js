@@ -7,6 +7,10 @@
  * - DELETE ?action=revoke : Révoquer un membre
  */
 
+const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN;
+const AIRTABLE_API_KEY = process.env.AIRTABLE_API_KEY;
+const AIRTABLE_AUTH = AIRTABLE_TOKEN || AIRTABLE_API_KEY;
+
 export default async function handler(req, res) {
   const { method } = req;
   const { action } = req.query;
@@ -42,12 +46,18 @@ async function getTeamMembers(req, res) {
     `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/SubAccounts?filterByFormula={parent_user_id}='${clerkUserId}'`,
     {
       headers: {
-        Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}`
+        Authorization: `Bearer ${AIRTABLE_AUTH}`
       }
     }
   );
 
   const data = await response.json();
+
+  // Vérification de sécurité pour éviter le crash si data.records est undefined
+  if (!data.records || !Array.isArray(data.records)) {
+    console.error('Unexpected response from Airtable:', data);
+    return res.status(200).json({ members: [] });
+  }
 
   const members = data.records.map(record => ({
     id: record.id,
@@ -66,7 +76,7 @@ async function inviteTeamMember(req, res) {
     `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/Users?filterByFormula={clerk_user_id}='${parentUserId}'`,
     {
       headers: {
-        Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}`
+        Authorization: `Bearer ${AIRTABLE_AUTH}`
       }
     }
   );
@@ -84,7 +94,7 @@ async function inviteTeamMember(req, res) {
     `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/SubAccounts?filterByFormula=AND({parent_user_id}='${parentUserId}',{status}!='revoked')`,
     {
       headers: {
-        Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}`
+        Authorization: `Bearer ${AIRTABLE_AUTH}`
       }
     }
   );
@@ -100,7 +110,7 @@ async function inviteTeamMember(req, res) {
     `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/SubAccounts?filterByFormula=AND({parent_user_id}='${parentUserId}',{sub_user_email}='${email}',{status}!='revoked')`,
     {
       headers: {
-        Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}`
+        Authorization: `Bearer ${AIRTABLE_AUTH}`
       }
     }
   );
@@ -120,7 +130,7 @@ async function inviteTeamMember(req, res) {
     {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}`,
+        Authorization: `Bearer ${AIRTABLE_AUTH}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
@@ -281,7 +291,7 @@ async function revokeTeamMember(req, res) {
     {
       method: 'PATCH',
       headers: {
-        Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}`,
+        Authorization: `Bearer ${AIRTABLE_AUTH}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
@@ -312,7 +322,7 @@ async function getInvitationDetails(req, res) {
     `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/SubAccounts?filterByFormula={invitation_token}='${token}'`,
     {
       headers: {
-        Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}`
+        Authorization: `Bearer ${AIRTABLE_AUTH}`
       }
     }
   );
@@ -348,7 +358,7 @@ async function getInvitationDetails(req, res) {
     `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/Users?filterByFormula={clerk_user_id}='${invitation.parent_user_id}'`,
     {
       headers: {
-        Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}`
+        Authorization: `Bearer ${AIRTABLE_AUTH}`
       }
     }
   );
@@ -380,7 +390,7 @@ async function acceptInvitation(req, res) {
     `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/SubAccounts?filterByFormula={invitation_token}='${token}'`,
     {
       headers: {
-        Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}`
+        Authorization: `Bearer ${AIRTABLE_AUTH}`
       }
     }
   );
@@ -422,7 +432,7 @@ async function acceptInvitation(req, res) {
     {
       method: 'PATCH',
       headers: {
-        Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}`,
+        Authorization: `Bearer ${AIRTABLE_AUTH}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
@@ -459,7 +469,7 @@ async function ensureUserExists(clerkUserId, email, parentUserId) {
     `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/Users?filterByFormula={clerk_user_id}='${clerkUserId}'`,
     {
       headers: {
-        Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}`
+        Authorization: `Bearer ${AIRTABLE_AUTH}`
       }
     }
   );
@@ -474,7 +484,7 @@ async function ensureUserExists(clerkUserId, email, parentUserId) {
       {
         method: 'PATCH',
         headers: {
-          Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}`,
+          Authorization: `Bearer ${AIRTABLE_AUTH}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
@@ -492,7 +502,7 @@ async function ensureUserExists(clerkUserId, email, parentUserId) {
       {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}`,
+          Authorization: `Bearer ${AIRTABLE_AUTH}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({

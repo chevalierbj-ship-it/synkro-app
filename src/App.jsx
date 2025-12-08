@@ -16,6 +16,7 @@ const SignIn = lazy(() => import('./pages/SignIn'));
 const SignUp = lazy(() => import('./pages/SignUp'));
 const Success = lazy(() => import('./pages/Success'));
 const Cancel = lazy(() => import('./pages/Cancel'));
+const AcceptInvitation = lazy(() => import('./pages/AcceptInvitation'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 // Composant de chargement pendant le lazy loading
@@ -63,6 +64,7 @@ function App() {
               <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
               <Route path="/sign-in/*" element={<SignIn />} />
               <Route path="/sign-up/*" element={<SignUp />} />
+              <Route path="/accept-invitation" element={<AcceptInvitation />} />
               {/* Route 404 - doit être en dernier */}
               <Route path="*" element={<NotFound />} />
             </Routes>

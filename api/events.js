@@ -162,6 +162,7 @@ async function createEvent(req, res) {
       type: eventData.type,
       organizerName: eventData.organizerName,
       organizerEmail: eventData.organizerEmail || '',
+      owner_user_id: eventData.clerkUserId || '',
       location: eventData.location || '',
       eventSchedule: eventData.eventSchedule || '',
       expectedParticipants: eventData.expectedParticipants || 0,
@@ -182,7 +183,8 @@ async function createEvent(req, res) {
         : null,
       cagnotteLink: eventData.cagnotteLink || '',
       useAI: eventData.useAI !== undefined ? eventData.useAI : true,
-      ai_preferences: JSON.stringify([])
+      ai_preferences: JSON.stringify([]),
+      shared_with: JSON.stringify([])
     }
   };
 

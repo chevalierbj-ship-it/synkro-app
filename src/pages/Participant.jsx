@@ -88,7 +88,7 @@ const Participant = () => {
       description: `Organisé par ${event.organizerName} - Créé avec Synkro`
     });
     
-    window.open(`/api/generate-ics?${params.toString()}`, '_blank');
+    window.open(`/api/event-utils?action=generate-ics&${params.toString()}`, '_blank');
   };
 
   // 🔥 Charger l'événement depuis Airtable via API
@@ -217,7 +217,7 @@ const Participant = () => {
       setIsAnalyzing(true);
 
       // Sauvegarder les préférences IA dans Airtable
-      const response = await fetch('/api/settings?action=ai-preferences', {
+      const response = await fetch('/api/user?action=ai-preferences', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

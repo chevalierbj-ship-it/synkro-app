@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Check, Sparkles, ArrowRight, Loader } from 'lucide-react';
+import { useUser } from '@clerk/clerk-react';
 
 export default function Success() {
   const navigate = useNavigate();
@@ -8,13 +9,50 @@ export default function Success() {
   const sessionId = searchParams.get('session_id');
   const planName = searchParams.get('plan') || 'Pro';
   const [loading, setLoading] = useState(true);
+  const [syncStatus, setSyncStatus] = useState('pending'); // pending, success, error
+  const { user } = useUser();
 
   useEffect(() => {
-    // Simulate loading session verification
-    setTimeout(() => {
-      setLoading(false);
-    }, 1500);
-  }, [sessionId]);
+    // Force synchronization of the plan from Stripe to Airtable
+    const syncPlan = async () => {
+      if (!user?.primaryEmailAddress?.emailAddress) {
+        console.warn('⚠️ No user email available for sync');
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const email = user.primaryEmailAddress.emailAddress;
+        console.log('🔄 Forcing plan sync for:', email);
+
+        const response = await fetch(`/api/user?action=sync-plan&email=${encodeURIComponent(email)}`);
+        const data = await response.json();
+
+        if (data.success) {
+          console.log('✅ Plan synchronized successfully:', data.data);
+          setSyncStatus('success');
+        } else {
+          console.error('❌ Plan sync failed:', data);
+          setSyncStatus('error');
+        }
+      } catch (error) {
+        console.error('❌ Error during plan sync:', error);
+        setSyncStatus('error');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    // Wait for user to load, then sync
+    if (user) {
+      syncPlan();
+    } else {
+      // Fallback: just show success page after timeout
+      setTimeout(() => {
+        setLoading(false);
+      }, 2000);
+    }
+  }, [user]);
 
   // Define features for each plan
   const planFeatures = {

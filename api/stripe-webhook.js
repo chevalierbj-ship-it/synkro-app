@@ -147,8 +147,10 @@ export default async function handler(req, res) {
 }
 
 // ========================================
-// FONCTION HELPER : Lire le body brut
+// FONCTIONS HELPER
 // ========================================
+
+// Lire le body brut
 async function getRawBody(req) {
   return new Promise((resolve, reject) => {
     let data = '';
@@ -160,6 +162,26 @@ async function getRawBody(req) {
     });
     req.on('error', reject);
   });
+}
+
+// Convertir un timestamp Unix en ISO string de manière sécurisée
+function safeToISOString(timestamp) {
+  if (!timestamp) {
+    console.warn('⚠️ Timestamp is undefined or null');
+    return null;
+  }
+
+  try {
+    const date = new Date(timestamp * 1000);
+    if (isNaN(date.getTime())) {
+      console.warn('⚠️ Invalid date from timestamp:', timestamp);
+      return null;
+    }
+    return date.toISOString();
+  } catch (error) {
+    console.error('❌ Error converting timestamp to ISO string:', error);
+    return null;
+  }
 }
 
 // ========================================
@@ -202,6 +224,20 @@ async function handleCheckoutCompleted({ userId, email, subscriptionId, customer
              priceId === process.env.STRIPE_PRICE_ENTERPRISE_YEARLY) {
     plan = 'entreprise';
     planName = 'Entreprise';
+  }
+
+  // Fallback: utiliser les métadonnées de la session si le plan n'a pas été détecté
+  if (plan === 'gratuit' && session.metadata && session.metadata.planName) {
+    const metadataPlanName = session.metadata.planName.toLowerCase();
+    if (metadataPlanName === 'pro') {
+      plan = 'pro';
+      planName = 'Pro';
+      console.log('✅ Plan detected from metadata:', planName);
+    } else if (metadataPlanName === 'entreprise' || metadataPlanName === 'enterprise') {
+      plan = 'entreprise';
+      planName = 'Entreprise';
+      console.log('✅ Plan detected from metadata:', planName);
+    }
   }
 
   const interval = subscription.items.data[0].price.recurring.interval; // 'month' ou 'year'
@@ -260,10 +296,15 @@ async function handleCheckoutCompleted({ userId, email, subscriptionId, customer
               stripe_customer_id: customerId,
               stripe_subscription_id: subscriptionId,
               subscription_status: subscription.status,
-              subscription_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
               events_limit: plan === 'pro' ? 15 : (plan === 'entreprise' ? 999 : 5)
             }
           };
+
+          // Ajouter la date de fin de période si disponible
+          const periodEnd = safeToISOString(subscription.current_period_end);
+          if (periodEnd) {
+            updatePayload.fields.subscription_period_end = periodEnd;
+          }
 
           console.log('🔍 Update payload:', JSON.stringify(updatePayload, null, 2));
 
@@ -301,12 +342,17 @@ async function handleCheckoutCompleted({ userId, email, subscriptionId, customer
               stripe_customer_id: customerId,
               stripe_subscription_id: subscriptionId,
               subscription_status: subscription.status,
-              subscription_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
               created_at: new Date().toISOString(),
               events_created_this_month: 0,
               events_limit: plan === 'pro' ? 15 : (plan === 'entreprise' ? 999 : 5)
             }
           };
+
+          // Ajouter la date de fin de période si disponible
+          const periodEnd = safeToISOString(subscription.current_period_end);
+          if (periodEnd) {
+            createPayload.fields.subscription_period_end = periodEnd;
+          }
 
           console.log('🔍 Create payload:', JSON.stringify(createPayload, null, 2));
 
@@ -348,6 +394,26 @@ async function handleCheckoutCompleted({ userId, email, subscriptionId, customer
     if (AIRTABLE_TOKEN && BASE_ID) {
       console.log('🔍 Logging payment event to EventsLog...');
 
+      const logPayload = {
+        fields: {
+          user_email: email,
+          event_name: `Payment: ${planName} - ${interval === 'year' ? 'Yearly' : 'Monthly'}`,
+          stripe_customer_id: customerId,
+          stripe_subscription_id: subscriptionId,
+          subscription_status: subscription.status,
+          created_at: new Date().toISOString(),
+          last_event_date: new Date().toISOString(),
+          status: 'completed',
+          participants_count: 0
+        }
+      };
+
+      // Ajouter la date de fin de période si disponible
+      const periodEnd = safeToISOString(subscription.current_period_end);
+      if (periodEnd) {
+        logPayload.fields.subscription_period_end = periodEnd;
+      }
+
       const logResponse = await fetch(
         `https://api.airtable.com/v0/${BASE_ID}/EventsLog`,
         {
@@ -356,20 +422,7 @@ async function handleCheckoutCompleted({ userId, email, subscriptionId, customer
             'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({
-            fields: {
-              user_email: email,
-              event_name: `Payment: ${planName} - ${interval === 'year' ? 'Yearly' : 'Monthly'}`,
-              stripe_customer_id: customerId,
-              stripe_subscription_id: subscriptionId,
-              subscription_status: subscription.status,
-              subscription_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
-              created_at: new Date().toISOString(),
-              last_event_date: new Date().toISOString(),
-              status: 'completed',
-              participants_count: 0
-            }
-          })
+          body: JSON.stringify(logPayload)
         }
       );
 
@@ -540,6 +593,16 @@ async function handleSubscriptionUpdated(subscription) {
           const recordId = searchData.records[0].id;
 
           // Mettre à jour le statut
+          const updateFields = {
+            subscription_status: status
+          };
+
+          // Ajouter la date de fin de période si disponible
+          const periodEnd = safeToISOString(subscription.current_period_end);
+          if (periodEnd) {
+            updateFields.subscription_period_end = periodEnd;
+          }
+
           await fetch(
             `https://api.airtable.com/v0/${BASE_ID}/Users/${recordId}`,
             {
@@ -549,10 +612,7 @@ async function handleSubscriptionUpdated(subscription) {
                 'Content-Type': 'application/json'
               },
               body: JSON.stringify({
-                fields: {
-                  subscription_status: status,
-                  subscription_period_end: new Date(subscription.current_period_end * 1000).toISOString()
-                }
+                fields: updateFields
               })
             }
           );

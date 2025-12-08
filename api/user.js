@@ -13,7 +13,7 @@
  * - POST ?action=customization : Sauvegarder la personnalisation
  */
 
-const Stripe = require('stripe');
+import Stripe from 'stripe';
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN;

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Calendar, Users, TrendingUp, Sparkles, ArrowRight, Crown, Mail } from 'lucide-react';
 import { useUser } from '@clerk/clerk-react';
 import CustomizationPanel from '../components/CustomizationPanel';
+import TeamManagement from '../components/TeamManagement';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -316,6 +317,14 @@ export default function Dashboard() {
           <CustomizationPanel
             userData={stats}
             onSave={() => console.log('Saved')}
+          />
+        </div>
+
+        {/* Section Gestion d'équipe */}
+        <div style={{ marginBottom: '40px' }}>
+          <TeamManagement
+            userData={stats}
+            clerkUserId={user?.id}
           />
         </div>
 

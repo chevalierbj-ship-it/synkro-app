@@ -4,10 +4,17 @@ import { Users, Mail, Trash2, CheckCircle, Clock, XCircle } from 'lucide-react';
 export default function TeamManagement({ userData, clerkUserId }) {
   const [members, setMembers] = useState([]);
   const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteRole, setInviteRole] = useState('editor');
   const [loading, setLoading] = useState(false);
 
   const isEnterprise = userData?.plan === 'entreprise';
   const maxMembers = 2; // Plan Entreprise : 2 sous-comptes max
+
+  const roleOptions = [
+    { value: 'admin', label: '👑 Administrateur', description: 'Accès complet à tous les événements' },
+    { value: 'editor', label: '✏️ Éditeur', description: 'Peut créer et modifier des événements' },
+    { value: 'viewer', label: '👁️ Lecteur', description: 'Peut uniquement consulter les événements' }
+  ];
 
   useEffect(() => {
     if (isEnterprise) {
@@ -46,15 +53,17 @@ export default function TeamManagement({ userData, clerkUserId }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           parentUserId: clerkUserId,
-          email: inviteEmail
+          email: inviteEmail,
+          role: inviteRole
         })
       });
 
       const data = await response.json();
 
       if (data.success) {
-        alert('Invitation envoyée !');
+        alert('Invitation envoyée avec succès !');
         setInviteEmail('');
+        setInviteRole('editor');
         loadMembers();
       } else {
         alert(data.error || 'Erreur lors de l\'invitation');
@@ -138,7 +147,9 @@ export default function TeamManagement({ userData, clerkUserId }) {
         <label style={{ display: 'block', fontWeight: '600', marginBottom: '8px' }}>
           Inviter un membre
         </label>
-        <div style={{ display: 'flex', gap: '8px' }}>
+
+        {/* Email input */}
+        <div style={{ marginBottom: '12px' }}>
           <input
             type="email"
             value={inviteEmail}
@@ -146,30 +157,65 @@ export default function TeamManagement({ userData, clerkUserId }) {
             placeholder="email@exemple.com"
             disabled={activeMembers.length >= maxMembers}
             style={{
-              flex: 1,
+              width: '100%',
               padding: '12px',
               border: '2px solid #E5E7EB',
               borderRadius: '8px',
               fontSize: '16px'
             }}
           />
-          <button
-            type="submit"
-            disabled={loading || activeMembers.length >= maxMembers}
+        </div>
+
+        {/* Role selector */}
+        <div style={{ marginBottom: '12px' }}>
+          <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '6px', color: '#6B7280' }}>
+            Rôle
+          </label>
+          <select
+            value={inviteRole}
+            onChange={(e) => setInviteRole(e.target.value)}
+            disabled={activeMembers.length >= maxMembers}
             style={{
-              padding: '12px 24px',
-              background: '#8B5CF6',
-              color: 'white',
-              border: 'none',
+              width: '100%',
+              padding: '12px',
+              border: '2px solid #E5E7EB',
               borderRadius: '8px',
-              fontWeight: '600',
-              cursor: loading ? 'not-allowed' : 'pointer',
-              opacity: loading || activeMembers.length >= maxMembers ? 0.5 : 1
+              fontSize: '16px',
+              backgroundColor: 'white',
+              cursor: 'pointer'
             }}
           >
-            <Mail size={20} />
-          </button>
+            {roleOptions.map(role => (
+              <option key={role.value} value={role.value}>
+                {role.label} - {role.description}
+              </option>
+            ))}
+          </select>
         </div>
+
+        {/* Submit button */}
+        <button
+          type="submit"
+          disabled={loading || activeMembers.length >= maxMembers}
+          style={{
+            width: '100%',
+            padding: '12px 24px',
+            background: '#8B5CF6',
+            color: 'white',
+            border: 'none',
+            borderRadius: '8px',
+            fontWeight: '600',
+            cursor: loading || activeMembers.length >= maxMembers ? 'not-allowed' : 'pointer',
+            opacity: loading || activeMembers.length >= maxMembers ? 0.5 : 1,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px'
+          }}
+        >
+          <Mail size={20} />
+          {loading ? 'Envoi en cours...' : 'Envoyer l\'invitation'}
+        </button>
       </form>
 
       {/* Liste des membres */}
@@ -203,6 +249,7 @@ export default function TeamManagement({ userData, clerkUserId }) {
                       {member.status === 'active' && 'Actif'}
                       {member.status === 'pending' && 'En attente'}
                       {member.status === 'revoked' && 'Révoqué'}
+                      {member.role && ` • ${member.role === 'admin' ? '👑 Admin' : member.role === 'editor' ? '✏️ Éditeur' : '👁️ Lecteur'}`}
                     </div>
                   </div>
                 </div>

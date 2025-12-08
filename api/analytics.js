@@ -42,15 +42,17 @@ export default async function handler(req, res) {
     // Utiliser AIRTABLE_TOKEN ou AIRTABLE_API_KEY
     const authToken = AIRTABLE_TOKEN || AIRTABLE_API_KEY;
 
+    const clerkUserId = req.query.clerkUserId || null;
+
     switch (type) {
       case 'stats':
         return await getUserStats(email, authToken, res);
       case 'detailed':
-        return await getDetailedAnalytics(email, authToken, res);
+        return await getDetailedAnalytics(email, authToken, res, clerkUserId);
       default:
         // Retourner les deux
         const stats = await getUserStatsData(email, authToken);
-        const analytics = await getDetailedAnalyticsData(email, authToken);
+        const analytics = await getDetailedAnalyticsData(email, authToken, clerkUserId);
         return res.status(200).json({
           success: true,
           stats,
@@ -140,31 +142,58 @@ async function getUserStatsData(email, authToken) {
 }
 
 // Récupérer les analytics détaillées
-async function getDetailedAnalytics(email, authToken, res) {
-  const data = await getDetailedAnalyticsData(email, authToken);
+async function getDetailedAnalytics(email, authToken, res, clerkUserId = null) {
+  const data = await getDetailedAnalyticsData(email, authToken, clerkUserId);
   return res.status(200).json({
     success: true,
     analytics: data
   });
 }
 
-async function getDetailedAnalyticsData(email, authToken) {
-  // Récupérer tous les événements de l'utilisateur
-  const eventsUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Events?filterByFormula=organizerEmail="${email}"`;
-  const eventsResponse = await fetch(eventsUrl, {
-    method: 'GET',
-    headers: {
-      'Authorization': `Bearer ${authToken}`,
-      'Content-Type': 'application/json'
+async function getDetailedAnalyticsData(email, authToken, clerkUserId = null) {
+  let events = [];
+
+  if (clerkUserId) {
+    // Utiliser le système de permissions pour récupérer tous les événements accessibles
+    try {
+      const { getAccessibleEvents } = await import('./middleware/auth.js');
+      const accessibleEvents = await getAccessibleEvents(clerkUserId);
+      events = accessibleEvents;
+    } catch (error) {
+      console.error('Error loading accessible events, falling back to email filter:', error);
+      // Fallback vers la méthode par email
+      const eventsUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Events?filterByFormula=organizerEmail="${email}"`;
+      const eventsResponse = await fetch(eventsUrl, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (eventsResponse.ok) {
+        const eventsData = await eventsResponse.json();
+        events = eventsData.records || [];
+      }
     }
-  });
+  } else {
+    // Récupérer tous les événements de l'utilisateur par email (ancienne méthode)
+    const eventsUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Events?filterByFormula=organizerEmail="${email}"`;
+    const eventsResponse = await fetch(eventsUrl, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${authToken}`,
+        'Content-Type': 'application/json'
+      }
+    });
 
-  if (!eventsResponse.ok) {
-    throw new Error('Erreur lors de la récupération des événements');
+    if (!eventsResponse.ok) {
+      throw new Error('Erreur lors de la récupération des événements');
+    }
+
+    const eventsData = await eventsResponse.json();
+    events = eventsData.records || [];
   }
-
-  const eventsData = await eventsResponse.json();
-  const events = eventsData.records || [];
 
   // Calculer les analytics
   return calculateAnalytics(events);

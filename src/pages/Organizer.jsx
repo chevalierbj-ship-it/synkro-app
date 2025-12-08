@@ -208,7 +208,8 @@ body: JSON.stringify({
             body: JSON.stringify({
               userEmail: organizerEmail,
               eventName: eventName,
-              participantsCount: expectedParticipants ? parseInt(expectedParticipants) : 0
+              participantsCount: expectedParticipants ? parseInt(expectedParticipants) : 0,
+              eventId: result.eventId
             })
           });
 

@@ -488,7 +488,7 @@ export default function Dashboard() {
                       padding: '20px',
                       border: '2px solid #E5E7EB',
                       borderRadius: '12px',
-                      cursor: event.eventId ? 'pointer' : 'default',
+                      cursor: 'pointer',
                       transition: 'all 0.3s',
                       display: 'flex',
                       justifyContent: 'space-between',
@@ -498,14 +498,12 @@ export default function Dashboard() {
                     }}
                     onClick={() => {
                       if (event.eventId) {
-                        window.open(`/admin?id=${event.eventId}`, '_blank');
+                        navigate(`/admin?id=${event.eventId}`);
                       }
                     }}
                     onMouseEnter={(e) => {
-                      if (event.eventId) {
-                        e.currentTarget.style.borderColor = '#8B5CF6';
-                        e.currentTarget.style.boxShadow = '0 4px 12px rgba(139, 92, 246, 0.15)';
-                      }
+                      e.currentTarget.style.borderColor = '#8B5CF6';
+                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(139, 92, 246, 0.15)';
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.borderColor = '#E5E7EB';

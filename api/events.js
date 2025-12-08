@@ -486,7 +486,7 @@ async function updateEvent(req, res) {
 // TRACK EVENT - Tracker les limites
 // ========================================
 async function trackEvent(req, res) {
-  const { userEmail, eventName, participantsCount } = req.body;
+  const { userEmail, eventName, participantsCount, eventId } = req.body;
 
   if (!userEmail || !eventName) {
     return res.status(400).json({
@@ -578,7 +578,8 @@ async function trackEvent(req, res) {
           event_name: eventName,
           participants_count: participantsCount || 0,
           created_at: new Date().toISOString(),
-          status: 'draft'
+          status: 'draft',
+          event_id: eventId || null
         }
       })
     }

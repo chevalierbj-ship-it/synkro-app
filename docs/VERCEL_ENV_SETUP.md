@@ -54,27 +54,51 @@ Pour chaque variable ci-dessous, copiez la valeur depuis votre `.env.local` :
 - **Environments:** ✅ Production, ✅ Preview, ✅ Development
 - Cliquez **Save**
 
-**Variable 4 : VITE_STRIPE_PRICE_PRO_YEARLY**
+**Variable 4 : STRIPE_PRICE_PRO_MONTHLY** (Backend)
+- **Name:** `STRIPE_PRICE_PRO_MONTHLY`
+- **Value:** ⚠️ MÊME valeur que VITE_STRIPE_PRICE_PRO_MONTHLY
+- **Environments:** ✅ Production, ✅ Preview, ✅ Development
+- Cliquez **Save**
+
+**Variable 5 : VITE_STRIPE_PRICE_PRO_YEARLY**
 - **Name:** `VITE_STRIPE_PRICE_PRO_YEARLY`
 - **Value:** Copiez la valeur depuis `.env.local` (commence par `price_...`)
 - **Environments:** ✅ Production, ✅ Preview, ✅ Development
 - Cliquez **Save**
 
-**Variable 5 : VITE_STRIPE_PRICE_ENTERPRISE_MONTHLY**
+**Variable 6 : STRIPE_PRICE_PRO_YEARLY** (Backend)
+- **Name:** `STRIPE_PRICE_PRO_YEARLY`
+- **Value:** ⚠️ MÊME valeur que VITE_STRIPE_PRICE_PRO_YEARLY
+- **Environments:** ✅ Production, ✅ Preview, ✅ Development
+- Cliquez **Save**
+
+**Variable 7 : VITE_STRIPE_PRICE_ENTERPRISE_MONTHLY**
 - **Name:** `VITE_STRIPE_PRICE_ENTERPRISE_MONTHLY`
 - **Value:** Copiez la valeur depuis `.env.local` (commence par `price_...`)
 - **Environments:** ✅ Production, ✅ Preview, ✅ Development
 - Cliquez **Save**
 
-**Variable 6 : VITE_STRIPE_PRICE_ENTERPRISE_YEARLY**
+**Variable 8 : STRIPE_PRICE_ENTERPRISE_MONTHLY** (Backend)
+- **Name:** `STRIPE_PRICE_ENTERPRISE_MONTHLY`
+- **Value:** ⚠️ MÊME valeur que VITE_STRIPE_PRICE_ENTERPRISE_MONTHLY
+- **Environments:** ✅ Production, ✅ Preview, ✅ Development
+- Cliquez **Save**
+
+**Variable 9 : VITE_STRIPE_PRICE_ENTERPRISE_YEARLY**
 - **Name:** `VITE_STRIPE_PRICE_ENTERPRISE_YEARLY`
 - **Value:** Copiez la valeur depuis `.env.local` (commence par `price_...`)
 - **Environments:** ✅ Production, ✅ Preview, ✅ Development
 - Cliquez **Save**
 
+**Variable 10 : STRIPE_PRICE_ENTERPRISE_YEARLY** (Backend)
+- **Name:** `STRIPE_PRICE_ENTERPRISE_YEARLY`
+- **Value:** ⚠️ MÊME valeur que VITE_STRIPE_PRICE_ENTERPRISE_YEARLY
+- **Environments:** ✅ Production, ✅ Preview, ✅ Development
+- Cliquez **Save**
+
 #### Variables Clerk
 
-**Variable 7 : VITE_CLERK_PUBLISHABLE_KEY**
+**Variable 11 : VITE_CLERK_PUBLISHABLE_KEY**
 - **Name:** `VITE_CLERK_PUBLISHABLE_KEY`
 - **Value:** Copiez la valeur depuis `.env.local` (commence par `pk_test_...`)
 - **Environments:** ✅ Production, ✅ Preview, ✅ Development

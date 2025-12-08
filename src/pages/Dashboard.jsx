@@ -9,6 +9,8 @@ export default function Dashboard() {
   const { isSignedIn, user, isLoaded } = useUser();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [events, setEvents] = useState([]);
+  const [loadingEvents, setLoadingEvents] = useState(false);
 
   useEffect(() => {
     // Rediriger vers sign-in si non connecté
@@ -20,6 +22,7 @@ export default function Dashboard() {
     // Charger les stats si connecté
     if (isSignedIn && user?.primaryEmailAddress?.emailAddress) {
       fetchUserStats(user.primaryEmailAddress.emailAddress);
+      fetchUserEvents(user.primaryEmailAddress.emailAddress);
     }
   }, [isLoaded, isSignedIn, user, navigate]);
 
@@ -33,6 +36,27 @@ export default function Dashboard() {
       console.error('Erreur récupération stats:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchUserEvents = async (email) => {
+    try {
+      setLoadingEvents(true);
+      const response = await fetch(`/api/events?email=${encodeURIComponent(email)}`);
+      const data = await response.json();
+      if (data.success && data.events) {
+        // Trier par date de création (plus récent en premier)
+        const sortedEvents = data.events.sort((a, b) => {
+          const dateA = new Date(a.createdAt || 0);
+          const dateB = new Date(b.createdAt || 0);
+          return dateB - dateA;
+        });
+        setEvents(sortedEvents.slice(0, 5)); // Garder seulement les 5 derniers
+      }
+    } catch (error) {
+      console.error('Erreur récupération événements:', error);
+    } finally {
+      setLoadingEvents(false);
     }
   };
 
@@ -359,17 +383,51 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Historique placeholder */}
+        {/* Historique des événements */}
         <div style={{
           background: 'white',
           borderRadius: '16px',
           padding: '32px',
           boxShadow: '0 4px 20px rgba(0,0,0,0.08)'
         }}>
-          <h2 style={{ fontSize: '24px', fontWeight: '700', color: '#1E1B4B', marginBottom: '20px' }}>
-            Mes derniers événements
-          </h2>
-          {stats?.isNewUser ? (
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '24px'
+          }}>
+            <h2 style={{ fontSize: '24px', fontWeight: '700', color: '#1E1B4B', margin: 0 }}>
+              Mes derniers événements
+            </h2>
+            {events.length > 0 && (
+              <button
+                onClick={() => navigate('/create')}
+                style={{
+                  padding: '10px 20px',
+                  background: 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}
+              >
+                <Calendar size={16} />
+                Nouvel événement
+              </button>
+            )}
+          </div>
+
+          {loadingEvents ? (
+            <div style={{ textAlign: 'center', padding: '40px 20px' }}>
+              <div style={{ fontSize: '32px', marginBottom: '12px' }}>⏳</div>
+              <p style={{ color: '#6B7280' }}>Chargement...</p>
+            </div>
+          ) : events.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '40px 20px' }}>
               <div style={{ fontSize: '48px', marginBottom: '16px' }}>🎉</div>
               <p style={{ color: '#6B7280', fontSize: '16px', marginBottom: '24px' }}>
@@ -392,9 +450,118 @@ export default function Dashboard() {
               </button>
             </div>
           ) : (
-            <p style={{ color: '#6B7280' }}>
-              L'historique détaillé sera bientôt disponible...
-            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {events.map((event, index) => {
+                const status = event.status || 'pending';
+                const statusConfig = {
+                  pending: { label: 'En attente', color: '#F59E0B', bg: '#FEF3C7' },
+                  active: { label: 'En cours', color: '#10B981', bg: '#D1FAE5' },
+                  confirmed: { label: 'Confirmé', color: '#8B5CF6', bg: '#EDE9FE' },
+                  completed: { label: 'Terminé', color: '#6B7280', bg: '#F3F4F6' }
+                };
+                const config = statusConfig[status] || statusConfig.pending;
+
+                return (
+                  <div
+                    key={event.eventId || index}
+                    style={{
+                      padding: '20px',
+                      border: '2px solid #E5E7EB',
+                      borderRadius: '12px',
+                      cursor: 'pointer',
+                      transition: 'all 0.3s',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      flexWrap: 'wrap',
+                      gap: '16px'
+                    }}
+                    onClick={() => navigate(`/admin/${event.eventId}`)}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = '#8B5CF6';
+                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(139, 92, 246, 0.15)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = '#E5E7EB';
+                      e.currentTarget.style.boxShadow = 'none';
+                    }}
+                  >
+                    <div style={{ flex: 1, minWidth: '200px' }}>
+                      <div style={{
+                        fontSize: '18px',
+                        fontWeight: '700',
+                        color: '#1E1B4B',
+                        marginBottom: '8px'
+                      }}>
+                        {event.type || 'Événement'}
+                      </div>
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '16px',
+                        color: '#6B7280',
+                        fontSize: '14px',
+                        flexWrap: 'wrap'
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <Calendar size={16} />
+                          {event.confirmedDate || 'Date non confirmée'}
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <Users size={16} />
+                          {event.totalResponded || 0}/{event.expectedParticipants || 0} réponses
+                        </div>
+                      </div>
+                    </div>
+
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '12px'
+                    }}>
+                      <div style={{
+                        padding: '6px 16px',
+                        background: config.bg,
+                        color: config.color,
+                        borderRadius: '20px',
+                        fontSize: '13px',
+                        fontWeight: '600'
+                      }}>
+                        {config.label}
+                      </div>
+                      <ArrowRight size={20} color="#8B5CF6" />
+                    </div>
+                  </div>
+                );
+              })}
+
+              {events.length >= 5 && (
+                <button
+                  onClick={() => navigate('/analytics')}
+                  style={{
+                    padding: '14px',
+                    background: 'transparent',
+                    border: '2px dashed #E5E7EB',
+                    borderRadius: '12px',
+                    color: '#8B5CF6',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                    transition: 'all 0.3s'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.borderColor = '#8B5CF6';
+                    e.target.style.background = '#F5F3FF';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.borderColor = '#E5E7EB';
+                    e.target.style.background = 'transparent';
+                  }}
+                >
+                  Voir tous mes événements →
+                </button>
+              )}
+            </div>
           )}
         </div>
 

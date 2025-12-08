@@ -11,6 +11,7 @@ export default function Analytics() {
   const [userEmail, setUserEmail] = useState('');
   const [userPlan, setUserPlan] = useState('gratuit');
   const [loading, setLoading] = useState(true);
+  const [analytics, setAnalytics] = useState(null);
 
   useEffect(() => {
     // Récupérer l'email et vérifier le plan
@@ -18,6 +19,7 @@ export default function Analytics() {
     if (email) {
       setUserEmail(email);
       checkUserPlan(email);
+      loadAnalytics(email);
     } else {
       setLoading(false);
     }
@@ -32,6 +34,18 @@ export default function Analytics() {
       console.error('Erreur récupération plan:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadAnalytics = async (email) => {
+    try {
+      const response = await fetch(`/api/get-analytics?email=${encodeURIComponent(email)}`);
+      const data = await response.json();
+      if (data.success) {
+        setAnalytics(data.analytics);
+      }
+    } catch (error) {
+      console.error('Erreur chargement analytics:', error);
     }
   };
 
@@ -298,7 +312,7 @@ export default function Analytics() {
                 <Target size={24} color="#10B981" />
               </div>
               <div style={{ fontSize: '48px', fontWeight: '800', color: '#10B981', marginBottom: '8px' }}>
-                87%
+                {analytics ? `${analytics.averageResponseRate}%` : '87%'}
               </div>
               <div style={{
                 display: 'flex',
@@ -309,7 +323,7 @@ export default function Analytics() {
                 fontWeight: '600'
               }}>
                 <TrendingUp size={16} />
-                +12% vs mois dernier
+                {analytics && analytics.averageResponseRate >= 80 ? 'Excellent taux !' : '+12% vs mois dernier'}
               </div>
             </div>
           </div>
@@ -346,7 +360,7 @@ export default function Analytics() {
                 <Clock size={24} color="#EC4899" />
               </div>
               <div style={{ fontSize: '48px', fontWeight: '800', color: '#EC4899', marginBottom: '8px' }}>
-                2.4h
+                {analytics ? analytics.averageResponseTime : '2.4h'}
               </div>
               <div style={{ color: '#6B7280', fontSize: '14px' }}>
                 Les participants répondent rapidement !
@@ -386,10 +400,10 @@ export default function Analytics() {
                 <Calendar size={24} color="#3B82F6" />
               </div>
               <div style={{ fontSize: '48px', fontWeight: '800', color: '#3B82F6', marginBottom: '8px' }}>
-                Samedi
+                {analytics ? analytics.bestDay : 'Samedi'}
               </div>
               <div style={{ color: '#6B7280', fontSize: '14px' }}>
-                72% de consensus moyen
+                {analytics ? `${analytics.bestDayPercentage}% de consensus moyen` : '72% de consensus moyen'}
               </div>
             </div>
           </div>
@@ -426,10 +440,10 @@ export default function Analytics() {
                 <Users size={24} color="#8B5CF6" />
               </div>
               <div style={{ fontSize: '48px', fontWeight: '800', color: '#8B5CF6', marginBottom: '8px' }}>
-                347
+                {analytics ? analytics.totalParticipants : '347'}
               </div>
               <div style={{ color: '#6B7280', fontSize: '14px' }}>
-                Tous vos événements confondus
+                {analytics ? `Sur ${analytics.totalEvents} événement(s)` : 'Tous vos événements confondus'}
               </div>
             </div>
           </div>
@@ -456,21 +470,84 @@ export default function Analytics() {
             <TrendingUp size={28} color="#8B5CF6" />
             Évolution dans le temps
           </h2>
-          <div style={{
-            padding: '60px 20px',
-            textAlign: 'center',
-            background: '#F9FAFB',
-            borderRadius: '12px',
-            border: '2px dashed #E5E7EB'
-          }}>
-            <BarChart size={48} color="#D1D5DB" style={{ marginBottom: '16px' }} />
-            <p style={{ color: '#6B7280', fontSize: '16px' }}>
-              Graphiques interactifs à venir...
-            </p>
-            <p style={{ color: '#9CA3AF', fontSize: '14px', marginTop: '8px' }}>
-              Visualisez l'évolution de vos événements mois par mois
-            </p>
-          </div>
+
+          {analytics && analytics.monthlyTrend && analytics.monthlyTrend.length > 0 ? (
+            <div style={{ padding: '20px' }}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'flex-end',
+                justifyContent: 'space-around',
+                height: '300px',
+                borderBottom: '2px solid #E5E7EB',
+                borderLeft: '2px solid #E5E7EB',
+                padding: '20px 0 20px 20px'
+              }}>
+                {analytics.monthlyTrend.map((item, index) => {
+                  const maxCount = Math.max(...analytics.monthlyTrend.map(d => d.count));
+                  const heightPercent = (item.count / maxCount) * 100;
+
+                  return (
+                    <div key={index} style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      flex: 1,
+                      maxWidth: '100px'
+                    }}>
+                      <div style={{
+                        fontSize: '14px',
+                        fontWeight: '700',
+                        color: '#8B5CF6',
+                        marginBottom: '8px'
+                      }}>
+                        {item.count}
+                      </div>
+                      <div style={{
+                        width: '60px',
+                        height: `${Math.max(heightPercent, 10)}%`,
+                        background: 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)',
+                        borderRadius: '8px 8px 0 0',
+                        transition: 'all 0.3s',
+                        boxShadow: '0 4px 12px rgba(139, 92, 246, 0.3)'
+                      }} />
+                      <div style={{
+                        marginTop: '12px',
+                        fontSize: '12px',
+                        fontWeight: '600',
+                        color: '#6B7280'
+                      }}>
+                        {item.month}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <p style={{
+                textAlign: 'center',
+                color: '#6B7280',
+                fontSize: '14px',
+                marginTop: '20px'
+              }}>
+                Nombre d'événements créés par mois
+              </p>
+            </div>
+          ) : (
+            <div style={{
+              padding: '60px 20px',
+              textAlign: 'center',
+              background: '#F9FAFB',
+              borderRadius: '12px',
+              border: '2px dashed #E5E7EB'
+            }}>
+              <BarChart size={48} color="#D1D5DB" style={{ marginBottom: '16px' }} />
+              <p style={{ color: '#6B7280', fontSize: '16px' }}>
+                Créez des événements pour voir vos statistiques
+              </p>
+              <p style={{ color: '#9CA3AF', fontSize: '14px', marginTop: '8px' }}>
+                Le graphique affichera l'évolution mois par mois
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Insights et recommandations */}

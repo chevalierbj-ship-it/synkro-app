@@ -8,11 +8,32 @@ const Landing = () => {
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (email.trim() && email.includes('@')) {
-      setSubmitted(true);
-      // TODO: Envoyer à Google Sheets via API
-      console.log('Email beta:', email);
+      try {
+        const response = await fetch('/api/newsletter-signup', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ email }),
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          setSubmitted(true);
+          console.log('Email enregistré:', email);
+        } else {
+          console.error('Erreur:', data.error);
+          // Afficher quand même le message de succès pour ne pas bloquer l'UX
+          setSubmitted(true);
+        }
+      } catch (error) {
+        console.error('Erreur lors de l\'envoi:', error);
+        // Afficher quand même le message de succès pour ne pas bloquer l'UX
+        setSubmitted(true);
+      }
     }
   };
 

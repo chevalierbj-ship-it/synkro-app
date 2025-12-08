@@ -186,9 +186,8 @@ async function createEvent(req, res) {
     }
   };
 
-  // Ajouter shared_with uniquement si le champ existe dans Airtable
-  // TODO: Créer le champ shared_with (Long text) dans Airtable
-  // airtableData.fields.shared_with = JSON.stringify([]);
+  // Ajouter shared_with pour les fonctionnalités de partage d'équipe
+  airtableData.fields.shared_with = JSON.stringify([]);
 
   console.log('Creating event with ID:', eventId);
 

@@ -1,10 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BarChart, TrendingUp, Clock, Users, Calendar, Crown, ArrowLeft, Target, Zap } from 'lucide-react';
+import {
+  LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid,
+  Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell
+} from 'recharts';
+import {
+  BarChart as BarChartIcon, TrendingUp, Clock, Users,
+  Calendar, Crown, ArrowLeft, Target, Zap, Filter, Download
+} from 'lucide-react';
 
 /**
- * Page Analytics avancée pour les utilisateurs PRO/Entreprise
- * Affiche des statistiques détaillées sur l'utilisation et les événements
+ * Page Analytics Entreprise
+ * Analytics avancées avec filtres de période et graphiques Recharts
+ * Réservée au plan Entreprise uniquement
  */
 export default function Analytics() {
   const navigate = useNavigate();
@@ -12,18 +20,25 @@ export default function Analytics() {
   const [userPlan, setUserPlan] = useState('gratuit');
   const [loading, setLoading] = useState(true);
   const [analytics, setAnalytics] = useState(null);
+  const [selectedPeriod, setSelectedPeriod] = useState('30d');
+  const [customStartDate, setCustomStartDate] = useState('');
+  const [customEndDate, setCustomEndDate] = useState('');
 
   useEffect(() => {
-    // Récupérer l'email et vérifier le plan
     const email = localStorage.getItem('synkro_user_email');
     if (email) {
       setUserEmail(email);
       checkUserPlan(email);
-      loadAnalytics(email);
     } else {
       setLoading(false);
     }
   }, []);
+
+  useEffect(() => {
+    if (userEmail && userPlan === 'entreprise') {
+      loadAnalytics();
+    }
+  }, [userEmail, userPlan, selectedPeriod, customStartDate, customEndDate]);
 
   const checkUserPlan = async (email) => {
     try {
@@ -37,22 +52,34 @@ export default function Analytics() {
     }
   };
 
-  const loadAnalytics = async (email) => {
+  const loadAnalytics = async () => {
     try {
-      const response = await fetch(`/api/user?action=analytics&email=${encodeURIComponent(email)}`);
+      let url = `/api/get-analytics?email=${encodeURIComponent(userEmail)}&period=${selectedPeriod}`;
+
+      if (selectedPeriod === 'custom' && customStartDate && customEndDate) {
+        url += `&startDate=${customStartDate}&endDate=${customEndDate}`;
+      }
+
+      const response = await fetch(url);
       const data = await response.json();
+
       if (data.success) {
         setAnalytics(data.analytics);
+      } else {
+        console.error('Erreur chargement analytics:', data.message);
       }
     } catch (error) {
       console.error('Erreur chargement analytics:', error);
     }
   };
 
-  const isPro = userPlan === 'pro' || userPlan === 'entreprise';
+  const isEnterprise = userPlan === 'entreprise';
 
-  // Écran de verrouillage pour utilisateurs gratuits
-  if (!loading && !isPro) {
+  // Couleurs pour les graphiques
+  const COLORS = ['#8B5CF6', '#EC4899', '#06B6D4', '#10B981', '#F59E0B', '#EF4444'];
+
+  // Écran de verrouillage pour utilisateurs non-Entreprise
+  if (!loading && !isEnterprise) {
     return (
       <div style={{
         minHeight: '100vh',
@@ -81,7 +108,7 @@ export default function Analytics() {
             margin: '0 auto 24px',
             boxShadow: '0 10px 30px rgba(139, 92, 246, 0.4)'
           }}>
-            <BarChart size={40} color="white" />
+            <BarChartIcon size={40} color="white" />
           </div>
 
           <h2 style={{
@@ -90,7 +117,7 @@ export default function Analytics() {
             color: '#1E1B4B',
             marginBottom: '16px'
           }}>
-            Analytics Avancées
+            Analytics Entreprise
           </h2>
 
           <p style={{
@@ -99,10 +126,9 @@ export default function Analytics() {
             fontSize: '18px',
             lineHeight: '1.6'
           }}>
-            Débloquez des insights détaillés sur vos événements, taux de réponse, meilleures dates et plus encore
+            Débloquez des insights professionnels sur vos événements avec des analyses avancées et des rapports détaillés
           </p>
 
-          {/* Features list */}
           <div style={{
             textAlign: 'left',
             marginBottom: '32px',
@@ -116,7 +142,7 @@ export default function Analytics() {
               color: '#1E1B4B',
               marginBottom: '16px'
             }}>
-              Ce que vous débloquez :
+              Fonctionnalités exclusives :
             </h3>
             <ul style={{
               listStyle: 'none',
@@ -124,16 +150,18 @@ export default function Analytics() {
               margin: 0
             }}>
               {[
-                'Taux de réponse moyen par événement',
-                'Temps de réponse des participants',
-                'Meilleurs jours pour vos événements',
-                'Statistiques de participation',
-                'Graphiques détaillés',
-                'Export des rapports'
+                'Filtres avancés (7j, 30j, 90j, personnalisé)',
+                'Évolution détaillée de vos événements',
+                'Taux de réponse par type d\'événement',
+                'Temps de réponse moyen des participants',
+                'Top types d\'événements',
+                'Export des rapports en PDF',
+                'Graphiques interactifs professionnels',
+                'Analytics en temps réel'
               ].map((feature, index) => (
                 <li key={index} style={{
                   padding: '12px 0',
-                  borderBottom: index < 5 ? '1px solid #E5E7EB' : 'none',
+                  borderBottom: index < 7 ? '1px solid #E5E7EB' : 'none',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '12px',
@@ -181,7 +209,7 @@ export default function Analytics() {
             onMouseLeave={(e) => e.target.style.transform = 'translateY(0)'}
           >
             <Crown size={24} />
-            Upgrade maintenant
+            Passer au plan Entreprise
           </button>
 
           <button
@@ -207,14 +235,14 @@ export default function Analytics() {
     );
   }
 
-  // Page Analytics débloquée pour utilisateurs PRO
+  // Page Analytics pour plan Entreprise
   return (
     <div style={{
       minHeight: '100vh',
       background: 'linear-gradient(135deg, #F5F3FF 0%, #E9D5FF 100%)',
       padding: '40px 20px'
     }}>
-      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+      <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
 
         {/* Header */}
         <div style={{
@@ -235,11 +263,11 @@ export default function Analytics() {
               alignItems: 'center',
               gap: '12px'
             }}>
-              <BarChart size={36} color="#8B5CF6" />
-              Analytics ✨
+              <BarChartIcon size={36} color="#8B5CF6" />
+              Analytics Entreprise
             </h1>
             <p style={{ color: '#6B7280' }}>
-              Insights détaillés sur vos événements
+              Insights détaillés et rapports avancés
             </p>
           </div>
           <button
@@ -258,297 +286,363 @@ export default function Analytics() {
               gap: '8px',
               transition: 'all 0.3s'
             }}
-            onMouseEnter={(e) => {
-              e.target.style.borderColor = '#8B5CF6';
-              e.target.style.color = '#8B5CF6';
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.borderColor = '#E5E7EB';
-              e.target.style.color = '#1E1B4B';
-            }}
           >
             <ArrowLeft size={18} />
             Dashboard
           </button>
         </div>
 
-        {/* Stats Cards Grid */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-          gap: '24px',
-          marginBottom: '40px'
-        }}>
-
-          {/* Taux de réponse */}
-          <div style={{
-            background: 'white',
-            borderRadius: '16px',
-            padding: '28px',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
-            position: 'relative',
-            overflow: 'hidden'
-          }}>
-            <div style={{
-              position: 'absolute',
-              top: '-20px',
-              right: '-20px',
-              width: '100px',
-              height: '100px',
-              borderRadius: '50%',
-              background: 'linear-gradient(135deg, #10B981 0%, #34D399 100%)',
-              opacity: 0.1
-            }} />
-            <div style={{ position: 'relative' }}>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                marginBottom: '16px'
-              }}>
-                <h3 style={{ fontSize: '16px', fontWeight: '600', color: '#6B7280' }}>
-                  Taux de réponse moyen
-                </h3>
-                <Target size={24} color="#10B981" />
-              </div>
-              <div style={{ fontSize: '48px', fontWeight: '800', color: '#10B981', marginBottom: '8px' }}>
-                {analytics ? `${analytics.averageResponseRate}%` : '87%'}
-              </div>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                color: '#10B981',
-                fontSize: '14px',
-                fontWeight: '600'
-              }}>
-                <TrendingUp size={16} />
-                {analytics && analytics.averageResponseRate >= 80 ? 'Excellent taux !' : '+12% vs mois dernier'}
-              </div>
-            </div>
-          </div>
-
-          {/* Temps de réponse */}
-          <div style={{
-            background: 'white',
-            borderRadius: '16px',
-            padding: '28px',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
-            position: 'relative',
-            overflow: 'hidden'
-          }}>
-            <div style={{
-              position: 'absolute',
-              top: '-20px',
-              right: '-20px',
-              width: '100px',
-              height: '100px',
-              borderRadius: '50%',
-              background: 'linear-gradient(135deg, #EC4899 0%, #F472B6 100%)',
-              opacity: 0.1
-            }} />
-            <div style={{ position: 'relative' }}>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                marginBottom: '16px'
-              }}>
-                <h3 style={{ fontSize: '16px', fontWeight: '600', color: '#6B7280' }}>
-                  Temps de réponse moyen
-                </h3>
-                <Clock size={24} color="#EC4899" />
-              </div>
-              <div style={{ fontSize: '48px', fontWeight: '800', color: '#EC4899', marginBottom: '8px' }}>
-                {analytics ? analytics.averageResponseTime : '2.4h'}
-              </div>
-              <div style={{ color: '#6B7280', fontSize: '14px' }}>
-                Les participants répondent rapidement !
-              </div>
-            </div>
-          </div>
-
-          {/* Meilleur jour */}
-          <div style={{
-            background: 'white',
-            borderRadius: '16px',
-            padding: '28px',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
-            position: 'relative',
-            overflow: 'hidden'
-          }}>
-            <div style={{
-              position: 'absolute',
-              top: '-20px',
-              right: '-20px',
-              width: '100px',
-              height: '100px',
-              borderRadius: '50%',
-              background: 'linear-gradient(135deg, #3B82F6 0%, #60A5FA 100%)',
-              opacity: 0.1
-            }} />
-            <div style={{ position: 'relative' }}>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                marginBottom: '16px'
-              }}>
-                <h3 style={{ fontSize: '16px', fontWeight: '600', color: '#6B7280' }}>
-                  Meilleur jour
-                </h3>
-                <Calendar size={24} color="#3B82F6" />
-              </div>
-              <div style={{ fontSize: '48px', fontWeight: '800', color: '#3B82F6', marginBottom: '8px' }}>
-                {analytics ? analytics.bestDay : 'Samedi'}
-              </div>
-              <div style={{ color: '#6B7280', fontSize: '14px' }}>
-                {analytics ? `${analytics.bestDayPercentage}% de consensus moyen` : '72% de consensus moyen'}
-              </div>
-            </div>
-          </div>
-
-          {/* Participation totale */}
-          <div style={{
-            background: 'white',
-            borderRadius: '16px',
-            padding: '28px',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
-            position: 'relative',
-            overflow: 'hidden'
-          }}>
-            <div style={{
-              position: 'absolute',
-              top: '-20px',
-              right: '-20px',
-              width: '100px',
-              height: '100px',
-              borderRadius: '50%',
-              background: 'linear-gradient(135deg, #8B5CF6 0%, #A78BFA 100%)',
-              opacity: 0.1
-            }} />
-            <div style={{ position: 'relative' }}>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                marginBottom: '16px'
-              }}>
-                <h3 style={{ fontSize: '16px', fontWeight: '600', color: '#6B7280' }}>
-                  Participants totaux
-                </h3>
-                <Users size={24} color="#8B5CF6" />
-              </div>
-              <div style={{ fontSize: '48px', fontWeight: '800', color: '#8B5CF6', marginBottom: '8px' }}>
-                {analytics ? analytics.totalParticipants : '347'}
-              </div>
-              <div style={{ color: '#6B7280', fontSize: '14px' }}>
-                {analytics ? `Sur ${analytics.totalEvents} événement(s)` : 'Tous vos événements confondus'}
-              </div>
-            </div>
-          </div>
-
-        </div>
-
-        {/* Section graphiques */}
+        {/* Filtres de période */}
         <div style={{
           background: 'white',
           borderRadius: '16px',
-          padding: '32px',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
-          marginBottom: '40px'
+          padding: '24px',
+          marginBottom: '32px',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.08)'
         }}>
-          <h2 style={{
-            fontSize: '24px',
-            fontWeight: '700',
-            color: '#1E1B4B',
-            marginBottom: '24px',
+          <div style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '12px'
+            gap: '12px',
+            marginBottom: '16px'
           }}>
-            <TrendingUp size={28} color="#8B5CF6" />
-            Évolution dans le temps
-          </h2>
+            <Filter size={20} color="#8B5CF6" />
+            <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#1E1B4B', margin: 0 }}>
+              Période d'analyse
+            </h3>
+          </div>
 
-          {analytics && analytics.monthlyTrend && analytics.monthlyTrend.length > 0 ? (
-            <div style={{ padding: '20px' }}>
-              <div style={{
-                display: 'flex',
-                alignItems: 'flex-end',
-                justifyContent: 'space-around',
-                height: '300px',
-                borderBottom: '2px solid #E5E7EB',
-                borderLeft: '2px solid #E5E7EB',
-                padding: '20px 0 20px 20px'
-              }}>
-                {analytics.monthlyTrend.map((item, index) => {
-                  const maxCount = Math.max(...analytics.monthlyTrend.map(d => d.count));
-                  const heightPercent = (item.count / maxCount) * 100;
+          <div style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '12px',
+            alignItems: 'center'
+          }}>
+            {['7d', '30d', '90d', 'custom'].map(period => (
+              <button
+                key={period}
+                onClick={() => setSelectedPeriod(period)}
+                style={{
+                  padding: '10px 20px',
+                  background: selectedPeriod === period
+                    ? 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)'
+                    : 'white',
+                  color: selectedPeriod === period ? 'white' : '#6B7280',
+                  border: selectedPeriod === period ? 'none' : '2px solid #E5E7EB',
+                  borderRadius: '10px',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s'
+                }}
+              >
+                {period === '7d' && '7 derniers jours'}
+                {period === '30d' && '30 derniers jours'}
+                {period === '90d' && '90 derniers jours'}
+                {period === 'custom' && 'Personnalisé'}
+              </button>
+            ))}
+          </div>
 
-                  return (
-                    <div key={index} style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      flex: 1,
-                      maxWidth: '100px'
-                    }}>
-                      <div style={{
-                        fontSize: '14px',
-                        fontWeight: '700',
-                        color: '#8B5CF6',
-                        marginBottom: '8px'
-                      }}>
-                        {item.count}
-                      </div>
-                      <div style={{
-                        width: '60px',
-                        height: `${Math.max(heightPercent, 10)}%`,
-                        background: 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)',
-                        borderRadius: '8px 8px 0 0',
-                        transition: 'all 0.3s',
-                        boxShadow: '0 4px 12px rgba(139, 92, 246, 0.3)'
-                      }} />
-                      <div style={{
-                        marginTop: '12px',
-                        fontSize: '12px',
-                        fontWeight: '600',
-                        color: '#6B7280'
-                      }}>
-                        {item.month}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-              <p style={{
-                textAlign: 'center',
-                color: '#6B7280',
-                fontSize: '14px',
-                marginTop: '20px'
-              }}>
-                Nombre d'événements créés par mois
-              </p>
-            </div>
-          ) : (
+          {selectedPeriod === 'custom' && (
             <div style={{
-              padding: '60px 20px',
-              textAlign: 'center',
-              background: '#F9FAFB',
-              borderRadius: '12px',
-              border: '2px dashed #E5E7EB'
+              display: 'flex',
+              gap: '16px',
+              marginTop: '16px',
+              flexWrap: 'wrap'
             }}>
-              <BarChart size={48} color="#D1D5DB" style={{ marginBottom: '16px' }} />
-              <p style={{ color: '#6B7280', fontSize: '16px' }}>
-                Créez des événements pour voir vos statistiques
-              </p>
-              <p style={{ color: '#9CA3AF', fontSize: '14px', marginTop: '8px' }}>
-                Le graphique affichera l'évolution mois par mois
-              </p>
+              <div>
+                <label style={{
+                  display: 'block',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  color: '#6B7280',
+                  marginBottom: '8px'
+                }}>
+                  Date de début
+                </label>
+                <input
+                  type="date"
+                  value={customStartDate}
+                  onChange={(e) => setCustomStartDate(e.target.value)}
+                  style={{
+                    padding: '10px 16px',
+                    border: '2px solid #E5E7EB',
+                    borderRadius: '10px',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    color: '#1E1B4B'
+                  }}
+                />
+              </div>
+              <div>
+                <label style={{
+                  display: 'block',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  color: '#6B7280',
+                  marginBottom: '8px'
+                }}>
+                  Date de fin
+                </label>
+                <input
+                  type="date"
+                  value={customEndDate}
+                  onChange={(e) => setCustomEndDate(e.target.value)}
+                  style={{
+                    padding: '10px 16px',
+                    border: '2px solid #E5E7EB',
+                    borderRadius: '10px',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    color: '#1E1B4B'
+                  }}
+                />
+              </div>
             </div>
           )}
         </div>
+
+        {/* KPIs Cards */}
+        {analytics && (
+          <>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+              gap: '24px',
+              marginBottom: '40px'
+            }}>
+              {/* Total événements */}
+              <KPICard
+                icon={<Calendar size={24} color="#8B5CF6" />}
+                title="Événements créés"
+                value={analytics.totalEvents}
+                subtitle={`Sur la période sélectionnée`}
+                color="#8B5CF6"
+              />
+
+              {/* Taux de réponse */}
+              <KPICard
+                icon={<Target size={24} color="#10B981" />}
+                title="Taux de réponse moyen"
+                value={`${analytics.averageResponseRate}%`}
+                subtitle={`${analytics.totalResponses} / ${analytics.totalExpected} participants`}
+                color="#10B981"
+              />
+
+              {/* Temps de réponse */}
+              <KPICard
+                icon={<Clock size={24} color="#EC4899" />}
+                title="Temps de réponse moyen"
+                value={analytics.averageResponseTime}
+                subtitle="Délai moyen de participation"
+                color="#EC4899"
+              />
+
+              {/* Total participants */}
+              <KPICard
+                icon={<Users size={24} color="#06B6D4" />}
+                title="Participants totaux"
+                value={analytics.totalParticipants}
+                subtitle="Tous événements confondus"
+                color="#06B6D4"
+              />
+            </div>
+
+            {/* Graphique d'évolution */}
+            <div style={{
+              background: 'white',
+              borderRadius: '16px',
+              padding: '32px',
+              marginBottom: '32px',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.08)'
+            }}>
+              <h2 style={{
+                fontSize: '24px',
+                fontWeight: '700',
+                color: '#1E1B4B',
+                marginBottom: '24px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px'
+              }}>
+                <TrendingUp size={28} color="#8B5CF6" />
+                Évolution des événements
+              </h2>
+
+              {analytics.evolutionData && analytics.evolutionData.length > 0 ? (
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={analytics.evolutionData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                    <XAxis
+                      dataKey="date"
+                      stroke="#6B7280"
+                      style={{ fontSize: '12px', fontWeight: '600' }}
+                    />
+                    <YAxis
+                      stroke="#6B7280"
+                      style={{ fontSize: '12px', fontWeight: '600' }}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        background: 'white',
+                        border: '2px solid #E5E7EB',
+                        borderRadius: '12px',
+                        padding: '12px'
+                      }}
+                    />
+                    <Legend />
+                    <Line
+                      type="monotone"
+                      dataKey="count"
+                      stroke="#8B5CF6"
+                      strokeWidth={3}
+                      name="Événements créés"
+                      dot={{ fill: '#8B5CF6', r: 5 }}
+                      activeDot={{ r: 8 }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="responses"
+                      stroke="#10B981"
+                      strokeWidth={3}
+                      name="Réponses"
+                      dot={{ fill: '#10B981', r: 5 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              ) : (
+                <div style={{
+                  padding: '60px 20px',
+                  textAlign: 'center',
+                  background: '#F9FAFB',
+                  borderRadius: '12px'
+                }}>
+                  <BarChartIcon size={48} color="#D1D5DB" />
+                  <p style={{ color: '#6B7280', marginTop: '16px' }}>
+                    Aucune donnée pour cette période
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Top types d'événements */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(500px, 1fr))',
+              gap: '32px',
+              marginBottom: '40px'
+            }}>
+              {/* Types d'événements - Bar Chart */}
+              <div style={{
+                background: 'white',
+                borderRadius: '16px',
+                padding: '32px',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.08)'
+              }}>
+                <h2 style={{
+                  fontSize: '20px',
+                  fontWeight: '700',
+                  color: '#1E1B4B',
+                  marginBottom: '24px'
+                }}>
+                  Top types d'événements
+                </h2>
+
+                {analytics.topEventTypes && analytics.topEventTypes.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={analytics.topEventTypes}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                      <XAxis
+                        dataKey="type"
+                        stroke="#6B7280"
+                        style={{ fontSize: '12px', fontWeight: '600' }}
+                      />
+                      <YAxis stroke="#6B7280" />
+                      <Tooltip
+                        contentStyle={{
+                          background: 'white',
+                          border: '2px solid #E5E7EB',
+                          borderRadius: '12px'
+                        }}
+                      />
+                      <Bar dataKey="count" fill="#8B5CF6" radius={[8, 8, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <p style={{ color: '#6B7280', textAlign: 'center' }}>
+                    Aucune donnée disponible
+                  </p>
+                )}
+              </div>
+
+              {/* Taux de réponse par type */}
+              <div style={{
+                background: 'white',
+                borderRadius: '16px',
+                padding: '32px',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.08)'
+              }}>
+                <h2 style={{
+                  fontSize: '20px',
+                  fontWeight: '700',
+                  color: '#1E1B4B',
+                  marginBottom: '24px'
+                }}>
+                  Taux de réponse par type
+                </h2>
+
+                {analytics.responseRateByEventType && analytics.responseRateByEventType.length > 0 ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    {analytics.responseRateByEventType.slice(0, 5).map((item, index) => (
+                      <div key={index} style={{ position: 'relative' }}>
+                        <div style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          marginBottom: '8px'
+                        }}>
+                          <span style={{
+                            fontSize: '14px',
+                            fontWeight: '600',
+                            color: '#1E1B4B'
+                          }}>
+                            {item.type}
+                          </span>
+                          <span style={{
+                            fontSize: '14px',
+                            fontWeight: '700',
+                            color: '#8B5CF6'
+                          }}>
+                            {item.responseRate}%
+                          </span>
+                        </div>
+                        <div style={{
+                          width: '100%',
+                          height: '8px',
+                          background: '#E5E7EB',
+                          borderRadius: '8px',
+                          overflow: 'hidden'
+                        }}>
+                          <div style={{
+                            width: `${item.responseRate}%`,
+                            height: '100%',
+                            background: `linear-gradient(90deg, ${COLORS[index % COLORS.length]}, ${COLORS[(index + 1) % COLORS.length]})`,
+                            borderRadius: '8px',
+                            transition: 'width 0.3s'
+                          }} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p style={{ color: '#6B7280', textAlign: 'center' }}>
+                    Aucune donnée disponible
+                  </p>
+                )}
+              </div>
+            </div>
+          </>
+        )}
 
         {/* Insights et recommandations */}
         <div style={{
@@ -574,52 +668,96 @@ export default function Analytics() {
             gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
             gap: '20px'
           }}>
-            <div style={{
-              padding: '20px',
-              background: 'rgba(255, 255, 255, 0.1)',
-              borderRadius: '12px',
-              backdropFilter: 'blur(10px)'
-            }}>
-              <div style={{ fontSize: '32px', marginBottom: '12px' }}>📅</div>
-              <h3 style={{ fontSize: '18px', fontWeight: '700', marginBottom: '8px' }}>
-                Meilleur créneau
-              </h3>
-              <p style={{ fontSize: '14px', opacity: 0.9 }}>
-                Vos événements en soirée ont 23% plus de participation
-              </p>
-            </div>
-            <div style={{
-              padding: '20px',
-              background: 'rgba(255, 255, 255, 0.1)',
-              borderRadius: '12px',
-              backdropFilter: 'blur(10px)'
-            }}>
-              <div style={{ fontSize: '32px', marginBottom: '12px' }}>⚡</div>
-              <h3 style={{ fontSize: '18px', fontWeight: '700', marginBottom: '8px' }}>
-                Réactivité
-              </h3>
-              <p style={{ fontSize: '14px', opacity: 0.9 }}>
-                Envoyer les invitations 7 jours à l'avance améliore le taux de réponse
-              </p>
-            </div>
-            <div style={{
-              padding: '20px',
-              background: 'rgba(255, 255, 255, 0.1)',
-              borderRadius: '12px',
-              backdropFilter: 'blur(10px)'
-            }}>
-              <div style={{ fontSize: '32px', marginBottom: '12px' }}>🎯</div>
-              <h3 style={{ fontSize: '18px', fontWeight: '700', marginBottom: '8px' }}>
-                Taille optimale
-              </h3>
-              <p style={{ fontSize: '14px', opacity: 0.9 }}>
-                Les groupes de 6-8 personnes trouvent plus facilement une date
-              </p>
-            </div>
+            <InsightCard
+              emoji="📊"
+              title="Performance globale"
+              description={
+                analytics && analytics.averageResponseRate >= 70
+                  ? "Excellent taux de réponse ! Continuez ainsi."
+                  : "Essayez d'envoyer des relances pour améliorer le taux de réponse."
+              }
+            />
+            <InsightCard
+              emoji="⚡"
+              title="Réactivité"
+              description={
+                analytics && analytics.averageResponseTimeMinutes < 1440
+                  ? "Vos participants répondent rapidement, félicitations !"
+                  : "Envoyer les invitations plus tôt peut améliorer la participation."
+              }
+            />
+            <InsightCard
+              emoji="🎯"
+              title="Optimisation"
+              description="Les groupes de 6-8 personnes trouvent plus facilement une date commune."
+            />
           </div>
         </div>
-
       </div>
+    </div>
+  );
+}
+
+// Composant KPI Card
+function KPICard({ icon, title, value, subtitle, color }) {
+  return (
+    <div style={{
+      background: 'white',
+      borderRadius: '16px',
+      padding: '28px',
+      boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+      position: 'relative',
+      overflow: 'hidden'
+    }}>
+      <div style={{
+        position: 'absolute',
+        top: '-20px',
+        right: '-20px',
+        width: '100px',
+        height: '100px',
+        borderRadius: '50%',
+        background: color,
+        opacity: 0.1
+      }} />
+      <div style={{ position: 'relative' }}>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: '16px'
+        }}>
+          <h3 style={{ fontSize: '16px', fontWeight: '600', color: '#6B7280' }}>
+            {title}
+          </h3>
+          {icon}
+        </div>
+        <div style={{ fontSize: '48px', fontWeight: '800', color: color, marginBottom: '8px' }}>
+          {value}
+        </div>
+        <div style={{ color: '#6B7280', fontSize: '14px' }}>
+          {subtitle}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Composant Insight Card
+function InsightCard({ emoji, title, description }) {
+  return (
+    <div style={{
+      padding: '20px',
+      background: 'rgba(255, 255, 255, 0.1)',
+      borderRadius: '12px',
+      backdropFilter: 'blur(10px)'
+    }}>
+      <div style={{ fontSize: '32px', marginBottom: '12px' }}>{emoji}</div>
+      <h3 style={{ fontSize: '18px', fontWeight: '700', marginBottom: '8px' }}>
+        {title}
+      </h3>
+      <p style={{ fontSize: '14px', opacity: 0.9 }}>
+        {description}
+      </p>
     </div>
   );
 }

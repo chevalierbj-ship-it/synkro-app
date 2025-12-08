@@ -165,10 +165,16 @@ async function getRawBody(req) {
 // ========================================
 
 async function handleCheckoutCompleted({ userId, email, subscriptionId, customerId, session }) {
+  console.log('🔔 ========================================');
+  console.log('🔔 WEBHOOK RECEIVED - Checkout completed');
+  console.log('🔔 ========================================');
   console.log('📝 Processing checkout completion...');
-  console.log('🔍 User email:', email);
-  console.log('🔍 Customer ID:', customerId);
-  console.log('🔍 Subscription ID:', subscriptionId);
+  console.log('📧 Customer email:', email);
+  console.log('🔑 Clerk User ID:', userId);
+  console.log('💳 Stripe Customer ID:', customerId);
+  console.log('📋 Subscription ID:', subscriptionId);
+  console.log('📦 Session metadata:', JSON.stringify(session.metadata || {}));
+  console.log('🔍 Full session object keys:', Object.keys(session));
 
   // Récupérer les détails de l'abonnement
   const subscription = await stripe.subscriptions.retrieve(subscriptionId);
@@ -202,6 +208,13 @@ async function handleCheckoutCompleted({ userId, email, subscriptionId, customer
   console.log('✅ Determined plan:', plan, '- Interval:', interval, '- Amount:', amountPaid);
 
   // ✅ 1. Mettre à jour le plan de l'utilisateur dans Airtable (table Users)
+  console.log('🚀 ========================================');
+  console.log('🚀 ABOUT TO UPDATE USER IN AIRTABLE');
+  console.log('🚀 Email:', email);
+  console.log('🚀 New plan:', plan);
+  console.log('🚀 Customer ID:', customerId);
+  console.log('🚀 Subscription ID:', subscriptionId);
+  console.log('🚀 ========================================');
   let airtableUpdateSuccess = false;
   try {
     const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN;

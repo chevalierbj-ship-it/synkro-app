@@ -43,19 +43,23 @@ export default function Dashboard() {
   const fetchUserEvents = async (email) => {
     try {
       setLoadingEvents(true);
-      const response = await fetch(`/api/events?email=${encodeURIComponent(email)}`);
+      console.log('📧 Loading events for:', email);
+
+      const response = await fetch(`/api/get-user-events?email=${encodeURIComponent(email)}`);
       const data = await response.json();
+
+      console.log('📊 API Response:', data);
+
       if (data.success && data.events) {
-        // Trier par date de création (plus récent en premier)
-        const sortedEvents = data.events.sort((a, b) => {
-          const dateA = new Date(a.createdAt || 0);
-          const dateB = new Date(b.createdAt || 0);
-          return dateB - dateA;
-        });
-        setEvents(sortedEvents.slice(0, 5)); // Garder seulement les 5 derniers
+        console.log('✅ Events loaded:', data.events.length);
+        setEvents(data.events.slice(0, 5)); // Garder seulement les 5 derniers
+      } else {
+        console.warn('⚠️ No events found or API error');
+        setEvents([]);
       }
     } catch (error) {
-      console.error('Erreur récupération événements:', error);
+      console.error('❌ Error fetching events:', error);
+      setEvents([]);
     } finally {
       setLoadingEvents(false);
     }
@@ -461,23 +465,22 @@ export default function Dashboard() {
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               {events.map((event, index) => {
-                const status = event.status || 'pending';
+                const status = event.status || 'draft';
                 const statusConfig = {
-                  pending: { label: 'En attente', color: '#F59E0B', bg: '#FEF3C7' },
-                  active: { label: 'En cours', color: '#10B981', bg: '#D1FAE5' },
-                  confirmed: { label: 'Confirmé', color: '#8B5CF6', bg: '#EDE9FE' },
-                  completed: { label: 'Terminé', color: '#6B7280', bg: '#F3F4F6' }
+                  draft: { label: 'Brouillon', color: '#6B7280', bg: '#F3F4F6' },
+                  active: { label: 'Actif', color: '#10B981', bg: '#D1FAE5' },
+                  completed: { label: 'Complété', color: '#8B5CF6', bg: '#EDE9FE' }
                 };
-                const config = statusConfig[status] || statusConfig.pending;
+                const config = statusConfig[status] || statusConfig.draft;
 
                 return (
                   <div
-                    key={event.eventId || index}
+                    key={event.id || index}
                     style={{
                       padding: '20px',
                       border: '2px solid #E5E7EB',
                       borderRadius: '12px',
-                      cursor: 'pointer',
+                      cursor: event.eventId ? 'pointer' : 'default',
                       transition: 'all 0.3s',
                       display: 'flex',
                       justifyContent: 'space-between',
@@ -485,10 +488,16 @@ export default function Dashboard() {
                       flexWrap: 'wrap',
                       gap: '16px'
                     }}
-                    onClick={() => navigate(`/admin/${event.eventId}`)}
+                    onClick={() => {
+                      if (event.eventId) {
+                        window.open(`/admin?id=${event.eventId}`, '_blank');
+                      }
+                    }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor = '#8B5CF6';
-                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(139, 92, 246, 0.15)';
+                      if (event.eventId) {
+                        e.currentTarget.style.borderColor = '#8B5CF6';
+                        e.currentTarget.style.boxShadow = '0 4px 12px rgba(139, 92, 246, 0.15)';
+                      }
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.borderColor = '#E5E7EB';
@@ -502,7 +511,7 @@ export default function Dashboard() {
                         color: '#1E1B4B',
                         marginBottom: '8px'
                       }}>
-                        {event.type || 'Événement'}
+                        {event.eventName || 'Événement sans titre'}
                       </div>
                       <div style={{
                         display: 'flex',
@@ -514,11 +523,15 @@ export default function Dashboard() {
                       }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                           <Calendar size={16} />
-                          {event.confirmedDate || 'Date non confirmée'}
+                          {new Date(event.createdAt).toLocaleDateString('fr-FR', {
+                            day: '2-digit',
+                            month: 'short',
+                            year: 'numeric'
+                          })}
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                           <Users size={16} />
-                          {event.totalResponded || 0}/{event.expectedParticipants || 0} réponses
+                          {event.participantsCount || 0} participant{event.participantsCount > 1 ? 's' : ''}
                         </div>
                       </div>
                     </div>
@@ -538,7 +551,7 @@ export default function Dashboard() {
                       }}>
                         {config.label}
                       </div>
-                      <ArrowRight size={20} color="#8B5CF6" />
+                      {event.eventId && <ArrowRight size={20} color="#8B5CF6" />}
                     </div>
                   </div>
                 );

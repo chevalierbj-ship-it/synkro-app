@@ -327,6 +327,15 @@ async function shareEvent(req, res) {
 
   const membersData = await membersResponse.json();
 
+  // Gérer l'erreur si le champ parent_user_id n'existe pas
+  if (membersData.error && membersData.error.type === 'INVALID_FILTER_BY_FORMULA') {
+    return res.status(500).json({
+      error: 'Configuration Airtable incomplète',
+      message: 'Le champ parent_user_id n\'existe pas dans la table SubAccounts. Veuillez le créer dans Airtable (type: Single line text).',
+      solution: 'Allez dans votre table SubAccounts sur Airtable et créez un nouveau champ nommé "parent_user_id" de type "Single line text".'
+    });
+  }
+
   if (!membersData.records || membersData.records.length === 0) {
     return res.status(400).json({ error: 'Aucun membre d\'équipe trouvé' });
   }

@@ -4,7 +4,9 @@
 // ✅ Validation de la signature Stripe
 // ⚠️ Compatible Vercel Serverless Functions
 
-const Stripe = require('stripe');
+import Stripe from 'stripe';
+import { Resend } from 'resend';
+
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 // Configuration Vercel pour désactiver le body parser
@@ -14,7 +16,7 @@ export const config = {
   },
 };
 
-module.exports = async function handler(req, res) {
+export default async function handler(req, res) {
   // Seules les requêtes POST sont acceptées
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -390,7 +392,6 @@ async function handleCheckoutCompleted({ userId, email, subscriptionId, customer
 
   // ✅ 2. Envoyer un email de confirmation
   try {
-    const Resend = require('resend').Resend;
     const resend = new Resend(process.env.RESEND_API_KEY);
 
     await resend.emails.send({
@@ -628,7 +629,6 @@ async function handleSubscriptionDeleted(subscription) {
     const customerEmail = customer.email;
 
     if (customerEmail) {
-      const Resend = require('resend').Resend;
       const resend = new Resend(process.env.RESEND_API_KEY);
 
       await resend.emails.send({
@@ -711,7 +711,6 @@ async function handlePaymentFailed(invoice) {
     const customerEmail = customer.email;
 
     if (customerEmail) {
-      const Resend = require('resend').Resend;
       const resend = new Resend(process.env.RESEND_API_KEY);
 
       await resend.emails.send({
@@ -807,7 +806,6 @@ async function handlePaymentSucceeded(invoice) {
     const customerEmail = customer.email;
 
     if (customerEmail) {
-      const Resend = require('resend').Resend;
       const resend = new Resend(process.env.RESEND_API_KEY);
 
       await resend.emails.send({

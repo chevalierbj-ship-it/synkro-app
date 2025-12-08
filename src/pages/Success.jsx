@@ -6,37 +6,15 @@ export default function Success() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const sessionId = searchParams.get('session_id');
+  const planName = searchParams.get('plan') || 'Pro';
   const [loading, setLoading] = useState(true);
-  const [sessionData, setSessionData] = useState(null);
 
   useEffect(() => {
-    // Fetch session info from Stripe
-    const fetchSessionInfo = async () => {
-      if (!sessionId) {
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const response = await fetch(`/api/get-session-info?session_id=${sessionId}`);
-        if (response.ok) {
-          const data = await response.json();
-          setSessionData(data);
-        } else {
-          console.error('Failed to fetch session info');
-        }
-      } catch (error) {
-        console.error('Error fetching session info:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchSessionInfo();
+    // Simulate loading session verification
+    setTimeout(() => {
+      setLoading(false);
+    }, 1500);
   }, [sessionId]);
-
-  // Get plan name from session data or default to 'Pro'
-  const planName = sessionData?.planName || 'Pro';
 
   // Define features for each plan
   const planFeatures = {

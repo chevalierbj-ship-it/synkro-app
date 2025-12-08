@@ -392,9 +392,14 @@ async function handleCheckoutCompleted({ userId, email, subscriptionId, customer
 
   // ✅ 2. Envoyer un email de confirmation
   try {
-    const resend = new Resend(process.env.RESEND_API_KEY);
+    const RESEND_API_KEY = process.env.RESEND_API_KEY;
 
-    await resend.emails.send({
+    if (!RESEND_API_KEY) {
+      console.warn('⚠️ RESEND_API_KEY not configured - skipping confirmation email');
+    } else {
+      const resend = new Resend(RESEND_API_KEY);
+
+      await resend.emails.send({
       from: 'Synkro <noreply@synkro.app>',
       to: email,
       subject: `🎉 Bienvenue dans Synkro ${planName} !`,
@@ -462,9 +467,10 @@ async function handleCheckoutCompleted({ userId, email, subscriptionId, customer
         </body>
         </html>
       `
-    });
+      });
 
-    console.log('✅ Confirmation email sent to:', email);
+      console.log('✅ Confirmation email sent to:', email);
+    }
   } catch (error) {
     console.error('❌ Error sending email:', error);
   }
@@ -624,12 +630,17 @@ async function handleSubscriptionDeleted(subscription) {
 
   // ✅ 2. Envoyer un email d'information
   try {
-    // Get customer email from Stripe
-    const customer = await stripe.customers.retrieve(customerId);
-    const customerEmail = customer.email;
+    const RESEND_API_KEY = process.env.RESEND_API_KEY;
 
-    if (customerEmail) {
-      const resend = new Resend(process.env.RESEND_API_KEY);
+    if (!RESEND_API_KEY) {
+      console.warn('⚠️ RESEND_API_KEY not configured - skipping cancellation email');
+    } else {
+      // Get customer email from Stripe
+      const customer = await stripe.customers.retrieve(customerId);
+      const customerEmail = customer.email;
+
+      if (customerEmail) {
+        const resend = new Resend(RESEND_API_KEY);
 
       await resend.emails.send({
         from: 'Synkro <noreply@synkro.app>',
@@ -681,9 +692,10 @@ async function handleSubscriptionDeleted(subscription) {
           </body>
           </html>
         `
-      });
+        });
 
-      console.log('✅ Cancellation email sent to:', customerEmail);
+        console.log('✅ Cancellation email sent to:', customerEmail);
+      }
     }
   } catch (error) {
     console.error('❌ Error sending cancellation email:', error);
@@ -707,11 +719,16 @@ async function handlePaymentFailed(invoice) {
 
   // ✅ 1. Envoyer un email pour informer l'utilisateur
   try {
-    const customer = await stripe.customers.retrieve(customerId);
-    const customerEmail = customer.email;
+    const RESEND_API_KEY = process.env.RESEND_API_KEY;
 
-    if (customerEmail) {
-      const resend = new Resend(process.env.RESEND_API_KEY);
+    if (!RESEND_API_KEY) {
+      console.warn('⚠️ RESEND_API_KEY not configured - skipping payment failure email');
+    } else {
+      const customer = await stripe.customers.retrieve(customerId);
+      const customerEmail = customer.email;
+
+      if (customerEmail) {
+        const resend = new Resend(RESEND_API_KEY);
 
       await resend.emails.send({
         from: 'Synkro <noreply@synkro.app>',
@@ -769,9 +786,10 @@ async function handlePaymentFailed(invoice) {
           </body>
           </html>
         `
-      });
+        });
 
-      console.log('✅ Payment failure email sent to:', customerEmail);
+        console.log('✅ Payment failure email sent to:', customerEmail);
+      }
     }
   } catch (error) {
     console.error('❌ Error sending payment failure email:', error);
@@ -795,18 +813,27 @@ async function handlePaymentSucceeded(invoice) {
 
   // ✅ 1. Prolonger l'accès premium
   if (subscriptionId) {
-    const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-    const currentPeriodEnd = new Date(subscription.current_period_end * 1000);
-    console.log('✅ Premium access extended until:', currentPeriodEnd.toISOString());
+    try {
+      const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+      const currentPeriodEnd = new Date(subscription.current_period_end * 1000);
+      console.log('✅ Premium access extended until:', currentPeriodEnd.toISOString());
+    } catch (error) {
+      console.error('❌ Error retrieving subscription:', error.message);
+    }
   }
 
   // ✅ 2. Envoyer un email de confirmation de paiement
   try {
-    const customer = await stripe.customers.retrieve(customerId);
-    const customerEmail = customer.email;
+    const RESEND_API_KEY = process.env.RESEND_API_KEY;
 
-    if (customerEmail) {
-      const resend = new Resend(process.env.RESEND_API_KEY);
+    if (!RESEND_API_KEY) {
+      console.warn('⚠️ RESEND_API_KEY not configured - skipping payment confirmation email');
+    } else {
+      const customer = await stripe.customers.retrieve(customerId);
+      const customerEmail = customer.email;
+
+      if (customerEmail) {
+        const resend = new Resend(RESEND_API_KEY);
 
       await resend.emails.send({
         from: 'Synkro <noreply@synkro.app>',
@@ -857,9 +884,10 @@ async function handlePaymentSucceeded(invoice) {
           </body>
           </html>
         `
-      });
+        });
 
-      console.log('✅ Payment confirmation email sent to:', customerEmail);
+        console.log('✅ Payment confirmation email sent to:', customerEmail);
+      }
     }
   } catch (error) {
     console.error('❌ Error sending payment confirmation email:', error);

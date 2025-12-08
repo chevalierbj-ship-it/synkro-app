@@ -2,11 +2,23 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Calendar, Clock, Users, Zap, CheckCircle, Sparkles, ArrowRight, MessageSquare } from 'lucide-react';
 import Header from '../components/Header';
+import SEOHead from '../components/SEOHead';
 
 const Landing = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
+
+  const seoKeywords = [
+    'organisation événement',
+    'trouver date groupe',
+    'coordination disponibilités',
+    'alternative doodle',
+    'planification réunion',
+    'organiser dîner entre amis',
+    'sondage date',
+    'événement participatif'
+  ];
 
   const handleSubmit = async () => {
     if (email.trim() && email.includes('@')) {
@@ -42,6 +54,13 @@ const Landing = () => {
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
       color: '#1E1B4B'
     }}>
+      <SEOHead
+        title="Synkro - Trouvez la date parfaite en 1 minute | Organisation d'événements"
+        description="Organisez vos événements sans stress. Synkro trouve automatiquement la meilleure date pour votre groupe. Plus de 47 messages pour un simple dîner, c'est fini !"
+        keywords={seoKeywords}
+        type="website"
+      />
+
       {/* Header Navigation */}
       <Header />
 

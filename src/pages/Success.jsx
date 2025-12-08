@@ -10,12 +10,55 @@ export default function Success() {
   const [sessionData, setSessionData] = useState(null);
 
   useEffect(() => {
-    // Simulate loading session verification
-    setTimeout(() => {
-      setLoading(false);
-      // You could verify the session here with an API call
-    }, 1500);
+    // Fetch session info from Stripe
+    const fetchSessionInfo = async () => {
+      if (!sessionId) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/get-session-info?session_id=${sessionId}`);
+        if (response.ok) {
+          const data = await response.json();
+          setSessionData(data);
+        } else {
+          console.error('Failed to fetch session info');
+        }
+      } catch (error) {
+        console.error('Error fetching session info:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSessionInfo();
   }, [sessionId]);
+
+  // Get plan name from session data or default to 'Pro'
+  const planName = sessionData?.planName || 'Pro';
+
+  // Define features for each plan
+  const planFeatures = {
+    'Pro': [
+      '15 événements par mois',
+      '50 participants max',
+      'Sans branding Synkro',
+      'Export CSV/Excel',
+      'Support prioritaire',
+      'Personnalisation avancée'
+    ],
+    'Entreprise': [
+      'Événements illimités',
+      'Participants illimités',
+      'Multi-utilisateurs (3 comptes)',
+      'Sans branding Synkro',
+      'Analytics avancées',
+      'Support premium'
+    ]
+  };
+
+  const features = planFeatures[planName] || planFeatures['Pro'];
 
   if (loading) {
     return (
@@ -42,7 +85,7 @@ export default function Success() {
 
           {/* Title */}
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-            🎉 Bienvenue dans Synkro Pro !
+            🎉 Bienvenue dans Synkro {planName} !
           </h1>
 
           {/* Subtitle */}
@@ -59,30 +102,12 @@ export default function Success() {
               </h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-left">
-              <div className="flex items-start gap-2">
-                <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                <span className="text-sm text-gray-700">15 événements par mois</span>
-              </div>
-              <div className="flex items-start gap-2">
-                <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                <span className="text-sm text-gray-700">50 participants max</span>
-              </div>
-              <div className="flex items-start gap-2">
-                <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                <span className="text-sm text-gray-700">Sans branding Synkro</span>
-              </div>
-              <div className="flex items-start gap-2">
-                <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                <span className="text-sm text-gray-700">Export CSV/Excel</span>
-              </div>
-              <div className="flex items-start gap-2">
-                <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                <span className="text-sm text-gray-700">Support prioritaire</span>
-              </div>
-              <div className="flex items-start gap-2">
-                <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                <span className="text-sm text-gray-700">Personnalisation avancée</span>
-              </div>
+              {features.map((feature, index) => (
+                <div key={index} className="flex items-start gap-2">
+                  <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                  <span className="text-sm text-gray-700">{feature}</span>
+                </div>
+              ))}
             </div>
           </div>
 

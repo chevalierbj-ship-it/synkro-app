@@ -4,6 +4,7 @@ import { Calendar, Users, TrendingUp, Sparkles, ArrowRight, Crown, Mail } from '
 import { useUser } from '@clerk/clerk-react';
 import CustomizationPanel from '../components/CustomizationPanel';
 import TeamManagement from '../components/TeamManagement';
+import SEOHead from '../components/SEOHead';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -121,6 +122,13 @@ export default function Dashboard() {
       background: 'linear-gradient(135deg, #F5F3FF 0%, #E9D5FF 100%)',
       padding: '40px 20px'
     }}>
+      <SEOHead
+        title="Tableau de bord - Synkro"
+        description="Gérez vos événements, suivez vos statistiques et accédez à vos analytics. Tableau de bord complet pour organiser vos événements avec Synkro."
+        type="website"
+        keywords={['tableau de bord', 'gestion événements', 'statistiques', 'analytics', 'organisation']}
+      />
+
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
 
         {/* Header avec navigation */}

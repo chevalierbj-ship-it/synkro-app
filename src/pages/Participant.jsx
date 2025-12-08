@@ -6,6 +6,7 @@ import { findBestDate } from '../utils/smartScoring';
 import SmartQuestionFlow from '../components/SmartQuestionFlow';
 import AIRecommendation from '../components/AIRecommendation';
 import AuthButtons from '../components/AuthButtons';
+import SEOHead, { generateEventSchema } from '../components/SEOHead';
 
 const Participant = () => {
   const navigate = useNavigate();
@@ -574,11 +575,34 @@ const Participant = () => {
   }
 
   return (
-    <div style={{ 
-      minHeight: '100vh', 
+    <div style={{
+      minHeight: '100vh',
       background: 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 50%, #06B6D4 100%)',
       padding: '20px'
     }}>
+      {event && (
+        <SEOHead
+          title={`${event.title} - Événement Synkro`}
+          description={`Participez à l'événement "${event.title}" organisé par ${event.organizerName}. Indiquez vos disponibilités en quelques secondes.`}
+          type="website"
+          canonical={`https://synkro-app-bice.vercel.app/participant?id=${eventId}`}
+          keywords={['événement', 'participation', event.type, 'disponibilités', 'coordination']}
+          schema={generateEventSchema({
+            eventId: eventId,
+            title: event.title,
+            name: event.title,
+            description: event.description || `Événement organisé via Synkro`,
+            startDate: event.confirmedDate || event.dates?.[0]?.date,
+            endDate: event.endDate,
+            location: event.location,
+            organizerName: event.organizerName,
+            organizerEmail: event.organizerEmail,
+            organizerType: 'Person',
+            type: event.type
+          })}
+        />
+      )}
+
       <div style={{
         maxWidth: '700px',
         margin: '0 auto',

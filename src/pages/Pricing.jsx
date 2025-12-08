@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Check, X, Zap, Users, BarChart3 } from 'lucide-react';
 import { useUser } from '@clerk/clerk-react';
+import SEOHead from '../components/SEOHead';
 
 export default function Pricing() {
   const [isAnnual, setIsAnnual] = useState(false);
@@ -121,6 +122,13 @@ export default function Pricing() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      <SEOHead
+        title="Tarifs Synkro - Plans Gratuit, Pro et Entreprise"
+        description="Découvrez nos tarifs transparents. Plan gratuit pour débuter, Pro pour plus d'événements, Entreprise pour les équipes. Essayez gratuitement dès maintenant !"
+        type="website"
+        keywords={['tarifs', 'prix', 'abonnement', 'plan pro', 'plan gratuit', 'entreprise', 'pricing']}
+      />
+
       {/* Header */}
       <div className="max-w-7xl mx-auto px-4 py-16 sm:px-6 lg:px-8">
         {/* Hero Section */}

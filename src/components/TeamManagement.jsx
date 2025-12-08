@@ -17,7 +17,7 @@ export default function TeamManagement({ userData, clerkUserId }) {
 
   const loadMembers = async () => {
     try {
-      const response = await fetch(`/api/get-team-members?clerkUserId=${clerkUserId}`);
+      const response = await fetch(`/api/team?clerkUserId=${clerkUserId}`);
       const data = await response.json();
       setMembers(data.members || []);
     } catch (error) {
@@ -41,7 +41,7 @@ export default function TeamManagement({ userData, clerkUserId }) {
     setLoading(true);
 
     try {
-      const response = await fetch('/api/invite-team-member', {
+      const response = await fetch('/api/team', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -73,10 +73,8 @@ export default function TeamManagement({ userData, clerkUserId }) {
     }
 
     try {
-      const response = await fetch('/api/revoke-team-member', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ memberId })
+      const response = await fetch(`/api/team?memberId=${memberId}`, {
+        method: 'DELETE'
       });
 
       const data = await response.json();

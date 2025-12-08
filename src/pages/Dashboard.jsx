@@ -30,7 +30,7 @@ export default function Dashboard() {
   const fetchUserStats = async (email) => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/get-user-stats?email=${encodeURIComponent(email)}`);
+      const response = await fetch(`/api/analytics?type=stats&email=${encodeURIComponent(email)}`);
       const data = await response.json();
       setStats(data);
     } catch (error) {

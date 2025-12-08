@@ -56,6 +56,15 @@ async function getTeamMembers(req, res) {
   // Vérification de sécurité pour éviter le crash si data.records est undefined
   if (!data.records || !Array.isArray(data.records)) {
     console.error('Unexpected response from Airtable:', data);
+
+    // Si l'erreur est due à un champ manquant, retourner un message explicite
+    if (data.error && data.error.type === 'INVALID_FILTER_BY_FORMULA') {
+      return res.status(200).json({
+        members: [],
+        warning: 'Le champ parent_user_id n\'existe pas dans la table SubAccounts. Veuillez le créer dans Airtable (type: Single line text).'
+      });
+    }
+
     return res.status(200).json({ members: [] });
   }
 
@@ -101,7 +110,16 @@ async function inviteTeamMember(req, res) {
 
   const membersData = await getMembersResponse.json();
 
-  if (membersData.records.length >= 2) {
+  // Gérer l'erreur si le champ parent_user_id n'existe pas
+  if (membersData.error && membersData.error.type === 'INVALID_FILTER_BY_FORMULA') {
+    return res.status(500).json({
+      error: 'Configuration Airtable incomplète',
+      message: 'Le champ parent_user_id n\'existe pas dans la table SubAccounts. Veuillez le créer dans Airtable (type: Single line text).',
+      solution: 'Allez dans votre table SubAccounts sur Airtable et créez un nouveau champ nommé "parent_user_id" de type "Single line text".'
+    });
+  }
+
+  if (membersData.records && membersData.records.length >= 2) {
     return res.status(400).json({ error: 'Limite de 2 membres atteinte' });
   }
 
@@ -117,7 +135,16 @@ async function inviteTeamMember(req, res) {
 
   const checkEmailData = await checkEmailResponse.json();
 
-  if (checkEmailData.records.length > 0) {
+  // Gérer l'erreur si le champ parent_user_id n'existe pas
+  if (checkEmailData.error && checkEmailData.error.type === 'INVALID_FILTER_BY_FORMULA') {
+    return res.status(500).json({
+      error: 'Configuration Airtable incomplète',
+      message: 'Le champ parent_user_id n\'existe pas dans la table SubAccounts. Veuillez le créer dans Airtable (type: Single line text).',
+      solution: 'Allez dans votre table SubAccounts sur Airtable et créez un nouveau champ nommé "parent_user_id" de type "Single line text".'
+    });
+  }
+
+  if (checkEmailData.records && checkEmailData.records.length > 0) {
     return res.status(400).json({ error: 'Email déjà invité' });
   }
 

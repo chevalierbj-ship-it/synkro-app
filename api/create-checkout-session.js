@@ -26,7 +26,7 @@ export default async function handler(req, res) {
           quantity: 1,
         },
       ],
-      success_url: `${req.headers.origin || 'http://localhost:5173'}/success?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${req.headers.origin || 'http://localhost:5173'}/success?session_id={CHECKOUT_SESSION_ID}&plan=${encodeURIComponent(planName || 'Pro')}`,
       cancel_url: `${req.headers.origin || 'http://localhost:5173'}/cancel`,
       customer_email: userEmail || undefined,
       client_reference_id: userId || undefined, // IMPORTANT: Lie l'utilisateur Clerk à la session Stripe

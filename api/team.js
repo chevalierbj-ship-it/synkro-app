@@ -204,7 +204,7 @@ async function sendInvitationEmail({ email, invitationToken, parentUserName, rol
     return;
   }
 
-  const invitationLink = `${process.env.VERCEL_URL || 'https://synkro-app-bice.vercel.app'}/accept-invitation?token=${invitationToken}`;
+  const invitationLink = `${process.env.VERCEL_URL || 'https://getsynkro.com'}/accept-invitation?token=${invitationToken}`;
 
   const roleText = {
     admin: 'Administrateur - Accès complet à tous les événements',
@@ -269,7 +269,7 @@ async function sendInvitationEmail({ email, invitationToken, parentUserName, rol
         <p style="margin: 0; font-size: 12px; color: #6B7280; line-height: 1.6;">
           Cet email a été envoyé par <strong style="color: #8B5CF6;">Synkro</strong><br>
           La solution simple pour organiser vos événements en équipe<br>
-          <a href="https://synkro-app-bice.vercel.app" style="color: #8B5CF6; text-decoration: none;">synkro-app-bice.vercel.app</a>
+          <a href="https://getsynkro.com" style="color: #8B5CF6; text-decoration: none;">getsynkro.com</a>
         </p>
       </td>
     </tr>

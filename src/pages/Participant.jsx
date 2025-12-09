@@ -47,7 +47,7 @@ const Participant = () => {
       action: 'TEMPLATE',
       text: event.type,
       dates: `${formatGoogleDate(startDate)}/${formatGoogleDate(endDate)}`,
-      details: `Organisé par ${event.organizerName}\n\nCréé avec Synkro - https://synkro-app-bice.vercel.app`,
+      details: `Organisé par ${event.organizerName}\n\nCréé avec Synkro - https://getsynkro.com`,
       location: event.location || ''
     });
     
@@ -585,7 +585,7 @@ const Participant = () => {
           title={`${event.title} - Événement Synkro`}
           description={`Participez à l'événement "${event.title}" organisé par ${event.organizerName}. Indiquez vos disponibilités en quelques secondes.`}
           type="website"
-          canonical={`https://synkro-app-bice.vercel.app/participant?id=${eventId}`}
+          canonical={`https://getsynkro.com/participant?id=${eventId}`}
           keywords={['événement', 'participation', event.type, 'disponibilités', 'coordination']}
           schema={generateEventSchema({
             eventId: eventId,

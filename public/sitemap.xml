@@ -6,58 +6,42 @@
 
   <!-- Page d'accueil -->
   <url>
-    <loc>https://synkro-app-bice.vercel.app/</loc>
-    <lastmod>2024-12-08</lastmod>
+    <loc>https://getsynkro.com/</loc>
+    <lastmod>2025-12-09</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
 
-  <!-- Page de création d'événement -->
+  <!-- Page de creation d'evenement -->
   <url>
-    <loc>https://synkro-app-bice.vercel.app/create</loc>
-    <lastmod>2024-12-08</lastmod>
+    <loc>https://getsynkro.com/organizer</loc>
+    <lastmod>2025-12-09</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
 
   <!-- Page tarifs -->
   <url>
-    <loc>https://synkro-app-bice.vercel.app/pricing</loc>
-    <lastmod>2024-12-08</lastmod>
+    <loc>https://getsynkro.com/pricing</loc>
+    <lastmod>2025-12-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
-  <!-- Page participant (générique) -->
-  <url>
-    <loc>https://synkro-app-bice.vercel.app/participant</loc>
-    <lastmod>2024-12-08</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.7</priority>
-  </url>
-
   <!-- Page dashboard -->
   <url>
-    <loc>https://synkro-app-bice.vercel.app/dashboard</loc>
-    <lastmod>2024-12-08</lastmod>
+    <loc>https://getsynkro.com/dashboard</loc>
+    <lastmod>2025-12-09</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
 
   <!-- Page analytics -->
   <url>
-    <loc>https://synkro-app-bice.vercel.app/analytics</loc>
-    <lastmod>2024-12-08</lastmod>
+    <loc>https://getsynkro.com/analytics</loc>
+    <lastmod>2025-12-09</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
-  </url>
-
-  <!-- Page succès paiement -->
-  <url>
-    <loc>https://synkro-app-bice.vercel.app/success</loc>
-    <lastmod>2024-12-08</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
   </url>
 
 </urlset>

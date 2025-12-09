@@ -2,9 +2,11 @@
 User-agent: *
 Allow: /
 
-# Désactiver l'accès aux pages admin ou API
+# Desactiver l'acces aux pages admin ou API
 Disallow: /admin
 Disallow: /api/
+Disallow: /sign-in
+Disallow: /sign-up
 
 # Autoriser tous les crawlers populaires
 User-agent: Googlebot
@@ -14,7 +16,7 @@ User-agent: Bingbot
 Allow: /
 
 # Sitemap
-Sitemap: https://synkro-app-bice.vercel.app/sitemap.xml
+Sitemap: https://getsynkro.com/sitemap.xml
 
-# Délai entre les requêtes (optionnel, en secondes)
+# Delai entre les requetes (optionnel, en secondes)
 Crawl-delay: 1

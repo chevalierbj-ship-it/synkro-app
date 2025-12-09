@@ -233,8 +233,8 @@ async function createEvent(req, res) {
       const RESEND_API_KEY = process.env.RESEND_API_KEY;
 
       if (RESEND_API_KEY) {
-        const eventLink = `https://synkro-app-bice.vercel.app/participant?id=${eventId}`;
-        const adminLink = `https://synkro-app-bice.vercel.app/admin?id=${eventId}`;
+        const eventLink = `https://getsynkro.com/participant?id=${eventId}`;
+        const adminLink = `https://getsynkro.com/admin?id=${eventId}`;
 
         const emailHTML = getOrganizerCreatedEmail({
           eventType: eventData.type,
@@ -277,7 +277,7 @@ async function createEvent(req, res) {
     success: true,
     eventId: eventId,
     airtableId: result.id,
-    participantLink: `https://synkro-app-bice.vercel.app/participant?id=${eventId}`,
+    participantLink: `https://getsynkro.com/participant?id=${eventId}`,
     message: 'Event created successfully'
   });
 }
@@ -661,7 +661,7 @@ async function sendParticipantConfirmationEmail({
     .map(date => date.label)
     .join(', ');
 
-  const participantLink = `${process.env.VERCEL_URL || 'https://synkro-app-bice.vercel.app'}/participant?id=${eventId}`;
+  const participantLink = `${process.env.VERCEL_URL || 'https://getsynkro.com'}/participant?id=${eventId}`;
 
   const emailHtml = `
 <!DOCTYPE html>
@@ -733,7 +733,7 @@ async function sendParticipantConfirmationEmail({
         <p style="margin: 0; font-size: 12px; color: #6B7280; line-height: 1.6;">
           Cet email a été envoyé par <strong style="color: #8B5CF6;">Synkro</strong><br>
           La solution simple pour organiser vos événements<br>
-          <a href="https://synkro-app-bice.vercel.app" style="color: #8B5CF6; text-decoration: none;">synkro-app-bice.vercel.app</a>
+          <a href="https://getsynkro.com" style="color: #8B5CF6; text-decoration: none;">getsynkro.com</a>
         </p>
       </td>
     </tr>

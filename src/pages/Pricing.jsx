@@ -271,7 +271,7 @@ export default function Pricing() {
                   🏀
                 </div>
                 <div className="ml-4">
-                  <h4 className="font-semibold text-gray-900">Sophie Martinez</h4>
+                  <h4 className="font-semibold text-gray-900">Sophie Meunier.</h4>
                   <p className="text-sm text-gray-500">Présidente, Club Basket Jeunes</p>
                 </div>
               </div>
@@ -340,8 +340,8 @@ export default function Pricing() {
                   🤝
                 </div>
                 <div className="ml-4">
-                  <h4 className="font-semibold text-gray-900">Laurent Berger</h4>
-                  <p className="text-sm text-gray-500">Président, BNI Provence</p>
+                  <h4 className="font-semibold text-gray-900">Julien Berger</h4>
+                  <p className="text-sm text-gray-500">Président, BNI Paris</p>
                 </div>
               </div>
               <div className="flex mb-3">
@@ -386,7 +386,7 @@ export default function Pricing() {
                   🎪
                 </div>
                 <div className="ml-4">
-                  <h4 className="font-semibold text-gray-900">Benjamin R.</h4>
+                  <h4 className="font-semibold text-gray-900">Benjamin C.</h4>
                   <p className="text-sm text-gray-500">Gérant, Trampoline Park</p>
                 </div>
               </div>

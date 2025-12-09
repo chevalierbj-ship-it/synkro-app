@@ -1,4 +1,5 @@
 import Stripe from 'stripe';
+import { applyRateLimit } from './lib/rate-limit.js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -6,6 +7,12 @@ export default async function handler(req, res) {
   // Only accept POST requests
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  // Rate limiting strict pour les paiements
+  if (applyRateLimit(req, res, 'checkout')) {
+    console.log('⚠️ Rate limit exceeded for checkout');
+    return; // Requête bloquée par rate limit
   }
 
   try {

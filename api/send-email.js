@@ -1,6 +1,20 @@
 // /api/send-email.js
 // API pour envoyer les emails via Resend
 // Documentation: https://resend.com/docs/send-with-nodejs
+//
+// CONFIGURATION DOMAINE CUSTOM:
+// Pour utiliser un domaine personnalise (ex: noreply@synkro.app):
+// 1. Ajoutez votre domaine dans Resend Dashboard (https://resend.com/domains)
+// 2. Configurez les enregistrements DNS (SPF, DKIM, DMARC)
+// 3. Definissez EMAIL_FROM_ADDRESS et EMAIL_FROM_NAME dans vos variables d'environnement
+//
+// Variables d'environnement:
+// - RESEND_API_KEY: Cle API Resend (obligatoire)
+// - EMAIL_FROM_ADDRESS: Adresse email d'envoi (optionnel, defaut: onboarding@resend.dev)
+// - EMAIL_FROM_NAME: Nom d'affichage (optionnel, defaut: Synkro)
+
+import { applyRateLimit } from './lib/rate-limit.js';
+import { getEmailConfig } from './lib/validate-env.js';
 
 export default async function handler(req, res) {
   console.log('🔵 send-email.js called - Method:', req.method);
@@ -18,6 +32,12 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') {
     console.log('❌ Method not allowed:', req.method);
     return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  // Rate limiting pour les emails
+  if (applyRateLimit(req, res, 'email')) {
+    console.log('⚠️ Rate limit exceeded for email sending');
+    return; // Requête bloquée par rate limit
   }
 
   try {
@@ -64,12 +84,17 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Invalid email type' });
     }
 
+    // Recuperer la configuration email (supporte domaine custom)
+    const emailConfig = getEmailConfig();
+
     // Envoyer l'email via Resend
     console.log('📤 Sending email to Resend API...');
     console.log('📧 To:', to);
     console.log('📋 Subject:', subject);
+    console.log('📬 From:', emailConfig.from);
+    console.log('🌐 Custom domain:', emailConfig.isCustomDomain ? 'Yes' : 'No (using resend.dev)');
     console.log('🔑 API Key present:', !!RESEND_API_KEY);
-    
+
     const response = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
@@ -77,7 +102,7 @@ export default async function handler(req, res) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        from: 'Synkro <onboarding@resend.dev>', // Changera plus tard avec ton domaine
+        from: emailConfig.from,
         to: [to],
         subject: subject,
         html: emailContent

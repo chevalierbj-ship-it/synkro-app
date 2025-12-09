@@ -2,6 +2,9 @@
 // API consolidée pour gérer les événements
 // Route selon la méthode HTTP et les paramètres
 
+import { applyRateLimit } from './lib/rate-limit.js';
+import { getEmailConfig } from './lib/validate-env.js';
+
 export default async function handler(req, res) {
   // Configuration CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -23,11 +26,19 @@ export default async function handler(req, res) {
 
     // POST /api/events?action=create - Créer un événement
     if (req.method === 'POST' && action === 'create') {
+      // Rate limiting pour la création d'événements
+      if (applyRateLimit(req, res, 'createEvent')) {
+        return; // Requête bloquée par rate limit
+      }
       return await createEvent(req, res);
     }
 
     // POST /api/events?action=update - Mettre à jour un événement (votes)
     if (req.method === 'POST' && action === 'update') {
+      // Rate limiting pour les votes
+      if (applyRateLimit(req, res, 'vote')) {
+        return; // Requête bloquée par rate limit
+      }
       return await updateEvent(req, res);
     }
 
@@ -235,6 +246,7 @@ async function createEvent(req, res) {
           eventSchedule: eventData.eventSchedule || null
         });
 
+        const emailConfig = getEmailConfig();
         const resendResponse = await fetch('https://api.resend.com/emails', {
           method: 'POST',
           headers: {
@@ -242,7 +254,7 @@ async function createEvent(req, res) {
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            from: 'Synkro <onboarding@resend.dev>',
+            from: emailConfig.from,
             to: [eventData.organizerEmail],
             subject: '✅ Ton événement Synkro est créé !',
             html: emailHTML
@@ -733,6 +745,7 @@ async function sendParticipantConfirmationEmail({
   `;
 
   try {
+    const emailConfig = getEmailConfig();
     const response = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
@@ -740,7 +753,7 @@ async function sendParticipantConfirmationEmail({
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        from: 'Synkro <onboarding@resend.dev>',
+        from: emailConfig.from,
         to: participantEmail,
         subject: `✅ Vote confirmé : ${eventType}`,
         html: emailHtml
@@ -849,6 +862,7 @@ async function sendCelebrationEmail({
   `;
 
   try {
+    const emailConfig = getEmailConfig();
     const response = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
@@ -856,7 +870,7 @@ async function sendCelebrationEmail({
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        from: 'Synkro <onboarding@resend.dev>',
+        from: emailConfig.from,
         to: allEmails,
         subject: `🎊 Super nouvelle ! La majorité a voté pour : ${eventType}`,
         html: emailHtml

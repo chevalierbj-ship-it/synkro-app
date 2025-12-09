@@ -1,5 +1,5 @@
 import Stripe from 'stripe';
-import { applyRateLimit } from './lib/rate-limit.js';
+import { applyRateLimit } from './_lib/rate-limit.js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 

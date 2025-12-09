@@ -2,8 +2,8 @@
 // API consolidée pour gérer les événements
 // Route selon la méthode HTTP et les paramètres
 
-import { applyRateLimit } from './lib/rate-limit.js';
-import { getEmailConfig } from './lib/validate-env.js';
+import { applyRateLimit } from './_lib/rate-limit.js';
+import { getEmailConfig } from './_lib/validate-env.js';
 
 export default async function handler(req, res) {
   // Configuration CORS

@@ -13,8 +13,8 @@
 // - EMAIL_FROM_ADDRESS: Adresse email d'envoi (optionnel, defaut: onboarding@resend.dev)
 // - EMAIL_FROM_NAME: Nom d'affichage (optionnel, defaut: Synkro)
 
-import { applyRateLimit } from './lib/rate-limit.js';
-import { getEmailConfig } from './lib/validate-env.js';
+import { applyRateLimit } from './_lib/rate-limit.js';
+import { getEmailConfig } from './_lib/validate-env.js';
 
 export default async function handler(req, res) {
   console.log('🔵 send-email.js called - Method:', req.method);

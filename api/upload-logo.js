@@ -10,7 +10,7 @@
  * - DELETE /api/upload-logo : Supprime le logo actuel
  */
 
-import { validateEnvForEndpoint } from './lib/validate-env.js';
+import { validateEnvForEndpoint } from './_lib/validate-env.js';
 
 // Configuration
 const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB max

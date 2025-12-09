@@ -13,7 +13,7 @@
  * - DELETE ?action=unshare : Retirer l'accès à un événement
  */
 
-import { canPerformAction, getUserAccountInfo } from './middleware/auth.js';
+import { canPerformAction, getUserAccountInfo } from './_middleware/auth.js';
 
 const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN;
 const AIRTABLE_API_KEY = process.env.AIRTABLE_API_KEY;

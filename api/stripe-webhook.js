@@ -508,7 +508,7 @@ async function handleCheckoutCompleted({ userId, email, subscriptionId, customer
               </ul>
 
               <center>
-                <a href="https://synkro-app-bice.vercel.app/organizer" class="button">Créer mon premier événement</a>
+                <a href="https://getsynkro.com/organizer" class="button">Créer mon premier événement</a>
               </center>
             </div>
 
@@ -740,7 +740,7 @@ async function handleSubscriptionDeleted(subscription) {
                 <p>Vous pouvez réactiver votre abonnement à tout moment depuis votre tableau de bord.</p>
 
                 <center>
-                  <a href="https://synkro-app-bice.vercel.app/pricing" class="button">Voir les plans</a>
+                  <a href="https://getsynkro.com/pricing" class="button">Voir les plans</a>
                 </center>
               </div>
 
@@ -834,7 +834,7 @@ async function handlePaymentFailed(invoice) {
                 </ul>
 
                 <center>
-                  <a href="https://synkro-app-bice.vercel.app/dashboard" class="button">Mettre à jour mon paiement</a>
+                  <a href="https://getsynkro.com/dashboard" class="button">Mettre à jour mon paiement</a>
                 </center>
               </div>
 
@@ -932,7 +932,7 @@ async function handlePaymentSucceeded(invoice) {
                 <p>Votre abonnement Synkro reste actif et vous continuez à profiter de toutes vos fonctionnalités premium.</p>
 
                 <center>
-                  <a href="https://synkro-app-bice.vercel.app/organizer" class="button">Créer un événement</a>
+                  <a href="https://getsynkro.com/organizer" class="button">Créer un événement</a>
                 </center>
               </div>
 

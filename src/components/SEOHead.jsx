@@ -17,13 +17,13 @@ const SEOHead = ({
   title = 'Synkro - Trouvez la date parfaite en 1 minute | Organisation d\'événements',
   description = 'Organisez vos événements sans stress. Synkro trouve automatiquement la meilleure date pour votre groupe. Plus de 47 messages pour un simple dîner, c\'est fini !',
   canonical = null,
-  image = 'https://synkro-app-bice.vercel.app/og-image.jpg',
+  image = 'https://getsynkro.com/og-image.jpg',
   type = 'website',
   schema = null,
   keywords = ['organisation événement', 'trouver date', 'coordination groupe', 'planification réunion', 'doodle alternative']
 }) => {
   const location = useLocation();
-  const baseUrl = 'https://synkro-app-bice.vercel.app';
+  const baseUrl = 'https://getsynkro.com';
   const currentUrl = canonical || `${baseUrl}${location.pathname}`;
 
   useEffect(() => {
@@ -129,7 +129,7 @@ export const generateEventSchema = (event) => {
       }
     } : {
       '@type': 'VirtualLocation',
-      url: `https://synkro-app-bice.vercel.app/event/${event.eventId}`
+      url: `https://getsynkro.com/event/${event.eventId}`
     },
     organizer: {
       '@type': event.organizerType === 'Organization' ? 'Organization' : 'Person',
@@ -141,7 +141,7 @@ export const generateEventSchema = (event) => {
       price: '0',
       priceCurrency: 'EUR',
       availability: 'https://schema.org/InStock',
-      url: `https://synkro-app-bice.vercel.app/event/${event.eventId}`,
+      url: `https://getsynkro.com/event/${event.eventId}`,
       validFrom: new Date().toISOString()
     }
   };
@@ -189,8 +189,8 @@ export const generateOrganizationSchema = () => {
     '@context': 'https://schema.org',
     '@type': 'Organization',
     name: 'Synkro',
-    url: 'https://synkro-app-bice.vercel.app',
-    logo: 'https://synkro-app-bice.vercel.app/icons/icon-512x512.png',
+    url: 'https://getsynkro.com',
+    logo: 'https://getsynkro.com/icons/icon-512x512.png',
     description: 'Application de coordination d\'événements. Trouvez la date parfaite pour votre groupe en 1 minute.',
     sameAs: [
       // Add social media links when available

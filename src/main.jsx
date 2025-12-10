@@ -4,6 +4,9 @@ import { ClerkProvider } from '@clerk/clerk-react'
 import App from './App'
 import './index.css'
 
+// i18n configuration - must be imported before App
+import './i18n'
+
 // Import your Publishable Key from Clerk Dashboard
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
 

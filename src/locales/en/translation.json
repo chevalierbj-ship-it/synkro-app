@@ -639,5 +639,315 @@
     "voteSubmitted": "Vote recorded!",
     "reminderSent": "Reminder sent",
     "linkCopied": "Link copied!"
+  },
+
+  "legal": {
+    "back": "Back",
+    "lastUpdated": "Last updated",
+    "scrollToTop": "Back to top",
+    "mentions": "Legal Notice",
+    "cgv": "Terms of Service",
+    "privacy": "Privacy Policy"
+  },
+
+  "mentions": {
+    "title": "Legal Notice",
+    "seo": {
+      "title": "Legal Notice - Synkro",
+      "description": "Legal notice for the Synkro website. Information about the publisher, hosting provider and terms of use."
+    },
+    "editor": {
+      "title": "Website Publisher",
+      "name": "Company name",
+      "address": "Address",
+      "email": "Contact email",
+      "director": "Publication director"
+    },
+    "hosting": {
+      "title": "Hosting",
+      "provider": "Hosting provider",
+      "address": "Address",
+      "website": "Website"
+    },
+    "intellectual": {
+      "title": "Intellectual Property",
+      "content": "All content on the Synkro website (texts, images, graphics, logo, icons, sounds, software, etc.) is protected by copyright and intellectual property law. Any reproduction, representation, modification, publication, or adaptation of all or part of the elements of the site, by any means or process, is prohibited without prior written authorization."
+    },
+    "data": {
+      "title": "Personal Data",
+      "content": "In accordance with the General Data Protection Regulation (GDPR), you have the right to access, rectify, delete, and object to your personal data.",
+      "rights": "To exercise these rights or for any questions about your personal data, you can contact us at:",
+      "contact": "DPO Contact"
+    },
+    "cookies": {
+      "title": "Cookies",
+      "content": "The Synkro website uses essential technical cookies for the proper functioning of the service (authentication, language preferences). These cookies do not collect personal data for advertising purposes. You can configure your browser to refuse cookies, but some features of the site may no longer be available."
+    },
+    "liability": {
+      "title": "Limitation of Liability",
+      "content": "Synkro strives to provide accurate and up-to-date information on this site. However, we cannot guarantee the accuracy, completeness, or timeliness of the information provided. Consequently, the user acknowledges using this information at their own risk."
+    },
+    "law": {
+      "title": "Applicable Law",
+      "content": "These legal notices are subject to French law. In case of dispute, French courts shall have sole jurisdiction."
+    }
+  },
+
+  "cgv": {
+    "title": "Terms of Service",
+    "seo": {
+      "title": "Terms of Service - Synkro",
+      "description": "Terms of Service for Synkro. Rules for using the event coordination service."
+    },
+    "intro": "These Terms of Service (hereinafter \"Terms\") govern the use of the Synkro platform, accessible at https://getsynkro.com",
+    "article1": {
+      "title": "Definitions",
+      "content": "In these Terms, the following terms have the following meanings:",
+      "item1": "\"Synkro\" or \"Service\": the event coordination platform accessible via the website",
+      "item2": "\"User\": any natural or legal person using the Service",
+      "item3": "\"Organizer\": user creating an event on the platform",
+      "item4": "\"Participant\": user invited to respond to an event",
+      "item5": "\"Account\": personal space created by the user to access advanced features"
+    },
+    "article2": {
+      "title": "Purpose",
+      "content": "The purpose of these Terms is to define the conditions of access and use of the Synkro Service, as well as the rights and obligations of the parties."
+    },
+    "article3": {
+      "title": "Acceptance of Terms",
+      "content": "Using the Service implies full and complete acceptance of these Terms. The User acknowledges having read these conditions and accepts them without reservation. Synkro reserves the right to modify these conditions at any time. Modifications take effect upon publication on the site. Continued use of the Service after modification constitutes acceptance of the new conditions.",
+      "item1": "By creating an account, the User expressly accepts these conditions",
+      "item2": "By participating in an event, the Participant accepts the rules of use",
+      "item3": "Organizers agree to respect these conditions in their use of the Service"
+    },
+    "article4": {
+      "title": "Description of the Service",
+      "content": "Synkro is a platform that makes it easy to coordinate events by automatically finding the best date for a group of participants. The Service offers several features including event creation, sharing participation links, voting on availability, and automatic date recommendations.",
+      "content2": "The Service is available in a free version with limited features, and in paid versions (Pro, Enterprise) offering extended features."
+    },
+    "article5": {
+      "title": "Registration and User Account",
+      "content": "Access to certain features of the Service requires the creation of a user account. The User agrees to provide accurate information and keep it up to date.",
+      "item1": "The User is responsible for the confidentiality of their login credentials",
+      "item2": "Any use of the account is presumed to be made by the account holder",
+      "item3": "In case of suspected fraudulent use, the User must inform Synkro immediately"
+    },
+    "article6": {
+      "title": "Pricing and Payment",
+      "content": "The Service offers a free version and paid subscriptions. Subscription prices are displayed on the Pricing page of the site and may be modified at any time. Any price change will be notified to subscribers at least 30 days before it takes effect. Payments are processed securely by our payment provider Stripe."
+    },
+    "article7": {
+      "title": "Right of Withdrawal",
+      "content": "In accordance with Article L.221-18 of the French Consumer Code, the User has a period of 14 days from subscription to exercise their right of withdrawal, without having to justify a reason or pay a penalty.",
+      "item1": "Refund will be made within 14 days following the request",
+      "item2": "The request must be made by email to contact@getsynkro.com",
+      "item3": "This right does not apply if the Service has been fully performed before the end of the withdrawal period with the User's consent"
+    },
+    "article8": {
+      "title": "User Obligations",
+      "content": "The User agrees to use the Service in accordance with its purpose and these Terms. They are prohibited from: using the Service for illegal or unauthorized purposes, infringing on the rights of third parties, distributing illegal, harmful or content contrary to public order, attempting to compromise the security or operation of the Service."
+    },
+    "article9": {
+      "title": "Intellectual Property",
+      "content": "All elements of the Service (brand, logo, design, texts, software, database) are the exclusive property of Synkro or its partners and are protected by intellectual property laws.",
+      "content2": "The User has a personal, non-exclusive, and non-transferable right to use the Service within the scope of its normal use."
+    },
+    "article10": {
+      "title": "Personal Data",
+      "content": "The processing of personal data is governed by our Privacy Policy, available on the site. By using the Service, the User consents to this processing.",
+      "item1": "Data is collected and processed in accordance with GDPR",
+      "item2": "The User has rights of access, rectification, and deletion of their data",
+      "item3": "Data is hosted in the European Union or in countries offering an adequate level of protection",
+      "item4": "No data is sold to third parties"
+    },
+    "article11": {
+      "title": "Service Availability",
+      "content": "Synkro strives to ensure the availability of the Service 24/7, except during maintenance periods. However, Synkro cannot be held responsible for service interruptions due to technical problems, scheduled maintenance, or circumstances beyond its control."
+    },
+    "article12": {
+      "title": "Limitation of Liability",
+      "content": "Synkro commits to implementing all reasonable means to ensure the proper functioning of the Service. However, Synkro's liability cannot be engaged in the following cases:",
+      "item1": "Indirect damages resulting from the use of the Service",
+      "item2": "Non-compliant use of the Service by the User",
+      "item3": "Unforeseeable and insurmountable act of a third party or force majeure",
+      "item4": "Malfunction of communication networks or User equipment"
+    },
+    "article13": {
+      "title": "Termination",
+      "content": "The User may terminate their account at any time from their personal space or by contacting support. Synkro reserves the right to suspend or terminate any account in case of violation of these Terms, after a formal notice that has remained without effect."
+    },
+    "article14": {
+      "title": "Mediation",
+      "content": "In case of dispute, the User may use a consumer mediator free of charge for amicable resolution of the dispute. The mediator can be contacted via the European Commission's online dispute resolution platform: https://ec.europa.eu/consumers/odr",
+      "content2": "Before contacting the mediator, the User must have previously attempted to resolve the dispute directly with Synkro through a written complaint."
+    },
+    "article15": {
+      "title": "Applicable Law",
+      "content": "These Terms are subject to French law. In case of dispute, and after failure of any attempt to find an amicable solution, French courts shall have sole jurisdiction."
+    },
+    "article16": {
+      "title": "Partial Nullity",
+      "content": "If one or more provisions of these Terms are held invalid or declared as such under any law, regulation, or following a final decision of a competent court, the other provisions shall retain their full force and scope."
+    },
+    "article17": {
+      "title": "Non-Waiver",
+      "content": "Failure by Synkro to enforce any breach of these Terms by the User shall not be interpreted as a waiver of the obligation in question."
+    },
+    "article18": {
+      "title": "Entirety",
+      "content": "These Terms constitute the entire agreement between the User and Synkro regarding the use of the Service and replace any prior agreement on the same subject."
+    },
+    "article19": {
+      "title": "Contact",
+      "content": "For any questions regarding these Terms or the Service, you can contact us:"
+    }
+  },
+
+  "privacy": {
+    "title": "Privacy Policy",
+    "seo": {
+      "title": "Privacy Policy - Synkro",
+      "description": "Synkro's Privacy Policy. Learn how we protect your personal data in accordance with GDPR."
+    },
+    "intro": "At Synkro, we place great importance on protecting your personal data. This privacy policy explains what data we collect, how we use it, and what your rights are.",
+    "controller": {
+      "title": "Data Controller",
+      "content": "The data controller for personal data is Synkro, reachable at:"
+    },
+    "dataCollected": {
+      "title": "Data Collected",
+      "account": {
+        "title": "Account Data",
+        "item1": "First and last name",
+        "item2": "Email address",
+        "item3": "Profile photo (optional, via Clerk)"
+      },
+      "event": {
+        "title": "Event Data",
+        "item1": "Event name",
+        "item2": "Proposed dates",
+        "item3": "Location (optional)",
+        "item4": "Participant responses (availability, preferences)"
+      },
+      "technical": {
+        "title": "Technical Data",
+        "item1": "IP address",
+        "item2": "Browser type and operating system",
+        "item3": "Connection and browsing data"
+      }
+    },
+    "purposes": {
+      "title": "Processing Purposes",
+      "item1": "Providing and improving the Service",
+      "item2": "Managing user accounts",
+      "item3": "Communication related to events",
+      "item4": "Sending notifications and reminders",
+      "item5": "Anonymized statistical analysis",
+      "item6": "Compliance with legal obligations"
+    },
+    "legalBasis": {
+      "title": "Legal Basis for Processing",
+      "item1": "Contract performance: processing necessary to provide the Service",
+      "item2": "Consent: for sending marketing communications (optional)",
+      "item3": "Legitimate interest: for Service improvement and security"
+    },
+    "retention": {
+      "title": "Data Retention Period",
+      "content": "We retain your personal data for the duration necessary for the purposes for which it was collected:",
+      "item1": "Account data: for the duration of registration + 3 years after last activity",
+      "item2": "Event data: 1 year after the event date",
+      "item3": "Billing data: 10 years (legal obligation)"
+    },
+    "subprocessors": {
+      "title": "Subprocessors",
+      "intro": "To provide our Service, we use the following subprocessors who may process your personal data:",
+      "table": {
+        "provider": "Provider",
+        "purpose": "Purpose",
+        "data": "Data",
+        "location": "Location"
+      },
+      "clerk": {
+        "purpose": "Authentication",
+        "data": "Email, name, photo",
+        "location": "United States (SCC)"
+      },
+      "airtable": {
+        "purpose": "Database",
+        "data": "Events, participants",
+        "location": "United States (SCC)"
+      },
+      "stripe": {
+        "purpose": "Payments",
+        "data": "Billing data",
+        "location": "United States (SCC)"
+      },
+      "resend": {
+        "purpose": "Email sending",
+        "data": "Email, first name",
+        "location": "United States (SCC)"
+      },
+      "vercel": {
+        "purpose": "Hosting",
+        "data": "Logs, IP",
+        "location": "Global (SCC)"
+      },
+      "cloudinary": {
+        "purpose": "Media storage",
+        "data": "Images",
+        "location": "United States (SCC)"
+      }
+    },
+    "transfers": {
+      "title": "International Transfers",
+      "content": "Some of our subprocessors are located outside the European Union. In such cases, we ensure that appropriate safeguards are in place:",
+      "item1": "Standard Contractual Clauses (SCC) from the European Commission",
+      "item2": "Data Privacy Framework (DPF) certification for transfers to the United States",
+      "item3": "Additional technical and organizational measures"
+    },
+    "rights": {
+      "title": "Your Rights",
+      "intro": "In accordance with GDPR, you have the following rights regarding your personal data:",
+      "item1": "Right of access: obtain a copy of your data",
+      "item2": "Right of rectification: correct inaccurate data",
+      "item3": "Right to erasure: request deletion of your data",
+      "item4": "Right to portability: receive your data in a structured format",
+      "item5": "Right to object: object to the processing of your data",
+      "item6": "Right to restriction: request limitation of processing",
+      "exercise": "To exercise these rights, contact us at:",
+      "cnil": "You also have the right to file a complaint with CNIL (French Data Protection Authority): www.cnil.fr"
+    },
+    "cookies": {
+      "title": "Cookies",
+      "content": "Synkro uses cookies to ensure the proper functioning of the Service. Here are the types of cookies used:",
+      "essential": {
+        "title": "Essential Cookies",
+        "content": "Necessary for the operation of the site (authentication, session, language preferences). These cookies cannot be disabled."
+      },
+      "functional": {
+        "title": "Functional Cookies",
+        "content": "Allow remembering your preferences (language, theme). You can disable them in your browser settings."
+      }
+    },
+    "security": {
+      "title": "Data Security",
+      "content": "We implement appropriate technical and organizational measures to protect your personal data:",
+      "item1": "Data encryption in transit (HTTPS/TLS)",
+      "item2": "Secure authentication via Clerk",
+      "item3": "Restricted data access (principle of least privilege)",
+      "item4": "Monitoring and incident detection"
+    },
+    "minors": {
+      "title": "Protection of Minors",
+      "content": "The Service is not intended for persons under 16 years of age. We do not knowingly collect data about minors under 16. If you are a parent or guardian and believe your child has provided us with personal data, please contact us."
+    },
+    "updates": {
+      "title": "Policy Changes",
+      "content": "We may update this privacy policy from time to time. In case of substantial changes, we will inform you by email or by a notification on the Service. The date of the last update is indicated at the top of this page."
+    },
+    "contact": {
+      "title": "Contact",
+      "content": "For any questions about this privacy policy or your personal data, contact us at:"
+    }
   }
 }

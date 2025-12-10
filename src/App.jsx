@@ -18,6 +18,9 @@ const Success = lazy(() => import('./pages/Success'));
 const Cancel = lazy(() => import('./pages/Cancel'));
 const AcceptInvitation = lazy(() => import('./pages/AcceptInvitation'));
 const NotFound = lazy(() => import('./pages/NotFound'));
+const MentionsLegales = lazy(() => import('./pages/MentionsLegales'));
+const CGV = lazy(() => import('./pages/CGV'));
+const PolitiqueConfidentialite = lazy(() => import('./pages/PolitiqueConfidentialite'));
 
 // Composant de chargement pendant le lazy loading
 const LoadingFallback = () => (
@@ -65,6 +68,10 @@ function App() {
               <Route path="/sign-in/*" element={<SignIn />} />
               <Route path="/sign-up/*" element={<SignUp />} />
               <Route path="/accept-invitation" element={<AcceptInvitation />} />
+              {/* Legal pages - accessible sans authentification */}
+              <Route path="/mentions-legales" element={<MentionsLegales />} />
+              <Route path="/cgv" element={<CGV />} />
+              <Route path="/confidentialite" element={<PolitiqueConfidentialite />} />
               {/* Route 404 - doit être en dernier */}
               <Route path="*" element={<NotFound />} />
             </Routes>

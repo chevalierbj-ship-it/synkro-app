@@ -639,5 +639,315 @@
     "voteSubmitted": "Vote enregistré !",
     "reminderSent": "Rappel envoyé",
     "linkCopied": "Lien copié !"
+  },
+
+  "legal": {
+    "back": "Retour",
+    "lastUpdated": "Dernière mise à jour",
+    "scrollToTop": "Retour en haut",
+    "mentions": "Mentions légales",
+    "cgv": "CGV / CGU",
+    "privacy": "Confidentialité"
+  },
+
+  "mentions": {
+    "title": "Mentions Légales",
+    "seo": {
+      "title": "Mentions Légales - Synkro",
+      "description": "Mentions légales du site Synkro. Informations sur l'éditeur, l'hébergeur et les conditions d'utilisation."
+    },
+    "editor": {
+      "title": "Éditeur du site",
+      "name": "Raison sociale",
+      "address": "Adresse",
+      "email": "Email de contact",
+      "director": "Directeur de la publication"
+    },
+    "hosting": {
+      "title": "Hébergement",
+      "provider": "Hébergeur",
+      "address": "Adresse",
+      "website": "Site web"
+    },
+    "intellectual": {
+      "title": "Propriété intellectuelle",
+      "content": "L'ensemble des contenus présents sur le site Synkro (textes, images, graphismes, logo, icônes, sons, logiciels, etc.) sont protégés par le droit d'auteur et le droit de la propriété intellectuelle. Toute reproduction, représentation, modification, publication, adaptation de tout ou partie des éléments du site, quel que soit le moyen ou le procédé utilisé, est interdite, sauf autorisation écrite préalable."
+    },
+    "data": {
+      "title": "Données personnelles",
+      "content": "Conformément au Règlement Général sur la Protection des Données (RGPD) et à la loi Informatique et Libertés, vous disposez d'un droit d'accès, de rectification, de suppression et d'opposition aux données personnelles vous concernant.",
+      "rights": "Pour exercer ces droits ou pour toute question relative à vos données personnelles, vous pouvez nous contacter à l'adresse suivante :",
+      "contact": "Contact DPO"
+    },
+    "cookies": {
+      "title": "Cookies",
+      "content": "Le site Synkro utilise des cookies techniques essentiels au bon fonctionnement du service (authentification, préférences de langue). Ces cookies ne collectent pas de données personnelles à des fins publicitaires. Vous pouvez configurer votre navigateur pour refuser les cookies, mais certaines fonctionnalités du site pourraient ne plus être disponibles."
+    },
+    "liability": {
+      "title": "Limitation de responsabilité",
+      "content": "Synkro s'efforce de fournir des informations exactes et à jour sur ce site. Toutefois, nous ne pouvons garantir l'exactitude, la complétude ou l'actualité des informations diffusées. En conséquence, l'utilisateur reconnaît utiliser ces informations sous sa responsabilité exclusive."
+    },
+    "law": {
+      "title": "Droit applicable",
+      "content": "Les présentes mentions légales sont soumises au droit français. En cas de litige, les tribunaux français seront seuls compétents."
+    }
+  },
+
+  "cgv": {
+    "title": "Conditions Générales de Vente et d'Utilisation",
+    "seo": {
+      "title": "CGV / CGU - Synkro",
+      "description": "Conditions générales de vente et d'utilisation de Synkro. Règles d'utilisation du service de coordination d'événements."
+    },
+    "intro": "Les présentes Conditions Générales de Vente et d'Utilisation (ci-après « CGV/CGU ») régissent l'utilisation de la plateforme Synkro, accessible à l'adresse https://getsynkro.com",
+    "article1": {
+      "title": "Définitions",
+      "content": "Dans les présentes CGV/CGU, les termes suivants ont la signification suivante :",
+      "item1": "« Synkro » ou « Service » : la plateforme de coordination d'événements accessible via le site web",
+      "item2": "« Utilisateur » : toute personne physique ou morale utilisant le Service",
+      "item3": "« Organisateur » : utilisateur créant un événement sur la plateforme",
+      "item4": "« Participant » : utilisateur invité à répondre à un événement",
+      "item5": "« Compte » : espace personnel créé par l'utilisateur pour accéder aux fonctionnalités avancées"
+    },
+    "article2": {
+      "title": "Objet",
+      "content": "Les présentes CGV/CGU ont pour objet de définir les conditions d'accès et d'utilisation du Service Synkro, ainsi que les droits et obligations des parties."
+    },
+    "article3": {
+      "title": "Acceptation des conditions",
+      "content": "L'utilisation du Service implique l'acceptation pleine et entière des présentes CGV/CGU. L'Utilisateur reconnaît avoir pris connaissance des présentes conditions et les accepter sans réserve. Synkro se réserve le droit de modifier les présentes conditions à tout moment. Les modifications entrent en vigueur dès leur publication sur le site. L'utilisation continue du Service après modification vaut acceptation des nouvelles conditions.",
+      "item1": "En créant un compte, l'Utilisateur accepte expressément ces conditions",
+      "item2": "En participant à un événement, le Participant accepte les règles d'utilisation",
+      "item3": "Les organisateurs s'engagent à respecter ces conditions dans leur usage du Service"
+    },
+    "article4": {
+      "title": "Description du Service",
+      "content": "Synkro est une plateforme permettant de coordonner facilement des événements en trouvant automatiquement la meilleure date pour un groupe de participants. Le Service propose plusieurs fonctionnalités dont la création d'événements, le partage de liens de participation, le vote sur les disponibilités et la recommandation automatique de dates.",
+      "content2": "Le Service est accessible en version gratuite avec des fonctionnalités limitées, et en version payante (Pro, Entreprise) offrant des fonctionnalités étendues."
+    },
+    "article5": {
+      "title": "Inscription et compte utilisateur",
+      "content": "L'accès à certaines fonctionnalités du Service nécessite la création d'un compte utilisateur. L'Utilisateur s'engage à fournir des informations exactes et à les maintenir à jour.",
+      "item1": "L'Utilisateur est responsable de la confidentialité de ses identifiants de connexion",
+      "item2": "Toute utilisation du compte est présumée faite par le titulaire du compte",
+      "item3": "En cas de suspicion d'utilisation frauduleuse, l'Utilisateur doit en informer Synkro immédiatement"
+    },
+    "article6": {
+      "title": "Tarifs et paiement",
+      "content": "Le Service propose une version gratuite et des abonnements payants. Les tarifs des abonnements sont affichés sur la page Tarifs du site et peuvent être modifiés à tout moment. Tout changement de tarif sera notifié aux abonnés au moins 30 jours avant son entrée en vigueur. Les paiements sont traités de manière sécurisée par notre prestataire de paiement Stripe."
+    },
+    "article7": {
+      "title": "Droit de rétractation",
+      "content": "Conformément à l'article L.221-18 du Code de la consommation, l'Utilisateur dispose d'un délai de 14 jours à compter de la souscription pour exercer son droit de rétractation, sans avoir à justifier de motif ni à payer de pénalité.",
+      "item1": "Le remboursement sera effectué dans les 14 jours suivant la demande",
+      "item2": "La demande doit être formulée par email à contact@getsynkro.com",
+      "item3": "Ce droit ne s'applique pas si le Service a été pleinement exécuté avant la fin du délai de rétractation avec l'accord de l'Utilisateur"
+    },
+    "article8": {
+      "title": "Obligations de l'Utilisateur",
+      "content": "L'Utilisateur s'engage à utiliser le Service de manière conforme à sa destination et aux présentes CGV/CGU. Il s'interdit notamment de : utiliser le Service à des fins illégales ou non autorisées, porter atteinte aux droits de tiers, diffuser des contenus illicites, nuisibles ou contraires à l'ordre public, tenter de compromettre la sécurité ou le fonctionnement du Service."
+    },
+    "article9": {
+      "title": "Propriété intellectuelle",
+      "content": "L'ensemble des éléments du Service (marque, logo, design, textes, logiciels, base de données) sont la propriété exclusive de Synkro ou de ses partenaires et sont protégés par les lois relatives à la propriété intellectuelle.",
+      "content2": "L'Utilisateur bénéficie d'un droit d'usage personnel, non exclusif et non cessible du Service dans le cadre de son utilisation normale."
+    },
+    "article10": {
+      "title": "Données personnelles",
+      "content": "Le traitement des données personnelles est régi par notre Politique de Confidentialité, consultable sur le site. En utilisant le Service, l'Utilisateur consent à ce traitement.",
+      "item1": "Les données sont collectées et traitées conformément au RGPD",
+      "item2": "L'Utilisateur dispose de droits d'accès, rectification et suppression de ses données",
+      "item3": "Les données sont hébergées dans l'Union Européenne ou dans des pays offrant un niveau de protection adéquat",
+      "item4": "Aucune donnée n'est vendue à des tiers"
+    },
+    "article11": {
+      "title": "Disponibilité du Service",
+      "content": "Synkro s'efforce d'assurer la disponibilité du Service 24h/24 et 7j/7, hors périodes de maintenance. Toutefois, Synkro ne saurait être tenu responsable des interruptions de service dues à des problèmes techniques, des maintenances programmées ou des circonstances indépendantes de sa volonté."
+    },
+    "article12": {
+      "title": "Limitation de responsabilité",
+      "content": "Synkro s'engage à mettre en œuvre tous les moyens raisonnables pour assurer le bon fonctionnement du Service. Toutefois, la responsabilité de Synkro ne saurait être engagée dans les cas suivants :",
+      "item1": "Dommages indirects résultant de l'utilisation du Service",
+      "item2": "Utilisation non conforme du Service par l'Utilisateur",
+      "item3": "Fait imprévisible et insurmontable d'un tiers ou cas de force majeure",
+      "item4": "Dysfonctionnement des réseaux de communication ou des équipements de l'Utilisateur"
+    },
+    "article13": {
+      "title": "Résiliation",
+      "content": "L'Utilisateur peut résilier son compte à tout moment depuis son espace personnel ou en contactant le support. Synkro se réserve le droit de suspendre ou résilier tout compte en cas de violation des présentes CGV/CGU, après mise en demeure restée sans effet."
+    },
+    "article14": {
+      "title": "Médiation",
+      "content": "En cas de litige, l'Utilisateur peut recourir gratuitement à un médiateur de la consommation en vue de la résolution amiable du différend. Le médiateur peut être saisi via la plateforme de résolution des litiges en ligne de la Commission européenne : https://ec.europa.eu/consumers/odr",
+      "content2": "Avant de saisir le médiateur, l'Utilisateur doit avoir préalablement tenté de résoudre le litige directement avec Synkro par une réclamation écrite."
+    },
+    "article15": {
+      "title": "Droit applicable",
+      "content": "Les présentes CGV/CGU sont soumises au droit français. En cas de litige, et après échec de toute tentative de recherche d'une solution amiable, les tribunaux français seront seuls compétents."
+    },
+    "article16": {
+      "title": "Nullité partielle",
+      "content": "Si une ou plusieurs stipulations des présentes CGV/CGU sont tenues pour non valides ou déclarées telles en application d'une loi, d'un règlement ou à la suite d'une décision définitive d'une juridiction compétente, les autres stipulations garderont toute leur force et leur portée."
+    },
+    "article17": {
+      "title": "Non-renonciation",
+      "content": "Le fait pour Synkro de ne pas se prévaloir d'un manquement de l'Utilisateur à l'une quelconque des obligations prévues aux présentes ne saurait être interprété comme une renonciation à l'obligation en cause."
+    },
+    "article18": {
+      "title": "Intégralité",
+      "content": "Les présentes CGV/CGU constituent l'intégralité de l'accord entre l'Utilisateur et Synkro concernant l'utilisation du Service et remplacent tout accord antérieur sur le même objet."
+    },
+    "article19": {
+      "title": "Contact",
+      "content": "Pour toute question relative aux présentes CGV/CGU ou au Service, vous pouvez nous contacter :"
+    }
+  },
+
+  "privacy": {
+    "title": "Politique de Confidentialité",
+    "seo": {
+      "title": "Politique de Confidentialité - Synkro",
+      "description": "Politique de confidentialité de Synkro. Découvrez comment nous protégeons vos données personnelles conformément au RGPD."
+    },
+    "intro": "Chez Synkro, nous attachons une grande importance à la protection de vos données personnelles. Cette politique de confidentialité explique quelles données nous collectons, comment nous les utilisons et quels sont vos droits.",
+    "controller": {
+      "title": "Responsable du traitement",
+      "content": "Le responsable du traitement des données personnelles est Synkro, joignable à l'adresse suivante :"
+    },
+    "dataCollected": {
+      "title": "Données collectées",
+      "account": {
+        "title": "Données de compte",
+        "item1": "Nom et prénom",
+        "item2": "Adresse email",
+        "item3": "Photo de profil (optionnelle, via Clerk)"
+      },
+      "event": {
+        "title": "Données d'événement",
+        "item1": "Nom de l'événement",
+        "item2": "Dates proposées",
+        "item3": "Lieu (optionnel)",
+        "item4": "Réponses des participants (disponibilités, préférences)"
+      },
+      "technical": {
+        "title": "Données techniques",
+        "item1": "Adresse IP",
+        "item2": "Type de navigateur et système d'exploitation",
+        "item3": "Données de connexion et de navigation"
+      }
+    },
+    "purposes": {
+      "title": "Finalités du traitement",
+      "item1": "Fourniture et amélioration du Service",
+      "item2": "Gestion des comptes utilisateurs",
+      "item3": "Communication relative aux événements",
+      "item4": "Envoi de notifications et rappels",
+      "item5": "Analyse statistique anonymisée",
+      "item6": "Respect des obligations légales"
+    },
+    "legalBasis": {
+      "title": "Base légale du traitement",
+      "item1": "Exécution du contrat : traitement nécessaire à la fourniture du Service",
+      "item2": "Consentement : pour l'envoi de communications marketing (optionnel)",
+      "item3": "Intérêt légitime : pour l'amélioration du Service et la sécurité"
+    },
+    "retention": {
+      "title": "Durée de conservation",
+      "content": "Nous conservons vos données personnelles pendant la durée nécessaire aux finalités pour lesquelles elles ont été collectées :",
+      "item1": "Données de compte : pendant la durée de l'inscription + 3 ans après la dernière activité",
+      "item2": "Données d'événement : 1 an après la date de l'événement",
+      "item3": "Données de facturation : 10 ans (obligation légale)"
+    },
+    "subprocessors": {
+      "title": "Sous-traitants",
+      "intro": "Pour fournir notre Service, nous faisons appel aux sous-traitants suivants qui peuvent traiter vos données personnelles :",
+      "table": {
+        "provider": "Prestataire",
+        "purpose": "Finalité",
+        "data": "Données",
+        "location": "Localisation"
+      },
+      "clerk": {
+        "purpose": "Authentification",
+        "data": "Email, nom, photo",
+        "location": "États-Unis (SCC)"
+      },
+      "airtable": {
+        "purpose": "Base de données",
+        "data": "Événements, participants",
+        "location": "États-Unis (SCC)"
+      },
+      "stripe": {
+        "purpose": "Paiements",
+        "data": "Données de facturation",
+        "location": "États-Unis (SCC)"
+      },
+      "resend": {
+        "purpose": "Envoi d'emails",
+        "data": "Email, prénom",
+        "location": "États-Unis (SCC)"
+      },
+      "vercel": {
+        "purpose": "Hébergement",
+        "data": "Logs, IP",
+        "location": "Global (SCC)"
+      },
+      "cloudinary": {
+        "purpose": "Stockage médias",
+        "data": "Images",
+        "location": "États-Unis (SCC)"
+      }
+    },
+    "transfers": {
+      "title": "Transferts internationaux",
+      "content": "Certains de nos sous-traitants sont situés en dehors de l'Union Européenne. Dans ce cas, nous nous assurons que des garanties appropriées sont en place :",
+      "item1": "Clauses Contractuelles Types (SCC) de la Commission Européenne",
+      "item2": "Certification Data Privacy Framework (DPF) pour les transferts vers les États-Unis",
+      "item3": "Mesures techniques et organisationnelles complémentaires"
+    },
+    "rights": {
+      "title": "Vos droits",
+      "intro": "Conformément au RGPD, vous disposez des droits suivants sur vos données personnelles :",
+      "item1": "Droit d'accès : obtenir une copie de vos données",
+      "item2": "Droit de rectification : corriger vos données inexactes",
+      "item3": "Droit à l'effacement : demander la suppression de vos données",
+      "item4": "Droit à la portabilité : recevoir vos données dans un format structuré",
+      "item5": "Droit d'opposition : vous opposer au traitement de vos données",
+      "item6": "Droit de limitation : demander la limitation du traitement",
+      "exercise": "Pour exercer ces droits, contactez-nous à :",
+      "cnil": "Vous avez également le droit d'introduire une réclamation auprès de la CNIL (Commission Nationale de l'Informatique et des Libertés) : www.cnil.fr"
+    },
+    "cookies": {
+      "title": "Cookies",
+      "content": "Synkro utilise des cookies pour assurer le bon fonctionnement du Service. Voici les types de cookies utilisés :",
+      "essential": {
+        "title": "Cookies essentiels",
+        "content": "Nécessaires au fonctionnement du site (authentification, session, préférences de langue). Ces cookies ne peuvent pas être désactivés."
+      },
+      "functional": {
+        "title": "Cookies fonctionnels",
+        "content": "Permettent de mémoriser vos préférences (langue, thème). Vous pouvez les désactiver dans les paramètres de votre navigateur."
+      }
+    },
+    "security": {
+      "title": "Sécurité des données",
+      "content": "Nous mettons en œuvre des mesures techniques et organisationnelles appropriées pour protéger vos données personnelles :",
+      "item1": "Chiffrement des données en transit (HTTPS/TLS)",
+      "item2": "Authentification sécurisée via Clerk",
+      "item3": "Accès restreint aux données (principe du moindre privilège)",
+      "item4": "Surveillance et détection des incidents"
+    },
+    "minors": {
+      "title": "Protection des mineurs",
+      "content": "Le Service n'est pas destiné aux personnes de moins de 16 ans. Nous ne collectons pas sciemment de données concernant des mineurs de moins de 16 ans. Si vous êtes parent ou tuteur et que vous pensez que votre enfant nous a fourni des données personnelles, veuillez nous contacter."
+    },
+    "updates": {
+      "title": "Modifications de la politique",
+      "content": "Nous pouvons mettre à jour cette politique de confidentialité de temps à autre. En cas de modification substantielle, nous vous en informerons par email ou par une notification sur le Service. La date de dernière mise à jour est indiquée en haut de cette page."
+    },
+    "contact": {
+      "title": "Contact",
+      "content": "Pour toute question relative à cette politique de confidentialité ou à vos données personnelles, contactez-nous à :"
+    }
   }
 }

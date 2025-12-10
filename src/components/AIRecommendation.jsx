@@ -113,7 +113,8 @@ export default function AIRecommendation({
           height: '200px',
           borderRadius: '50%',
           background: 'rgba(255,255,255,0.1)',
-          filter: 'blur(40px)'
+          filter: 'blur(40px)',
+          pointerEvents: 'none'
         }} />
 
         <div style={{
@@ -254,15 +255,17 @@ export default function AIRecommendation({
             justifyContent: 'center',
             gap: '10px',
             transition: 'all 0.3s',
-            boxShadow: '0 4px 16px rgba(0,0,0,0.1)'
+            boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
+            position: 'relative',
+            zIndex: 10
           }}
           onMouseEnter={(e) => {
-            e.target.style.transform = 'translateY(-2px)';
-            e.target.style.boxShadow = '0 8px 24px rgba(0,0,0,0.15)';
+            e.currentTarget.style.transform = 'translateY(-2px)';
+            e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.15)';
           }}
           onMouseLeave={(e) => {
-            e.target.style.transform = 'translateY(0)';
-            e.target.style.boxShadow = '0 4px 16px rgba(0,0,0,0.1)';
+            e.currentTarget.style.transform = 'translateY(0)';
+            e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.1)';
           }}
         >
           <Check size={22} strokeWidth={3} />
@@ -310,15 +313,15 @@ export default function AIRecommendation({
                   transition: 'all 0.3s'
                 }}
                 onMouseEnter={(e) => {
-                  e.target.style.background = '#F5F3FF';
-                  e.target.style.borderColor = '#E9D5FF';
+                  e.currentTarget.style.background = '#F5F3FF';
+                  e.currentTarget.style.borderColor = '#E9D5FF';
                 }}
                 onMouseLeave={(e) => {
-                  e.target.style.background = '#F9FAFB';
-                  e.target.style.borderColor = '#F3F4F6';
+                  e.currentTarget.style.background = '#F9FAFB';
+                  e.currentTarget.style.borderColor = '#F3F4F6';
                 }}
               >
-                <div style={{ flex: 1 }}>
+                <div style={{ flex: 1, pointerEvents: 'none' }}>
                   <div style={{
                     fontWeight: '700',
                     color: '#1E1B4B',
@@ -332,7 +335,10 @@ export default function AIRecommendation({
                   </div>
                 </div>
                 <button
-                  onClick={() => onConfirm(alt)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onConfirm(alt);
+                  }}
                   style={{
                     padding: '10px 20px',
                     background: 'white',
@@ -345,15 +351,17 @@ export default function AIRecommendation({
                     transition: 'all 0.3s',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '6px'
+                    gap: '6px',
+                    position: 'relative',
+                    zIndex: 5
                   }}
                   onMouseEnter={(e) => {
-                    e.target.style.background = '#8B5CF6';
-                    e.target.style.color = 'white';
+                    e.currentTarget.style.background = '#8B5CF6';
+                    e.currentTarget.style.color = 'white';
                   }}
                   onMouseLeave={(e) => {
-                    e.target.style.background = 'white';
-                    e.target.style.color = '#8B5CF6';
+                    e.currentTarget.style.background = 'white';
+                    e.currentTarget.style.color = '#8B5CF6';
                   }}
                 >
                   Choisir
@@ -381,12 +389,12 @@ export default function AIRecommendation({
             transition: 'all 0.3s'
           }}
           onMouseEnter={(e) => {
-            e.target.style.background = '#F5F3FF';
-            e.target.style.borderColor = '#8B5CF6';
+            e.currentTarget.style.background = '#F5F3FF';
+            e.currentTarget.style.borderColor = '#8B5CF6';
           }}
           onMouseLeave={(e) => {
-            e.target.style.background = 'transparent';
-            e.target.style.borderColor = '#E9D5FF';
+            e.currentTarget.style.background = 'transparent';
+            e.currentTarget.style.borderColor = '#E9D5FF';
           }}
         >
           Préférer voter manuellement sur les dates proposées

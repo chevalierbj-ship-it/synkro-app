@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useUser, UserButton } from '@clerk/clerk-react';
 import { useTranslation } from 'react-i18next';
 import { Sparkles } from 'lucide-react';
+import LanguageSwitcher from './LanguageSwitcher';
 
 const Header = () => {
   const navigate = useNavigate();
@@ -112,12 +113,15 @@ const Header = () => {
         )}
       </div>
 
-      {/* Auth Buttons */}
+      {/* Auth Buttons & Language Switcher */}
       <div style={{
         display: 'flex',
         alignItems: 'center',
         gap: '16px'
       }}>
+        {/* Language Switcher */}
+        <LanguageSwitcher />
+
         {isLoaded && !isSignedIn ? (
           <>
             <button

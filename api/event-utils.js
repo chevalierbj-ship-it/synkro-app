@@ -220,10 +220,15 @@ async function getUserEvents(req, res) {
         id: record.id,
         eventId: fields.event_id || null,
         eventName: fields.event_name || 'Sans titre',
-        participantsCount: fields.participants_count || 0,
+        // participants_count = nombre d'invités
+        invitedCount: fields.participants_count || 0,
+        // responses_count = nombre de réponses reçues
+        responsesCount: fields.responses_count || 0,
         status: fields.status || 'draft',
         createdAt: fields.created_at || new Date().toISOString(),
+        eventDate: fields.event_date || null,
         lastEventDate: fields.last_event_date || null,
+        eventType: fields.event_type || 'generic',
         stripeCustomerId: fields.stripe_customer_id || null,
         stripeSubscriptionId: fields.stripe_subscription_id || null
       };

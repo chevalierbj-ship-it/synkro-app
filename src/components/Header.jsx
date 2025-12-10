@@ -1,11 +1,13 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser, UserButton } from '@clerk/clerk-react';
+import { useTranslation } from 'react-i18next';
 import { Sparkles } from 'lucide-react';
 
 const Header = () => {
   const navigate = useNavigate();
   const { isSignedIn, isLoaded } = useUser();
+  const { t } = useTranslation();
 
   return (
     <nav style={{
@@ -67,7 +69,7 @@ const Header = () => {
           onMouseEnter={(e) => e.target.style.color = '#8B5CF6'}
           onMouseLeave={(e) => e.target.style.color = '#1E1B4B'}
         >
-          Accueil
+          {t('nav.home')}
         </button>
 
         <button
@@ -85,7 +87,7 @@ const Header = () => {
           onMouseEnter={(e) => e.target.style.color = '#8B5CF6'}
           onMouseLeave={(e) => e.target.style.color = '#1E1B4B'}
         >
-          Tarifs
+          {t('nav.pricing')}
         </button>
 
         {/* Afficher le Dashboard si connecté */}
@@ -105,7 +107,7 @@ const Header = () => {
             onMouseEnter={(e) => e.target.style.color = '#8B5CF6'}
             onMouseLeave={(e) => e.target.style.color = '#1E1B4B'}
           >
-            Tableau de bord
+            {t('nav.dashboard')}
           </button>
         )}
       </div>
@@ -142,7 +144,7 @@ const Header = () => {
                 e.target.style.transform = 'translateY(0)';
               }}
             >
-              Connexion
+              {t('nav.login')}
             </button>
 
             <button
@@ -168,7 +170,7 @@ const Header = () => {
                 e.target.style.boxShadow = '0 4px 15px rgba(139, 92, 246, 0.4)';
               }}
             >
-              Créer un compte
+              {t('nav.signup')}
             </button>
           </>
         ) : isLoaded && isSignedIn ? (

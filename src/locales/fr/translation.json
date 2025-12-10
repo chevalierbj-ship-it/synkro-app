@@ -32,41 +32,63 @@
   },
 
   "landing": {
-    "hero": {
-      "title": "Organisez vos événements sans stress",
-      "subtitle": "Synkro trouve automatiquement la date idéale pour tous vos participants grâce à l'IA",
-      "cta": "Créer un événement gratuitement",
-      "ctaSecondary": "Voir la démo"
+    "seo": {
+      "title": "Synkro - Trouvez la date parfaite en 1 minute | Organisation d'événements",
+      "description": "Organisez vos événements sans stress. Synkro trouve automatiquement la meilleure date pour votre groupe. Plus de 47 messages pour un simple dîner, c'est fini !"
     },
-    "features": {
-      "title": "Pourquoi Synkro ?",
-      "smart": {
-        "title": "Intelligence artificielle",
-        "description": "Notre IA analyse les disponibilités et trouve le créneau optimal"
-      },
-      "simple": {
-        "title": "Simple et rapide",
-        "description": "Créez un événement en 30 secondes, partagez le lien"
-      },
-      "free": {
-        "title": "Gratuit pour commencer",
-        "description": "Jusqu'à 3 événements actifs sans frais"
-      }
+    "hero": {
+      "tagline": "47 messages pour un dîner ?",
+      "taglineEnd": "C'est fini.",
+      "subtitle": "Trouve la date parfaite pour ton événement",
+      "subtitleHighlight": "en 1 minute",
+      "cta": "Tester maintenant",
+      "emailPlaceholder": "ton@email.com",
+      "earlyAccess": "Accès anticipé",
+      "launchInfo": "Lancement prévu : Novembre 2025 • 100% gratuit pendant la beta",
+      "thankYou": "Merci !",
+      "thankYouMessage": "Tu fais partie des premiers ! On te contacte très bientôt."
+    },
+    "stats": {
+      "time": "< 1 min",
+      "timeLabel": "Pour organiser",
+      "participants": "Illimité",
+      "participantsLabel": "Participants",
+      "stress": "0",
+      "stressLabel": "Prise de tête"
+    },
+    "problem": {
+      "title": "Tu connais ça ?",
+      "groupName": "Groupe \"Dîner entre potes\"",
+      "message1": "On se fait un dîner quand ?",
+      "message2": "Moi je peux les 15, 16 ou 22",
+      "message3": "Attendez je regarde mon agenda...",
+      "message4": "Moi plutôt en mars",
+      "message5": "Donc le 15 ça va ?",
+      "message6": "Ah merde j'ai pas vu, moi non",
+      "message7": "Du coup on fait quoi ??",
+      "conclusion": "... 47 messages plus tard, toujours pas de date"
     },
     "howItWorks": {
       "title": "Comment ça marche ?",
+      "subtitle": "3 étapes, 1 minute, et c'est réglé",
       "step1": {
-        "title": "Créez votre événement",
-        "description": "Décrivez votre événement et proposez des dates"
+        "title": "Tu proposes 3 dates",
+        "description": "Choisis le type d'événement, Synkro te suggère des dates pertinentes"
       },
       "step2": {
-        "title": "Partagez le lien",
-        "description": "Envoyez le lien à vos participants"
+        "title": "Tes potes répondent",
+        "description": "Ils cliquent sur le lien et indiquent leurs dispos en 30 secondes"
       },
       "step3": {
-        "title": "L'IA trouve la date",
-        "description": "Synkro analyse les votes et recommande la meilleure date"
+        "title": "Synkro choisit pour vous",
+        "description": "La meilleure date est automatiquement ajoutée à vos agendas"
       }
+    },
+    "footer": {
+      "tagline": "Une date en 1 minute",
+      "createEvent": "Créer un événement",
+      "madeWith": "Créé avec 💜 en France",
+      "copyright": "© 2025 Synkro • Prototype de test"
     }
   },
 

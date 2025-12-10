@@ -145,14 +145,51 @@
   },
 
   "dashboard": {
-    "title": "Tableau de bord",
-    "welcome": "Bienvenue, {{name}} !",
-    "myEvents": "Mes événements",
-    "createFirst": "Créez votre premier événement",
-    "noEvents": "Vous n'avez pas encore d'événement",
-    "activeEvents": "Événements actifs",
-    "totalParticipants": "Participants total",
-    "responseRate": "Taux de réponse"
+    "title": "Mon Dashboard",
+    "seo": {
+      "title": "Tableau de bord - Synkro",
+      "description": "Gérez vos événements, suivez vos statistiques et accédez à vos analytics."
+    },
+    "loading": "Chargement de vos statistiques...",
+    "backHome": "Accueil",
+    "plan": {
+      "label": "Votre plan",
+      "free": "Gratuit",
+      "pro": "Pro",
+      "enterprise": "Entreprise",
+      "upgrade": "Passer en Pro"
+    },
+    "events": {
+      "thisMonth": "Événements ce mois",
+      "remaining": "Encore {{count}} événement disponible",
+      "remaining_plural": "Encore {{count}} événements disponibles"
+    },
+    "promo": {
+      "title": "Passez en Pro !",
+      "description": "Événements illimités, export CSV, personnalisation et plus",
+      "cta": "Découvrir les offres"
+    },
+    "quickActions": {
+      "title": "Actions rapides",
+      "createEvent": "Créer un événement",
+      "viewOffers": "Voir les offres"
+    },
+    "recentEvents": {
+      "title": "Mes derniers événements",
+      "newEvent": "Nouvel événement",
+      "loading": "Chargement...",
+      "noEvents": "Vous n'avez pas encore créé d'événement",
+      "createFirst": "Créer mon premier événement",
+      "viewAll": "Voir tous mes événements",
+      "untitled": "Événement sans titre",
+      "participant": "participant",
+      "participants": "participants"
+    },
+    "status": {
+      "draft": "Brouillon",
+      "active": "Actif",
+      "completed": "Complété"
+    }
   },
 
   "organizer": {

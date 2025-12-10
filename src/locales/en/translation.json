@@ -145,14 +145,51 @@
   },
 
   "dashboard": {
-    "title": "Dashboard",
-    "welcome": "Welcome, {{name}}!",
-    "myEvents": "My events",
-    "createFirst": "Create your first event",
-    "noEvents": "You don't have any events yet",
-    "activeEvents": "Active events",
-    "totalParticipants": "Total participants",
-    "responseRate": "Response rate"
+    "title": "My Dashboard",
+    "seo": {
+      "title": "Dashboard - Synkro",
+      "description": "Manage your events, track your statistics and access your analytics."
+    },
+    "loading": "Loading your statistics...",
+    "backHome": "Home",
+    "plan": {
+      "label": "Your plan",
+      "free": "Free",
+      "pro": "Pro",
+      "enterprise": "Enterprise",
+      "upgrade": "Upgrade to Pro"
+    },
+    "events": {
+      "thisMonth": "Events this month",
+      "remaining": "{{count}} event remaining",
+      "remaining_plural": "{{count}} events remaining"
+    },
+    "promo": {
+      "title": "Upgrade to Pro!",
+      "description": "Unlimited events, CSV export, customization and more",
+      "cta": "Discover offers"
+    },
+    "quickActions": {
+      "title": "Quick actions",
+      "createEvent": "Create an event",
+      "viewOffers": "View offers"
+    },
+    "recentEvents": {
+      "title": "My recent events",
+      "newEvent": "New event",
+      "loading": "Loading...",
+      "noEvents": "You haven't created any events yet",
+      "createFirst": "Create my first event",
+      "viewAll": "View all my events",
+      "untitled": "Untitled event",
+      "participant": "participant",
+      "participants": "participants"
+    },
+    "status": {
+      "draft": "Draft",
+      "active": "Active",
+      "completed": "Completed"
+    }
   },
 
   "organizer": {

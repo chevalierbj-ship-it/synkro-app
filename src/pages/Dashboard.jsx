@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Calendar, Users, TrendingUp, Sparkles, ArrowRight, Crown, Mail } from 'lucide-react';
 import { useUser } from '@clerk/clerk-react';
 import CustomizationPanel from '../components/CustomizationPanel';
@@ -8,6 +9,7 @@ import SEOHead from '../components/SEOHead';
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { isSignedIn, user, isLoaded } = useUser();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -109,7 +111,7 @@ export default function Dashboard() {
             ✨
           </div>
           <div style={{ fontSize: '20px', fontWeight: '700', color: '#1E1B4B' }}>
-            Chargement de vos statistiques...
+            {t('dashboard.loading')}
           </div>
         </div>
       </div>
@@ -123,8 +125,8 @@ export default function Dashboard() {
       padding: '40px 20px'
     }}>
       <SEOHead
-        title="Tableau de bord - Synkro"
-        description="Gérez vos événements, suivez vos statistiques et accédez à vos analytics. Tableau de bord complet pour organiser vos événements avec Synkro."
+        title={t('dashboard.seo.title')}
+        description={t('dashboard.seo.description')}
         type="website"
         keywords={['tableau de bord', 'gestion événements', 'statistiques', 'analytics', 'organisation']}
       />
@@ -142,7 +144,7 @@ export default function Dashboard() {
         }}>
           <div>
             <h1 style={{ fontSize: '36px', fontWeight: '800', color: '#1E1B4B', marginBottom: '8px' }}>
-              Mon Dashboard
+              {t('dashboard.title')}
             </h1>
             <p style={{ color: '#6B7280', fontSize: '16px' }}>
               {user?.primaryEmailAddress?.emailAddress}
@@ -171,7 +173,7 @@ export default function Dashboard() {
                 e.target.style.color = '#1E1B4B';
               }}
             >
-              ← Accueil
+              ← {t('dashboard.backHome')}
             </button>
           </div>
         </div>
@@ -206,14 +208,14 @@ export default function Dashboard() {
                 {getPlanEmoji(stats?.plan)}
               </div>
               <div>
-                <div style={{ fontSize: '14px', color: '#6B7280' }}>Votre plan</div>
+                <div style={{ fontSize: '14px', color: '#6B7280' }}>{t('dashboard.plan.label')}</div>
                 <div style={{
                   fontSize: '20px',
                   fontWeight: '700',
                   color: '#1E1B4B',
                   textTransform: 'capitalize'
                 }}>
-                  {stats?.plan || 'Gratuit'}
+                  {stats?.plan ? t(`dashboard.plan.${stats.plan === 'gratuit' ? 'free' : stats.plan}`) : t('dashboard.plan.free')}
                 </div>
               </div>
             </div>
@@ -239,7 +241,7 @@ export default function Dashboard() {
                 onMouseLeave={(e) => e.target.style.transform = 'translateY(0)'}
               >
                 <Crown size={18} />
-                Passer en Pro
+                {t('dashboard.plan.upgrade')}
               </button>
             )}
           </div>
@@ -254,7 +256,7 @@ export default function Dashboard() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
               <Calendar size={24} color="#8B5CF6" />
               <div>
-                <div style={{ fontSize: '14px', color: '#6B7280' }}>Événements ce mois</div>
+                <div style={{ fontSize: '14px', color: '#6B7280' }}>{t('dashboard.events.thisMonth')}</div>
                 <div style={{ fontSize: '20px', fontWeight: '700', color: '#1E1B4B' }}>
                   {stats?.eventsCreatedThisMonth || 0} / {stats?.eventsLimit || 5}
                 </div>
@@ -283,7 +285,7 @@ export default function Dashboard() {
                 fontSize: '14px',
                 color: '#6B7280'
               }}>
-                Encore {stats?.remainingEvents || 0} événement{(stats?.remainingEvents || 0) > 1 ? 's' : ''} disponible{(stats?.remainingEvents || 0) > 1 ? 's' : ''}
+                {t('dashboard.events.remaining', { count: stats?.remainingEvents || 0 })}
               </p>
             )}
           </div>
@@ -305,10 +307,10 @@ export default function Dashboard() {
             >
               <div style={{ fontSize: '32px', marginBottom: '12px' }}>🚀</div>
               <h3 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '8px' }}>
-                Passez en Pro !
+                {t('dashboard.promo.title')}
               </h3>
               <p style={{ fontSize: '14px', opacity: 0.9, marginBottom: '16px' }}>
-                Événements illimités, export CSV, personnalisation et plus
+                {t('dashboard.promo.description')}
               </p>
               <div style={{
                 display: 'flex',
@@ -316,7 +318,7 @@ export default function Dashboard() {
                 gap: '8px',
                 fontWeight: '700'
               }}>
-                Découvrir les offres
+                {t('dashboard.promo.cta')}
                 <ArrowRight size={18} />
               </div>
             </div>
@@ -349,7 +351,7 @@ export default function Dashboard() {
           marginBottom: '40px'
         }}>
           <h2 style={{ fontSize: '24px', fontWeight: '700', color: '#1E1B4B', marginBottom: '24px' }}>
-            Actions rapides
+            {t('dashboard.quickActions.title')}
           </h2>
           <div style={{
             display: 'grid',
@@ -373,7 +375,7 @@ export default function Dashboard() {
               onMouseLeave={(e) => e.target.style.transform = 'translateY(0)'}
             >
               <Calendar size={24} style={{ marginBottom: '8px' }} />
-              <div>Créer un événement</div>
+              <div>{t('dashboard.quickActions.createEvent')}</div>
             </button>
 
             <button
@@ -399,7 +401,7 @@ export default function Dashboard() {
               }}
             >
               <Crown size={24} style={{ marginBottom: '8px' }} />
-              <div>Voir les offres</div>
+              <div>{t('dashboard.quickActions.viewOffers')}</div>
             </button>
           </div>
         </div>
@@ -418,7 +420,7 @@ export default function Dashboard() {
             marginBottom: '24px'
           }}>
             <h2 style={{ fontSize: '24px', fontWeight: '700', color: '#1E1B4B', margin: 0 }}>
-              Mes derniers événements
+              {t('dashboard.recentEvents.title')}
             </h2>
             {events.length > 0 && (
               <button
@@ -438,7 +440,7 @@ export default function Dashboard() {
                 }}
               >
                 <Calendar size={16} />
-                Nouvel événement
+                {t('dashboard.recentEvents.newEvent')}
               </button>
             )}
           </div>
@@ -446,13 +448,13 @@ export default function Dashboard() {
           {loadingEvents ? (
             <div style={{ textAlign: 'center', padding: '40px 20px' }}>
               <div style={{ fontSize: '32px', marginBottom: '12px' }}>⏳</div>
-              <p style={{ color: '#6B7280' }}>Chargement...</p>
+              <p style={{ color: '#6B7280' }}>{t('dashboard.recentEvents.loading')}</p>
             </div>
           ) : events.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '40px 20px' }}>
               <div style={{ fontSize: '48px', marginBottom: '16px' }}>🎉</div>
               <p style={{ color: '#6B7280', fontSize: '16px', marginBottom: '24px' }}>
-                Vous n'avez pas encore créé d'événement
+                {t('dashboard.recentEvents.noEvents')}
               </p>
               <button
                 onClick={() => navigate('/create')}
@@ -467,7 +469,7 @@ export default function Dashboard() {
                   fontSize: '16px'
                 }}
               >
-                Créer mon premier événement
+                {t('dashboard.recentEvents.createFirst')}
               </button>
             </div>
           ) : (
@@ -475,9 +477,9 @@ export default function Dashboard() {
               {events.map((event, index) => {
                 const status = event.status || 'draft';
                 const statusConfig = {
-                  draft: { label: 'Brouillon', color: '#6B7280', bg: '#F3F4F6' },
-                  active: { label: 'Actif', color: '#10B981', bg: '#D1FAE5' },
-                  completed: { label: 'Complété', color: '#8B5CF6', bg: '#EDE9FE' }
+                  draft: { label: t('dashboard.status.draft'), color: '#6B7280', bg: '#F3F4F6' },
+                  active: { label: t('dashboard.status.active'), color: '#10B981', bg: '#D1FAE5' },
+                  completed: { label: t('dashboard.status.completed'), color: '#8B5CF6', bg: '#EDE9FE' }
                 };
                 const config = statusConfig[status] || statusConfig.draft;
 
@@ -517,7 +519,7 @@ export default function Dashboard() {
                         color: '#1E1B4B',
                         marginBottom: '8px'
                       }}>
-                        {event.eventName || 'Événement sans titre'}
+                        {event.eventName || t('dashboard.recentEvents.untitled')}
                       </div>
                       <div style={{
                         display: 'flex',
@@ -537,7 +539,7 @@ export default function Dashboard() {
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                           <Users size={16} />
-                          {event.participantsCount || 0} participant{event.participantsCount > 1 ? 's' : ''}
+                          {event.participantsCount || 0} {event.participantsCount > 1 ? t('dashboard.recentEvents.participants') : t('dashboard.recentEvents.participant')}
                         </div>
                       </div>
                     </div>
@@ -586,7 +588,7 @@ export default function Dashboard() {
                     e.target.style.background = 'transparent';
                   }}
                 >
-                  Voir tous mes événements →
+                  {t('dashboard.recentEvents.viewAll')} →
                 </button>
               )}
             </div>

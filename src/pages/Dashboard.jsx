@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Calendar, Users, TrendingUp, Sparkles, ArrowRight, Crown, Mail } from 'lucide-react';
+import { Calendar, Users, TrendingUp, Sparkles, ArrowRight, Crown, Mail, MoreVertical, ExternalLink, Copy, Trash2, Edit, Link2, Check } from 'lucide-react';
 import { useUser } from '@clerk/clerk-react';
 import CustomizationPanel from '../components/CustomizationPanel';
 import TeamManagement from '../components/TeamManagement';
@@ -15,6 +15,8 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [events, setEvents] = useState([]);
   const [loadingEvents, setLoadingEvents] = useState(false);
+  const [openMenuId, setOpenMenuId] = useState(null);
+  const [copiedEventId, setCopiedEventId] = useState(null);
 
   useEffect(() => {
     // Rediriger vers sign-in si non connecté
@@ -52,12 +54,17 @@ export default function Dashboard() {
       const data = await response.json();
 
       console.log('📊 API Response:', data);
+      console.log('📊 Total events count:', data.count);
 
       if (data.success && data.events) {
         console.log('✅ Events loaded:', data.events.length);
-        setEvents(data.events.slice(0, 5)); // Garder seulement les 5 derniers
+        // Debug: Log all events with their IDs
+        data.events.forEach((evt, i) => {
+          console.log(`  Event ${i + 1}:`, evt.eventName, '- ID:', evt.eventId, '- Status:', evt.status);
+        });
+        setEvents(data.events); // Show all events from API (already limited to 10)
       } else {
-        console.warn('⚠️ No events found or API error');
+        console.warn('⚠️ No events found or API error:', data);
         setEvents([]);
       }
     } catch (error) {
@@ -66,6 +73,68 @@ export default function Dashboard() {
     } finally {
       setLoadingEvents(false);
     }
+  };
+
+  // Copy event link to clipboard
+  const copyEventLink = async (eventId, e) => {
+    e.stopPropagation();
+    const link = `${window.location.origin}/participant?id=${eventId}`;
+    try {
+      await navigator.clipboard.writeText(link);
+      setCopiedEventId(eventId);
+      setTimeout(() => setCopiedEventId(null), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+    setOpenMenuId(null);
+  };
+
+  // Handle event click - navigate to admin
+  const handleEventClick = (event) => {
+    if (event.eventId) {
+      navigate(`/admin?id=${event.eventId}`);
+    } else {
+      console.warn('⚠️ Event has no eventId:', event);
+      // Fallback: try to navigate with the record ID
+      if (event.id) {
+        navigate(`/admin?id=${event.id}`);
+      }
+    }
+  };
+
+  // Get status config with emoji
+  const getStatusConfig = (status) => {
+    const configs = {
+      draft: {
+        label: t('dashboard.status.draft'),
+        emoji: '🟡',
+        color: '#F59E0B',
+        bg: '#FEF3C7',
+        description: t('dashboard.status.draftDesc')
+      },
+      active: {
+        label: t('dashboard.status.active'),
+        emoji: '🔵',
+        color: '#3B82F6',
+        bg: '#DBEAFE',
+        description: t('dashboard.status.activeDesc')
+      },
+      completed: {
+        label: t('dashboard.status.completed'),
+        emoji: '✅',
+        color: '#10B981',
+        bg: '#D1FAE5',
+        description: t('dashboard.status.completedDesc')
+      },
+      cancelled: {
+        label: t('dashboard.status.cancelled'),
+        emoji: '❌',
+        color: '#EF4444',
+        bg: '#FEE2E2',
+        description: t('dashboard.status.cancelledDesc')
+      }
+    };
+    return configs[status] || configs.draft;
   };
 
   const getPlanEmoji = (plan) => {
@@ -476,12 +545,10 @@ export default function Dashboard() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               {events.map((event, index) => {
                 const status = event.status || 'draft';
-                const statusConfig = {
-                  draft: { label: t('dashboard.status.draft'), color: '#6B7280', bg: '#F3F4F6' },
-                  active: { label: t('dashboard.status.active'), color: '#10B981', bg: '#D1FAE5' },
-                  completed: { label: t('dashboard.status.completed'), color: '#8B5CF6', bg: '#EDE9FE' }
-                };
-                const config = statusConfig[status] || statusConfig.draft;
+                const config = getStatusConfig(status);
+                const participantsCount = event.participantsCount || 0;
+                const expectedParticipants = event.expectedParticipants || 10;
+                const progressPercent = Math.min((participantsCount / expectedParticipants) * 100, 100);
 
                 return (
                   <div
@@ -489,83 +556,253 @@ export default function Dashboard() {
                     style={{
                       padding: '20px',
                       border: '2px solid #E5E7EB',
-                      borderRadius: '12px',
+                      borderRadius: '16px',
                       cursor: 'pointer',
                       transition: 'all 0.3s',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      flexWrap: 'wrap',
-                      gap: '16px'
+                      position: 'relative',
+                      background: 'white'
                     }}
-                    onClick={() => {
-                      if (event.eventId) {
-                        navigate(`/admin?id=${event.eventId}`);
-                      }
-                    }}
+                    onClick={() => handleEventClick(event)}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.borderColor = '#8B5CF6';
-                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(139, 92, 246, 0.15)';
+                      e.currentTarget.style.boxShadow = '0 4px 16px rgba(139, 92, 246, 0.15)';
+                      e.currentTarget.style.transform = 'translateY(-2px)';
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.borderColor = '#E5E7EB';
                       e.currentTarget.style.boxShadow = 'none';
+                      e.currentTarget.style.transform = 'translateY(0)';
                     }}
                   >
-                    <div style={{ flex: 1, minWidth: '200px' }}>
-                      <div style={{
-                        fontSize: '18px',
-                        fontWeight: '700',
-                        color: '#1E1B4B',
-                        marginBottom: '8px'
-                      }}>
-                        {event.eventName || t('dashboard.recentEvents.untitled')}
+                    {/* Header: Title + Status + Menu */}
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'flex-start',
+                      marginBottom: '12px',
+                      gap: '12px'
+                    }}>
+                      <div style={{ flex: 1 }}>
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '10px',
+                          marginBottom: '4px'
+                        }}>
+                          <span style={{ fontSize: '20px' }}>📅</span>
+                          <h3 style={{
+                            fontSize: '18px',
+                            fontWeight: '700',
+                            color: '#1E1B4B',
+                            margin: 0
+                          }}>
+                            {event.eventName || t('dashboard.recentEvents.untitled')}
+                          </h3>
+                        </div>
                       </div>
+
+                      {/* Status badge */}
                       <div style={{
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '16px',
-                        color: '#6B7280',
-                        fontSize: '14px',
-                        flexWrap: 'wrap'
+                        gap: '8px'
                       }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <Calendar size={16} />
-                          {new Date(event.createdAt).toLocaleDateString('fr-FR', {
-                            day: '2-digit',
-                            month: 'short',
-                            year: 'numeric'
-                          })}
+                        <div style={{
+                          padding: '6px 14px',
+                          background: config.bg,
+                          color: config.color,
+                          borderRadius: '20px',
+                          fontSize: '13px',
+                          fontWeight: '600',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px'
+                        }}>
+                          <span>{config.emoji}</span>
+                          {config.label}
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <Users size={16} />
-                          {event.participantsCount || 0} {event.participantsCount > 1 ? t('dashboard.recentEvents.participants') : t('dashboard.recentEvents.participant')}
+
+                        {/* Action menu button */}
+                        <div style={{ position: 'relative' }}>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setOpenMenuId(openMenuId === event.id ? null : event.id);
+                            }}
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              cursor: 'pointer',
+                              padding: '6px',
+                              borderRadius: '8px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              color: '#6B7280',
+                              transition: 'all 0.2s'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background = '#F3F4F6';
+                              e.currentTarget.style.color = '#1E1B4B';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = 'none';
+                              e.currentTarget.style.color = '#6B7280';
+                            }}
+                          >
+                            <MoreVertical size={18} />
+                          </button>
+
+                          {/* Dropdown menu */}
+                          {openMenuId === event.id && (
+                            <div style={{
+                              position: 'absolute',
+                              top: '100%',
+                              right: 0,
+                              marginTop: '4px',
+                              background: 'white',
+                              borderRadius: '12px',
+                              boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+                              border: '1px solid #E5E7EB',
+                              zIndex: 100,
+                              minWidth: '180px',
+                              overflow: 'hidden'
+                            }}>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleEventClick(event);
+                                }}
+                                style={{
+                                  width: '100%',
+                                  padding: '12px 16px',
+                                  background: 'none',
+                                  border: 'none',
+                                  cursor: 'pointer',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '10px',
+                                  fontSize: '14px',
+                                  color: '#1E1B4B',
+                                  textAlign: 'left'
+                                }}
+                                onMouseEnter={(e) => e.currentTarget.style.background = '#F5F3FF'}
+                                onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
+                              >
+                                <ExternalLink size={16} color="#8B5CF6" />
+                                {t('dashboard.actions.viewDetails')}
+                              </button>
+                              {event.eventId && (
+                                <button
+                                  onClick={(e) => copyEventLink(event.eventId, e)}
+                                  style={{
+                                    width: '100%',
+                                    padding: '12px 16px',
+                                    background: 'none',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '10px',
+                                    fontSize: '14px',
+                                    color: '#1E1B4B',
+                                    textAlign: 'left'
+                                  }}
+                                  onMouseEnter={(e) => e.currentTarget.style.background = '#F5F3FF'}
+                                  onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
+                                >
+                                  {copiedEventId === event.eventId ? (
+                                    <>
+                                      <Check size={16} color="#10B981" />
+                                      {t('dashboard.actions.copied')}
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Link2 size={16} color="#8B5CF6" />
+                                      {t('dashboard.actions.copyLink')}
+                                    </>
+                                  )}
+                                </button>
+                              )}
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
 
+                    {/* Info row: Date + Participants */}
                     <div style={{
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '12px'
+                      gap: '20px',
+                      color: '#6B7280',
+                      fontSize: '14px',
+                      marginBottom: '16px',
+                      flexWrap: 'wrap'
                     }}>
-                      <div style={{
-                        padding: '6px 16px',
-                        background: config.bg,
-                        color: config.color,
-                        borderRadius: '20px',
-                        fontSize: '13px',
-                        fontWeight: '600'
-                      }}>
-                        {config.label}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Calendar size={16} />
+                        {new Date(event.createdAt).toLocaleDateString('fr-FR', {
+                          day: '2-digit',
+                          month: 'short',
+                          year: 'numeric'
+                        })}
                       </div>
-                      {event.eventId && <ArrowRight size={20} color="#8B5CF6" />}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Users size={16} />
+                        <span style={{ fontWeight: '600', color: '#8B5CF6' }}>{participantsCount}</span>
+                        {' '}{t('dashboard.recentEvents.responded')}
+                      </div>
+                    </div>
+
+                    {/* Progress bar */}
+                    {status === 'active' && (
+                      <div>
+                        <div style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          marginBottom: '6px'
+                        }}>
+                          <span style={{ fontSize: '12px', color: '#6B7280' }}>
+                            {t('dashboard.recentEvents.progress')}
+                          </span>
+                          <span style={{ fontSize: '12px', fontWeight: '600', color: '#8B5CF6' }}>
+                            {Math.round(progressPercent)}%
+                          </span>
+                        </div>
+                        <div style={{
+                          width: '100%',
+                          height: '6px',
+                          background: '#E5E7EB',
+                          borderRadius: '3px',
+                          overflow: 'hidden'
+                        }}>
+                          <div style={{
+                            width: `${progressPercent}%`,
+                            height: '100%',
+                            background: 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)',
+                            borderRadius: '3px',
+                            transition: 'width 0.5s'
+                          }} />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Click indicator */}
+                    <div style={{
+                      position: 'absolute',
+                      right: '20px',
+                      bottom: '20px',
+                      opacity: 0.5
+                    }}>
+                      <ArrowRight size={20} color="#8B5CF6" />
                     </div>
                   </div>
                 );
               })}
 
-              {events.length >= 5 && (
+              {events.length >= 10 && (
                 <button
                   onClick={() => navigate('/analytics')}
                   style={{

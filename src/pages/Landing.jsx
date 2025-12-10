@@ -474,6 +474,61 @@ const Landing = () => {
           </button>
         </div>
 
+        {/* Legal Links */}
+        <div style={{
+          display: 'flex',
+          gap: '24px',
+          justifyContent: 'center',
+          marginBottom: '24px',
+          flexWrap: 'wrap'
+        }}>
+          <button
+            onClick={() => navigate('/mentions-legales')}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: 'rgba(255,255,255,0.5)',
+              fontSize: '12px',
+              cursor: 'pointer',
+              transition: 'color 0.3s'
+            }}
+            onMouseEnter={(e) => e.target.style.color = 'rgba(255,255,255,0.9)'}
+            onMouseLeave={(e) => e.target.style.color = 'rgba(255,255,255,0.5)'}
+          >
+            {t('legal.mentions')}
+          </button>
+          <button
+            onClick={() => navigate('/cgv')}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: 'rgba(255,255,255,0.5)',
+              fontSize: '12px',
+              cursor: 'pointer',
+              transition: 'color 0.3s'
+            }}
+            onMouseEnter={(e) => e.target.style.color = 'rgba(255,255,255,0.9)'}
+            onMouseLeave={(e) => e.target.style.color = 'rgba(255,255,255,0.5)'}
+          >
+            {t('legal.cgv')}
+          </button>
+          <button
+            onClick={() => navigate('/confidentialite')}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: 'rgba(255,255,255,0.5)',
+              fontSize: '12px',
+              cursor: 'pointer',
+              transition: 'color 0.3s'
+            }}
+            onMouseEnter={(e) => e.target.style.color = 'rgba(255,255,255,0.9)'}
+            onMouseLeave={(e) => e.target.style.color = 'rgba(255,255,255,0.5)'}
+          >
+            {t('legal.privacy')}
+          </button>
+        </div>
+
         <p style={{ fontSize: '14px', margin: '0 0 20px 0' }}>
           {t('landing.footer.madeWith')}
         </p>

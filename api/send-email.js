@@ -42,15 +42,18 @@ export default async function handler(req, res) {
 
   try {
     console.log('📧 Email request body:', JSON.stringify(req.body, null, 2));
-    const { type, to, data } = req.body;
+    const { type, to, data, lang = 'fr' } = req.body;
 
     // Validation
     if (!type || !to || !data) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: 'Missing required fields',
         required: ['type', 'to', 'data']
       });
     }
+
+    // Validate language (default to French)
+    const language = ['fr', 'en'].includes(lang) ? lang : 'fr';
 
     // Clé API Resend (à configurer dans Vercel Environment Variables)
     const RESEND_API_KEY = process.env.RESEND_API_KEY;
@@ -60,26 +63,40 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'Email service not configured' });
     }
 
+    // Email subjects by language
+    const subjects = {
+      fr: {
+        'organizer-created': '✅ Ton événement Synkro est créé !',
+        'participant-voted': '✅ Tes disponibilités sont enregistrées !',
+        'date-confirmed': '🎉 La date de ton événement est confirmée !'
+      },
+      en: {
+        'organizer-created': '✅ Your Synkro event is created!',
+        'participant-voted': '✅ Your availability has been recorded!',
+        'date-confirmed': '🎉 The date of your event is confirmed!'
+      }
+    };
+
     // Préparer le contenu de l'email selon le type
     let emailContent;
     let subject;
 
     switch(type) {
       case 'organizer-created':
-        subject = '✅ Ton événement Synkro est créé !';
-        emailContent = getOrganizerCreatedEmail(data);
+        subject = subjects[language]['organizer-created'];
+        emailContent = getOrganizerCreatedEmail(data, language);
         break;
-      
+
       case 'participant-voted':
-        subject = '✅ Tes disponibilités sont enregistrées !';
-        emailContent = getParticipantVotedEmail(data);
+        subject = subjects[language]['participant-voted'];
+        emailContent = getParticipantVotedEmail(data, language);
         break;
-      
+
       case 'date-confirmed':
-        subject = '🎉 La date de ton événement est confirmée !';
-        emailContent = getDateConfirmedEmail(data);
+        subject = subjects[language]['date-confirmed'];
+        emailContent = getDateConfirmedEmail(data, language);
         break;
-      
+
       default:
         return res.status(400).json({ error: 'Invalid email type' });
     }
@@ -137,19 +154,98 @@ export default async function handler(req, res) {
 }
 
 // ========================================
-// TEMPLATES D'EMAILS
+// TEMPLATES D'EMAILS (MULTILINGUES)
 // ========================================
 
-function getOrganizerCreatedEmail(data) {
+// Translations for email templates
+const emailTranslations = {
+  fr: {
+    organizerCreated: {
+      title: 'Événement créé',
+      heading: '✅ Ton événement est créé !',
+      greeting: 'Salut',
+      intro: 'Ton événement <strong>"{{eventType}}"</strong> est prêt ! Partage le lien ci-dessous avec tes invités pour qu\'ils puissent voter.',
+      eventType: 'Type d\'événement',
+      location: 'Lieu',
+      proposedDates: 'Dates proposées',
+      shareButton: '📤 Partager avec mes invités',
+      tip: '<strong>Astuce :</strong> Copie ce lien et envoie-le par WhatsApp, email ou SMS à tes invités !',
+      footer: 'Créé avec ❤️ par Synkro',
+      tagline: 'Trouve la date parfaite en 1 minute'
+    },
+    participantVoted: {
+      title: 'Vote enregistré',
+      heading: '✅ Tes disponibilités sont enregistrées !',
+      thanks: 'Merci',
+      intro: 'Ton vote pour l\'événement <strong>"{{eventType}}"</strong> de {{organizerName}} a bien été pris en compte.',
+      yourAvailability: 'Tes disponibilités',
+      notification: '📬 On te tiendra au courant dès que la date sera confirmée !',
+      footer: 'Créé avec ❤️ par Synkro',
+      tagline: 'Trouve la date parfaite en 1 minute'
+    },
+    dateConfirmed: {
+      title: 'Date confirmée',
+      heading: '🎉 La date est confirmée !',
+      intro: 'Super nouvelle ! La date de l\'événement <strong>"{{eventType}}"</strong> est confirmée ! 🎊',
+      dateTime: 'Date & Heure',
+      location: 'Lieu',
+      participants: 'Participants',
+      addCalendar: '📅 Ajouter à mon calendrier',
+      reminder: '<strong>Rappel :</strong> Tu recevras un email de rappel 24h avant l\'événement !',
+      footer: 'Créé avec ❤️ par Synkro',
+      tagline: 'Trouve la date parfaite en 1 minute'
+    }
+  },
+  en: {
+    organizerCreated: {
+      title: 'Event created',
+      heading: '✅ Your event is created!',
+      greeting: 'Hi',
+      intro: 'Your event <strong>"{{eventType}}"</strong> is ready! Share the link below with your guests so they can vote.',
+      eventType: 'Event type',
+      location: 'Location',
+      proposedDates: 'Proposed dates',
+      shareButton: '📤 Share with my guests',
+      tip: '<strong>Tip:</strong> Copy this link and send it via WhatsApp, email or SMS to your guests!',
+      footer: 'Made with ❤️ by Synkro',
+      tagline: 'Find the perfect date in 1 minute'
+    },
+    participantVoted: {
+      title: 'Vote recorded',
+      heading: '✅ Your availability has been recorded!',
+      thanks: 'Thank you',
+      intro: 'Your vote for the event <strong>"{{eventType}}"</strong> by {{organizerName}} has been recorded.',
+      yourAvailability: 'Your availability',
+      notification: '📬 We\'ll let you know as soon as the date is confirmed!',
+      footer: 'Made with ❤️ by Synkro',
+      tagline: 'Find the perfect date in 1 minute'
+    },
+    dateConfirmed: {
+      title: 'Date confirmed',
+      heading: '🎉 The date is confirmed!',
+      intro: 'Great news! The date for the event <strong>"{{eventType}}"</strong> is confirmed! 🎊',
+      dateTime: 'Date & Time',
+      location: 'Location',
+      participants: 'Participants',
+      addCalendar: '📅 Add to my calendar',
+      reminder: '<strong>Reminder:</strong> You\'ll receive a reminder email 24h before the event!',
+      footer: 'Made with ❤️ by Synkro',
+      tagline: 'Find the perfect date in 1 minute'
+    }
+  }
+};
+
+function getOrganizerCreatedEmail(data, lang = 'fr') {
   const { eventType, eventLink, organizerName, dates, location } = data;
-  
+  const t = emailTranslations[lang].organizerCreated;
+
   return `
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Événement créé</title>
+  <title>${t.title}</title>
 </head>
 <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f3f4f6;">
   <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f3f4f6; padding: 40px 20px;">
@@ -167,33 +263,33 @@ function getOrganizerCreatedEmail(data) {
           <tr>
             <td style="background: white; padding: 40px;">
               <h2 style="color: #1E1B4B; margin: 0 0 20px 0; font-size: 24px; font-weight: 700;">
-                ✅ Ton événement est créé !
+                ${t.heading}
               </h2>
-              
+
               <p style="color: #6B7280; margin: 0 0 30px 0; font-size: 16px; line-height: 1.6;">
-                Salut ${organizerName} ! 👋<br><br>
-                Ton événement <strong>"${eventType}"</strong> est prêt ! Partage le lien ci-dessous avec tes invités pour qu'ils puissent voter.
+                ${t.greeting} ${organizerName} ! 👋<br><br>
+                ${t.intro.replace('{{eventType}}', eventType)}
               </p>
 
               <div style="background: linear-gradient(135deg, #F5F3FF 0%, #E9D5FF 100%); border-radius: 12px; padding: 24px; margin-bottom: 30px;">
                 <p style="color: #6B7280; margin: 0 0 8px 0; font-size: 13px; font-weight: 600;">
-                  📅 Type d'événement
+                  📅 ${t.eventType}
                 </p>
                 <p style="color: #1E1B4B; margin: 0 0 16px 0; font-size: 18px; font-weight: 700;">
                   ${eventType}
                 </p>
-                
+
                 ${location ? `
                 <p style="color: #6B7280; margin: 0 0 8px 0; font-size: 13px; font-weight: 600;">
-                  📍 Lieu
+                  📍 ${t.location}
                 </p>
                 <p style="color: #1E1B4B; margin: 0 0 16px 0; font-size: 16px; font-weight: 600;">
                   ${location}
                 </p>
                 ` : ''}
-                
+
                 <p style="color: #6B7280; margin: 0 0 8px 0; font-size: 13px; font-weight: 600;">
-                  📆 Dates proposées
+                  📆 ${t.proposedDates}
                 </p>
                 <p style="color: #1E1B4B; margin: 0; font-size: 14px; font-weight: 500; line-height: 1.8;">
                   ${dates.map(d => d.label).join('<br>')}
@@ -201,12 +297,12 @@ function getOrganizerCreatedEmail(data) {
               </div>
 
               <a href="${eventLink}" style="display: block; background: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%); color: white; text-decoration: none; padding: 18px 32px; border-radius: 12px; font-size: 16px; font-weight: 700; text-align: center; margin-bottom: 20px;">
-                📤 Partager avec mes invités
+                ${t.shareButton}
               </a>
 
               <div style="background: #FEF3C7; border-radius: 12px; padding: 16px; border-left: 4px solid #F59E0B;">
                 <p style="color: #92400E; margin: 0; font-size: 14px; line-height: 1.6;">
-                  💡 <strong>Astuce :</strong> Copie ce lien et envoie-le par WhatsApp, email ou SMS à tes invités !
+                  💡 ${t.tip}
                 </p>
               </div>
             </td>
@@ -214,10 +310,10 @@ function getOrganizerCreatedEmail(data) {
           <tr>
             <td style="background: #F9FAFB; padding: 30px; text-align: center; border-top: 1px solid #E5E7EB;">
               <p style="color: #6B7280; margin: 0 0 10px 0; font-size: 14px;">
-                Créé avec ❤️ par Synkro
+                ${t.footer}
               </p>
               <p style="color: #9CA3AF; margin: 0; font-size: 12px;">
-                Trouve la date parfaite en 1 minute
+                ${t.tagline}
               </p>
             </td>
           </tr>
@@ -230,16 +326,17 @@ function getOrganizerCreatedEmail(data) {
   `;
 }
 
-function getParticipantVotedEmail(data) {
+function getParticipantVotedEmail(data, lang = 'fr') {
   const { participantName, eventType, organizerName, votedDates } = data;
-  
+  const t = emailTranslations[lang].participantVoted;
+
   return `
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Vote enregistré</title>
+  <title>${t.title}</title>
 </head>
 <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f3f4f6;">
   <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f3f4f6; padding: 40px 20px;">
@@ -257,17 +354,17 @@ function getParticipantVotedEmail(data) {
           <tr>
             <td style="background: white; padding: 40px;">
               <h2 style="color: #1E1B4B; margin: 0 0 20px 0; font-size: 24px; font-weight: 700;">
-                ✅ Tes disponibilités sont enregistrées !
+                ${t.heading}
               </h2>
-              
+
               <p style="color: #6B7280; margin: 0 0 30px 0; font-size: 16px; line-height: 1.6;">
-                Merci ${participantName} ! 🙏<br><br>
-                Ton vote pour l'événement <strong>"${eventType}"</strong> de ${organizerName} a bien été pris en compte.
+                ${t.thanks} ${participantName} ! 🙏<br><br>
+                ${t.intro.replace('{{eventType}}', eventType).replace('{{organizerName}}', organizerName)}
               </p>
 
               <div style="background: linear-gradient(135deg, #F5F3FF 0%, #E9D5FF 100%); border-radius: 12px; padding: 24px; margin-bottom: 30px;">
                 <p style="color: #6B7280; margin: 0 0 12px 0; font-size: 13px; font-weight: 600;">
-                  📆 Tes disponibilités
+                  📆 ${t.yourAvailability}
                 </p>
                 ${votedDates.map(date => `
                   <div style="background: white; padding: 12px; border-radius: 8px; margin-bottom: 8px;">
@@ -280,7 +377,7 @@ function getParticipantVotedEmail(data) {
 
               <div style="background: #DBEAFE; border-radius: 12px; padding: 20px; text-align: center;">
                 <p style="color: #1E40AF; margin: 0; font-size: 15px; font-weight: 600;">
-                  📬 On te tiendra au courant dès que la date sera confirmée !
+                  ${t.notification}
                 </p>
               </div>
             </td>
@@ -288,10 +385,10 @@ function getParticipantVotedEmail(data) {
           <tr>
             <td style="background: #F9FAFB; padding: 30px; text-align: center; border-top: 1px solid #E5E7EB;">
               <p style="color: #6B7280; margin: 0 0 10px 0; font-size: 14px;">
-                Créé avec ❤️ par Synkro
+                ${t.footer}
               </p>
               <p style="color: #9CA3AF; margin: 0; font-size: 12px;">
-                Trouve la date parfaite en 1 minute
+                ${t.tagline}
               </p>
             </td>
           </tr>
@@ -304,16 +401,17 @@ function getParticipantVotedEmail(data) {
   `;
 }
 
-function getDateConfirmedEmail(data) {
+function getDateConfirmedEmail(data, lang = 'fr') {
   const { eventType, finalDate, organizerName, participants, location, calendarLink } = data;
-  
+  const t = emailTranslations[lang].dateConfirmed;
+
   return `
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Date confirmée</title>
+  <title>${t.title}</title>
 </head>
 <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f3f4f6;">
   <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f3f4f6; padding: 40px 20px;">
@@ -331,32 +429,32 @@ function getDateConfirmedEmail(data) {
           <tr>
             <td style="background: white; padding: 40px;">
               <h2 style="color: #1E1B4B; margin: 0 0 20px 0; font-size: 24px; font-weight: 700;">
-                🎉 La date est confirmée !
+                ${t.heading}
               </h2>
-              
+
               <p style="color: #6B7280; margin: 0 0 30px 0; font-size: 16px; line-height: 1.6;">
-                Super nouvelle ! La date de l'événement <strong>"${eventType}"</strong> est confirmée ! 🎊
+                ${t.intro.replace('{{eventType}}', eventType)}
               </p>
 
               <div style="background: linear-gradient(135deg, #F5F3FF 0%, #E9D5FF 100%); border-radius: 12px; padding: 24px; margin-bottom: 30px; border: 2px solid #8B5CF6;">
                 <p style="color: #6B7280; margin: 0 0 8px 0; font-size: 13px; font-weight: 600;">
-                  📅 Date & Heure
+                  📅 ${t.dateTime}
                 </p>
                 <p style="color: #8B5CF6; margin: 0 0 20px 0; font-size: 24px; font-weight: 700;">
                   ${finalDate}
                 </p>
-                
+
                 ${location ? `
                 <p style="color: #6B7280; margin: 0 0 8px 0; font-size: 13px; font-weight: 600;">
-                  📍 Lieu
+                  📍 ${t.location}
                 </p>
                 <p style="color: #1E1B4B; margin: 0 0 20px 0; font-size: 18px; font-weight: 600;">
                   ${location}
                 </p>
                 ` : ''}
-                
+
                 <p style="color: #6B7280; margin: 0 0 8px 0; font-size: 13px; font-weight: 600;">
-                  👥 Participants
+                  👥 ${t.participants}
                 </p>
                 <p style="color: #1E1B4B; margin: 0; font-size: 15px; font-weight: 500;">
                   ${participants.join(', ')}
@@ -365,13 +463,13 @@ function getDateConfirmedEmail(data) {
 
               ${calendarLink ? `
               <a href="${calendarLink}" style="display: block; background: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%); color: white; text-decoration: none; padding: 18px 32px; border-radius: 12px; font-size: 16px; font-weight: 700; text-align: center; margin-bottom: 20px;">
-                📅 Ajouter à mon calendrier
+                ${t.addCalendar}
               </a>
               ` : ''}
 
               <div style="background: #FEF3C7; border-radius: 12px; padding: 16px; border-left: 4px solid #F59E0B;">
                 <p style="color: #92400E; margin: 0; font-size: 14px; line-height: 1.6;">
-                  💡 <strong>Rappel :</strong> Tu recevras un email de rappel 24h avant l'événement !
+                  💡 ${t.reminder}
                 </p>
               </div>
             </td>
@@ -379,10 +477,10 @@ function getDateConfirmedEmail(data) {
           <tr>
             <td style="background: #F9FAFB; padding: 30px; text-align: center; border-top: 1px solid #E5E7EB;">
               <p style="color: #6B7280; margin: 0 0 10px 0; font-size: 14px;">
-                Créé avec ❤️ par Synkro
+                ${t.footer}
               </p>
               <p style="color: #9CA3AF; margin: 0; font-size: 12px;">
-                Trouve la date parfaite en 1 minute
+                ${t.tagline}
               </p>
             </td>
           </tr>

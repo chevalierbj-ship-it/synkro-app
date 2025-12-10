@@ -176,9 +176,10 @@ const LegalPageLayout = ({
       {/* Footer */}
       <footer style={{
         padding: '40px 20px',
-        background: '#1E1B4B',
+        background: 'linear-gradient(135deg, #581c87 0%, #701a75 50%, #831843 100%)',
         textAlign: 'center',
-        color: 'rgba(255,255,255,0.7)'
+        color: 'rgba(255,255,255,0.7)',
+        borderTop: '1px solid rgba(139, 92, 246, 0.3)'
       }}>
         <div style={{
           display: 'flex',

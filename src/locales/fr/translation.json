@@ -239,12 +239,24 @@
       "viewAll": "Voir tous mes événements",
       "untitled": "Événement sans titre",
       "participant": "participant",
-      "participants": "participants"
+      "participants": "participants",
+      "responded": "ont répondu",
+      "progress": "Progression des votes"
     },
     "status": {
       "draft": "Brouillon",
-      "active": "Actif",
-      "completed": "Complété"
+      "draftDesc": "En attente d'envoi",
+      "active": "En cours",
+      "activeDesc": "Votes en cours",
+      "completed": "Terminé",
+      "completedDesc": "Date confirmée",
+      "cancelled": "Annulé",
+      "cancelledDesc": "Événement annulé"
+    },
+    "actions": {
+      "viewDetails": "Voir les détails",
+      "copyLink": "Copier le lien",
+      "copied": "Lien copié !"
     }
   },
 

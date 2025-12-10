@@ -239,12 +239,24 @@
       "viewAll": "View all my events",
       "untitled": "Untitled event",
       "participant": "participant",
-      "participants": "participants"
+      "participants": "participants",
+      "responded": "responded",
+      "progress": "Vote progress"
     },
     "status": {
       "draft": "Draft",
-      "active": "Active",
-      "completed": "Completed"
+      "draftDesc": "Not sent yet",
+      "active": "In progress",
+      "activeDesc": "Voting in progress",
+      "completed": "Completed",
+      "completedDesc": "Date confirmed",
+      "cancelled": "Cancelled",
+      "cancelledDesc": "Event cancelled"
+    },
+    "actions": {
+      "viewDetails": "View details",
+      "copyLink": "Copy link",
+      "copied": "Link copied!"
     }
   },
 

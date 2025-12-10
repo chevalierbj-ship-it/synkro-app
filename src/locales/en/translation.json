@@ -241,6 +241,7 @@
       "participant": "participant",
       "participants": "participants",
       "responded": "responded",
+      "createdOn": "Created on",
       "progress": "Vote progress"
     },
     "status": {

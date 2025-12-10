@@ -546,9 +546,25 @@ export default function Dashboard() {
               {events.map((event, index) => {
                 const status = event.status || 'draft';
                 const config = getStatusConfig(status);
-                const participantsCount = event.participantsCount || 0;
-                const expectedParticipants = event.expectedParticipants || 10;
-                const progressPercent = Math.min((participantsCount / expectedParticipants) * 100, 100);
+                // invitedCount = nombre total d'invités
+                const invitedCount = event.invitedCount || event.participantsCount || 0;
+                // responsesCount = nombre de réponses reçues
+                const responsesCount = event.responsesCount || 0;
+                // Calculer le pourcentage de progression
+                const progressPercent = invitedCount > 0
+                  ? Math.min((responsesCount / invitedCount) * 100, 100)
+                  : 0;
+
+                // Déterminer l'emoji selon le type d'événement
+                const eventTypeEmoji = {
+                  dinner: '🍽️',
+                  party: '🎉',
+                  meeting: '💼',
+                  sport: '⚽',
+                  trip: '✈️',
+                  family: '👨‍👩‍👧‍👦',
+                  generic: '📅'
+                }[event.eventType] || '📅';
 
                 return (
                   <div
@@ -589,7 +605,7 @@ export default function Dashboard() {
                           gap: '10px',
                           marginBottom: '4px'
                         }}>
-                          <span style={{ fontSize: '20px' }}>📅</span>
+                          <span style={{ fontSize: '20px' }}>{eventTypeEmoji}</span>
                           <h3 style={{
                             fontSize: '18px',
                             fontWeight: '700',
@@ -734,23 +750,27 @@ export default function Dashboard() {
                     <div style={{
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '20px',
+                      gap: '16px',
                       color: '#6B7280',
                       fontSize: '14px',
                       marginBottom: '16px',
                       flexWrap: 'wrap'
                     }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <Calendar size={16} />
+                        <span style={{ fontSize: '14px' }}>📝</span>
+                        <span>{t('dashboard.recentEvents.createdOn')}</span>
                         {new Date(event.createdAt).toLocaleDateString('fr-FR', {
                           day: '2-digit',
                           month: 'short',
                           year: 'numeric'
                         })}
                       </div>
+                      <span style={{ color: '#D1D5DB' }}>•</span>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <Users size={16} />
-                        <span style={{ fontWeight: '600', color: '#8B5CF6' }}>{participantsCount}</span>
+                        <span style={{ fontWeight: '600', color: '#8B5CF6' }}>{responsesCount}</span>
+                        <span>/</span>
+                        <span>{invitedCount}</span>
                         {' '}{t('dashboard.recentEvents.responded')}
                       </div>
                     </div>

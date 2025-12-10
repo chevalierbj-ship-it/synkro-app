@@ -184,13 +184,19 @@ async function getUserEvents(req, res) {
 
   try {
     const authToken = AIRTABLE_TOKEN || AIRTABLE_API_KEY;
+    const EVENTS_TABLE_ID = process.env.AIRTABLE_EVENTS_TABLE_ID;
 
-    // Récupérer les événements depuis EventsLog
-    // Filtre par email + tri par date de création décroissante + limite à 10 résultats
-    const filterFormula = `{user_email}='${email}'`;
-    const url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/EventsLog?filterByFormula=${encodeURIComponent(filterFormula)}&sort[0][field]=created_at&sort[0][direction]=desc&maxRecords=10`;
+    if (!EVENTS_TABLE_ID) {
+      console.error('❌ Missing AIRTABLE_EVENTS_TABLE_ID');
+      return res.status(500).json({ error: 'Server configuration error' });
+    }
 
-    console.log('🔍 Fetching from Airtable URL:', url);
+    // Récupérer les événements depuis la table Events (la vraie table avec les votes)
+    // Filtre par organizerEmail + tri par date de création décroissante + limite à 10 résultats
+    const filterFormula = `{organizerEmail}='${email}'`;
+    const url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${EVENTS_TABLE_ID}?filterByFormula=${encodeURIComponent(filterFormula)}&sort[0][field]=createdAt&sort[0][direction]=desc&maxRecords=10`;
+
+    console.log('🔍 Fetching from Airtable Events table');
 
     const response = await fetch(url, {
       headers: {
@@ -216,21 +222,57 @@ async function getUserEvents(req, res) {
     // Transformer les données pour le frontend
     const events = data.records.map(record => {
       const fields = record.fields || {};
+
+      // Calculer le nombre d'invités (expectedParticipants) et réponses (totalResponded)
+      const invitedCount = fields.expectedParticipants || 0;
+      const responsesCount = fields.totalResponded || 0;
+
+      // Déterminer le statut dynamiquement basé sur l'activité
+      let computedStatus = fields.status || 'draft';
+
+      // Si le statut est 'active' dans Airtable, garder 'active'
+      // Si le statut est 'draft' mais qu'il y a des réponses, passer en 'active'
+      if (computedStatus === 'draft' && responsesCount > 0) {
+        computedStatus = 'active';
+      }
+      // Si le statut est 'completed' ou 'cancelled', le garder tel quel
+
+      // Parser les dates pour obtenir le type d'événement
+      let eventType = 'generic';
+      if (fields.type) {
+        // Normaliser le type d'événement
+        const typeMap = {
+          'dîner': 'dinner',
+          'dinner': 'dinner',
+          'soirée': 'party',
+          'party': 'party',
+          'fête': 'party',
+          'réunion': 'meeting',
+          'meeting': 'meeting',
+          'sport': 'sport',
+          'voyage': 'trip',
+          'trip': 'trip',
+          'famille': 'family',
+          'family': 'family'
+        };
+        eventType = typeMap[fields.type?.toLowerCase()] || 'generic';
+      }
+
       return {
         id: record.id,
-        eventId: fields.event_id || null,
-        eventName: fields.event_name || 'Sans titre',
-        // participants_count = nombre d'invités
-        invitedCount: fields.participants_count || 0,
-        // responses_count = nombre de réponses reçues
-        responsesCount: fields.responses_count || 0,
-        status: fields.status || 'draft',
-        createdAt: fields.created_at || new Date().toISOString(),
-        eventDate: fields.event_date || null,
-        lastEventDate: fields.last_event_date || null,
-        eventType: fields.event_type || 'generic',
-        stripeCustomerId: fields.stripe_customer_id || null,
-        stripeSubscriptionId: fields.stripe_subscription_id || null
+        eventId: fields.eventId || null,
+        eventName: fields.type || 'Sans titre',
+        // Nombre d'invités attendus
+        invitedCount: invitedCount,
+        // Nombre de réponses reçues (votes)
+        responsesCount: responsesCount,
+        // Statut calculé dynamiquement
+        status: computedStatus,
+        createdAt: fields.createdAt || new Date().toISOString(),
+        eventType: eventType,
+        // Informations supplémentaires
+        organizerName: fields.organizerName || '',
+        location: fields.location || ''
       };
     });
 

@@ -207,8 +207,8 @@
   },
 
   "pricing": {
-    "title": "Tarifs simples et transparents",
-    "subtitle": "Choisissez le plan adapté à vos besoins",
+    "title": "Choisissez votre plan",
+    "subtitle": "Plus de 47 messages pour organiser un simple dîner. Synkro simplifie la coordination de vos événements.",
     "monthly": "Mensuel",
     "yearly": "Annuel",
     "save": "Économisez {{percent}}%",

@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { Check, X, Zap, Users, BarChart3 } from 'lucide-react';
 import { useUser } from '@clerk/clerk-react';
+import { useTranslation } from 'react-i18next';
 import SEOHead from '../components/SEOHead';
 
 export default function Pricing() {
   const [isAnnual, setIsAnnual] = useState(false);
   const [loading, setLoading] = useState(null);
   const { user } = useUser();
+  const { t } = useTranslation();
 
   // Handle subscription
   const handleSubscribe = async (plan) => {
@@ -134,17 +136,16 @@ export default function Pricing() {
         {/* Hero Section */}
         <div className="text-center mb-16">
           <h1 className="text-5xl font-bold text-gray-900 mb-4">
-            Choisissez votre plan
+            {t('pricing.title')}
           </h1>
           <p className="text-xl text-gray-600 mb-8">
-            Plus de 47 messages pour organiser un simple dîner. <br />
-            Synkro simplifie la coordination de vos événements.
+            {t('pricing.subtitle')}
           </p>
 
           {/* Toggle Mensuel/Annuel */}
           <div className="flex items-center justify-center gap-4 mb-12">
             <span className={`text-lg font-medium ${!isAnnual ? 'text-blue-600' : 'text-gray-500'}`}>
-              Mensuel
+              {t('pricing.monthly')}
             </span>
             <button
               onClick={() => setIsAnnual(!isAnnual)}
@@ -157,11 +158,11 @@ export default function Pricing() {
               />
             </button>
             <span className={`text-lg font-medium ${isAnnual ? 'text-blue-600' : 'text-gray-500'}`}>
-              Annuel
+              {t('pricing.yearly')}
             </span>
             {isAnnual && (
               <span className="ml-2 inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-sm font-semibold text-green-800">
-                🎉 Économisez 20%
+                🎉 {t('pricing.save', { percent: 20 })}
               </span>
             )}
           </div>

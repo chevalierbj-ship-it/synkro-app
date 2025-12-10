@@ -207,8 +207,8 @@
   },
 
   "pricing": {
-    "title": "Simple and transparent pricing",
-    "subtitle": "Choose the plan that fits your needs",
+    "title": "Choose your plan",
+    "subtitle": "No more 47 messages for a simple dinner. Synkro simplifies event coordination.",
     "monthly": "Monthly",
     "yearly": "Yearly",
     "save": "Save {{percent}}%",

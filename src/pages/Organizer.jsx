@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Calendar, Clock, Send, CheckCircle, Sparkles, ChevronLeft, ChevronRight, MapPin, Users as UsersIcon, Share2, User, Lock, Crown } from 'lucide-react';
 import { useUser } from '../contexts/UserContext';
 import UpgradeModal from '../components/UpgradeModal';
 
 const Organizer = () => {
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { user } = useUser();
   const [step, setStep] = useState(1);
@@ -76,8 +78,8 @@ const Organizer = () => {
   };
 
   const formatDate = (date) => {
-    const days = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
-    const months = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+    const days = t('organizer.daysShort', { returnObjects: true });
+    const months = t('organizer.monthsLong', { returnObjects: true });
     return `${days[date.getDay()]} ${date.getDate()} ${months[date.getMonth()]}`;
   };
 
@@ -239,7 +241,7 @@ body: JSON.stringify({
       
     } catch (error) {
       console.error('Erreur:', error);
-      alert('Une erreur est survenue lors de la création de l\'événement: ' + error.message);
+      alert(t('organizer.errorCreating', { error: error.message }));
     } finally {
       setIsCreating(false);
     }
@@ -269,12 +271,12 @@ body: JSON.stringify({
 
   const copyLink = () => {
     navigator.clipboard.writeText(eventLink);
-    alert('Lien copié ! 📋');
+    alert(t('organizer.linkCopiedAlert'));
     setShowShareMenu(false);
   };
 
   const selectedEventType = eventTypes.find(e => e.id === eventType);
-  const monthYear = currentMonth.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+  const monthYear = currentMonth.toLocaleDateString(i18n.language === 'en' ? 'en-US' : 'fr-FR', { month: 'long', year: 'numeric' });
 
   return (
     <div style={{ 
@@ -306,7 +308,7 @@ body: JSON.stringify({
           </h1>
         </div>
         <p style={{ color: 'rgba(255,255,255,0.95)', margin: 0, fontSize: '16px' }}>
-          Une date en 1 minute ⚡
+          {t('organizer.tagline')}
         </p>
 
         {/* Compteur d'événements (Priorité 1) */}
@@ -336,8 +338,8 @@ body: JSON.stringify({
               fontWeight: '700'
             }}>
               {user.eventsThisMonth >= user.eventsLimit
-                ? '🚫 Limite atteinte ! Passez en Pro pour continuer'
-                : `${user.eventsThisMonth}/${user.eventsLimit} événements ce mois · Plan Gratuit`
+                ? t('organizer.limitReached')
+                : t('organizer.eventsCounter', { current: user.eventsThisMonth, limit: user.eventsLimit })
               }
             </span>
             <Crown size={18} color="white" />
@@ -358,35 +360,35 @@ body: JSON.stringify({
         {step === 1 && (
           <div>
             <h2 style={{ fontSize: '26px', marginBottom: '12px', color: '#1E1B4B', fontWeight: '700' }}>
-              👋 C'est toi qui organises ?
+              {t('organizer.step1Title')}
             </h2>
-            <p style={{ 
-              color: '#6B7280', 
+            <p style={{
+              color: '#6B7280',
               fontSize: '14px',
               marginBottom: '24px'
             }}>
-              Dis-nous comment t'appeler pour que tes invités te reconnaissent !
+              {t('organizer.step1Subtitle')}
             </p>
 
             <div style={{ marginBottom: '24px' }}>
-              <label style={{ 
+              <label style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
-                marginBottom: '10px', 
+                marginBottom: '10px',
                 fontSize: '14px',
                 color: '#1E1B4B',
                 fontWeight: '600'
               }}>
                 <User size={18} color="#8B5CF6" />
-                Ton prénom
+                {t('organizer.yourFirstName')}
               </label>
               <input
                 type="text"
                 value={organizerName}
                 onChange={(e) => setOrganizerName(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && organizerName.trim() && setStep(2)}
-                placeholder="Ex: Benjamin"
+                placeholder={t('organizer.firstNamePlaceholder')}
                 autoFocus
                 style={{
                   width: '100%',
@@ -403,20 +405,20 @@ body: JSON.stringify({
               />
               {/* 📧 Email de l'organisateur */}
 <div style={{ marginBottom: '24px' }}>
-  <label style={{ 
-    display: 'block', 
-    marginBottom: '8px', 
+  <label style={{
+    display: 'block',
+    marginBottom: '8px',
     color: '#1E1B4B',
     fontSize: '15px',
     fontWeight: '600'
   }}>
-    📧 Ton email (optionnel)
+    {t('organizer.yourEmail')}
   </label>
   <input
     type="email"
     value={organizerEmail}
     onChange={(e) => setOrganizerEmail(e.target.value)}
-    placeholder="ton.email@example.com"
+    placeholder={t('organizer.emailPlaceholder')}
     style={{
       width: '100%',
       padding: '14px',
@@ -435,13 +437,13 @@ body: JSON.stringify({
       e.target.style.boxShadow = 'none';
     }}
   />
-  <p style={{ 
-    fontSize: '13px', 
-    color: '#6B7280', 
+  <p style={{
+    fontSize: '13px',
+    color: '#6B7280',
     marginTop: '6px',
     fontStyle: 'italic'
   }}>
-    💡 Pour recevoir un email de confirmation avec le lien à partager
+    {t('organizer.emailHint')}
   </p>
 </div>
             </div>
@@ -452,7 +454,7 @@ body: JSON.stringify({
               style={{
                 width: '100%',
                 padding: '18px',
-                background: organizerName.trim() 
+                background: organizerName.trim()
                   ? 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)'
                   : '#E9D5FF',
                 color: 'white',
@@ -465,7 +467,7 @@ body: JSON.stringify({
                 transition: 'all 0.3s'
               }}
             >
-              C'est parti ! →
+              {t('organizer.letsGo')}
             </button>
           </div>
         )}
@@ -474,8 +476,8 @@ body: JSON.stringify({
         {step === 2 && (
           <div>
             <h2 style={{ fontSize: '26px', marginBottom: '24px', color: '#1E1B4B', fontWeight: '700' }}>
-              Salut {organizerName} ! 👋<br/>
-              Quel événement organises-tu ?
+              {t('organizer.step2Title', { name: organizerName })}<br/>
+              {t('organizer.step2Subtitle')}
             </h2>
             <div style={{ display: 'grid', gap: '12px' }}>
               {eventTypes.map(type => (
@@ -523,7 +525,7 @@ body: JSON.stringify({
                 fontWeight: '600'
               }}
             >
-              ← Retour
+              {t('organizer.back')}
             </button>
           </div>
         )}
@@ -532,13 +534,13 @@ body: JSON.stringify({
         {step === 3 && eventType === 'other' && (
           <div>
             <h2 style={{ fontSize: '26px', marginBottom: '24px', color: '#1E1B4B', fontWeight: '700' }}>
-              Nomme ton événement
+              {t('organizer.step3Title')}
             </h2>
             <input
               type="text"
               value={customEvent}
               onChange={(e) => setCustomEvent(e.target.value)}
-              placeholder="Ex: Réunion projet X, Pique-nique..."
+              placeholder={t('organizer.customEventPlaceholder')}
               style={{
                 width: '100%',
                 padding: '16px',
@@ -572,7 +574,7 @@ body: JSON.stringify({
                 transition: 'all 0.3s'
               }}
             >
-              Continuer
+              {t('organizer.continue')}
             </button>
           </div>
         )}
@@ -619,7 +621,7 @@ body: JSON.stringify({
                   gap: '8px'
                 }}>
                   <Sparkles size={20} color="#8B5CF6" />
-                  Méthode de vote
+                  {t('organizer.votingMethod')}
                 </h3>
 
                 <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
@@ -654,9 +656,9 @@ body: JSON.stringify({
                     }}
                   >
                     <div style={{ fontSize: '28px', marginBottom: '8px' }}>🤖</div>
-                    <div style={{ fontWeight: '700', marginBottom: '4px' }}>IA Rapide</div>
+                    <div style={{ fontWeight: '700', marginBottom: '4px' }}>{t('organizer.aiQuick')}</div>
                     <div style={{ fontSize: '13px', opacity: useAI ? 0.95 : 0.7 }}>
-                      2 questions (30s)
+                      {t('organizer.aiQuickDesc')}
                     </div>
                   </button>
 
@@ -691,9 +693,9 @@ body: JSON.stringify({
                     }}
                   >
                     <div style={{ fontSize: '28px', marginBottom: '8px' }}>📅</div>
-                    <div style={{ fontWeight: '700', marginBottom: '4px' }}>Vote Manuel</div>
+                    <div style={{ fontWeight: '700', marginBottom: '4px' }}>{t('organizer.manualVote')}</div>
                     <div style={{ fontSize: '13px', opacity: !useAI ? 0.95 : 0.7 }}>
-                      Grille classique
+                      {t('organizer.manualVoteDesc')}
                     </div>
                   </button>
                 </div>
@@ -706,32 +708,29 @@ body: JSON.stringify({
                   color: useAI ? '#92400E' : '#1E40AF',
                   lineHeight: '1.5'
                 }}>
-                  💡 {useAI
-                    ? <><strong>Recommandé :</strong> L'IA trouve la meilleure date en 30 secondes ! Vos invités répondent à 2 questions simples.</>
-                    : <><strong>Classique :</strong> Vos invités votent manuellement disponible/indisponible sur chaque date.</>
-                  }
+                  <span dangerouslySetInnerHTML={{ __html: '💡 ' + (useAI ? t('organizer.aiRecommendedHint') : t('organizer.manualHint')) }} />
                 </div>
               </div>
 
               {/* Lieu (optionnel) */}
               <div style={{ marginBottom: '24px' }}>
-                <label style={{ 
+                <label style={{
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px',
-                  marginBottom: '10px', 
+                  marginBottom: '10px',
                   fontSize: '14px',
                   color: '#1E1B4B',
                   fontWeight: '600'
                 }}>
                   <MapPin size={18} color="#8B5CF6" />
-                  Où ? (optionnel)
+                  {t('organizer.whereOptional')}
                 </label>
                 <input
                   type="text"
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
-                  placeholder="Ex: Restaurant Le Bistrot, Paris"
+                  placeholder={t('organizer.locationPlaceholder')}
                   style={{
                     width: '100%',
                     padding: '14px',
@@ -759,12 +758,12 @@ body: JSON.stringify({
                   fontWeight: '600'
                 }}>
                   <Clock size={18} color="#8B5CF6" />
-                  Déroulé de la soirée (optionnel)
+                  {t('organizer.scheduleOptional')}
                 </label>
                 <textarea
                   value={eventSchedule}
                   onChange={(e) => setEventSchedule(e.target.value.slice(0, 500))}
-                  placeholder="Ex: 18h apéro, 20h resto, 22h bowling..."
+                  placeholder={t('organizer.schedulePlaceholder')}
                   maxLength={500}
                   rows={3}
                   style={{
@@ -789,12 +788,15 @@ body: JSON.stringify({
                   color: eventSchedule.length >= 450 ? '#EF4444' : '#6B7280',
                   marginTop: '6px'
                 }}>
-                  {eventSchedule.length}/500 caractères
+                  {t('organizer.characters', { count: eventSchedule.length, max: 500 })}
                 </div>
               </div>
 
               <h3 style={{ fontSize: '18px', marginBottom: '16px', color: '#1E1B4B', fontWeight: '600' }}>
-                Sélectionne {user.plan === 'gratuit' ? '3 dates' : 'tes dates'} ({selectedDates.length}/{user.plan === 'gratuit' ? user.datesLimit : '∞'}) :
+                {user.plan === 'gratuit'
+                  ? t('organizer.selectDates', { count: user.datesLimit, selected: selectedDates.length, max: user.datesLimit })
+                  : t('organizer.selectDatesUnlimited', { selected: selectedDates.length })
+                }
               </h3>
 
               {/* Badge limitation dates PRO (Priorité 3) */}
@@ -954,7 +956,7 @@ body: JSON.stringify({
               {selectedDates.length > 0 && (
                 <div style={{ marginBottom: '24px' }}>
                   <h3 style={{ fontSize: '16px', marginBottom: '14px', color: '#1E1B4B', fontWeight: '600' }}>
-                    Horaires :
+                    {t('organizer.times')}
                   </h3>
                   {selectedDates.map((item, index) => (
                     <div key={index} style={{
@@ -1015,7 +1017,7 @@ body: JSON.stringify({
                   transition: 'all 0.3s'
                 }}
               >
-                Continuer →
+                {t('organizer.continueArrow')}
               </button>
 
               <button
@@ -1035,7 +1037,7 @@ body: JSON.stringify({
                   fontWeight: '600'
                 }}
               >
-                ← Retour
+                {t('organizer.back')}
               </button>
             </div>
           );
@@ -1045,15 +1047,15 @@ body: JSON.stringify({
         {step === 5 && (
           <div>
             <h2 style={{ fontSize: '26px', marginBottom: '12px', color: '#1E1B4B', fontWeight: '700' }}>
-              Combien de personnes invites-tu ?
+              {t('organizer.step5Title')}
             </h2>
-            <p style={{ 
-              color: '#6B7280', 
+            <p style={{
+              color: '#6B7280',
               fontSize: '14px',
               marginBottom: '24px'
             }}>
-              💡 Optionnel mais recommandé<br/>
-              Permet d'afficher "4/6 ont répondu"
+              {t('organizer.step5Hint')}<br/>
+              {t('organizer.step5HintSub')}
             </p>
 
             <div style={{ marginBottom: '24px' }}>
@@ -1067,7 +1069,7 @@ body: JSON.stringify({
                 fontWeight: '600'
               }}>
                 <UsersIcon size={18} color="#8B5CF6" />
-                Nombre de participants
+                {t('organizer.participantsNumber')}
               </label>
               <input
                 type="number"
@@ -1317,11 +1319,11 @@ body: JSON.stringify({
               }}
             >
               {isCreating ? (
-                <>⏳ Création en cours...</>
+                <>{t('organizer.creating')}</>
               ) : (
                 <>
                   <Send size={20} />
-                  Créer l'événement
+                  {t('organizer.createEvent')}
                 </>
               )}
             </button>
@@ -1340,7 +1342,7 @@ body: JSON.stringify({
                 fontWeight: '600'
               }}
             >
-              Passer cette étape
+              {t('organizer.skipStep')}
             </button>
           </div>
         )}
@@ -1363,10 +1365,10 @@ body: JSON.stringify({
             </div>
 
             <h2 style={{ fontSize: '28px', marginBottom: '12px', color: '#1E1B4B', fontWeight: '700' }}>
-              Événement créé ! 🎉
+              {t('organizer.eventCreated')}
             </h2>
             <p style={{ color: '#6B7280', marginBottom: '24px', fontSize: '15px' }}>
-              Partage ce lien avec tes invités
+              {t('organizer.shareWithInvitees')}
             </p>
 
             <div style={{
@@ -1392,13 +1394,13 @@ body: JSON.stringify({
               border: '2px solid #FDE68A'
             }}>
               <div style={{ fontSize: '13px', color: '#92400E', marginBottom: '8px', fontWeight: '600' }}>
-                🔐 Ton dashboard organisateur (privé)
+                {t('organizer.adminDashboard')}
               </div>
               <code style={{ color: '#D97706', fontWeight: '700', fontSize: '13px' }}>
                 {`${window.location.origin}/admin?id=${eventLink.split('id=')[1]}`}
               </code>
               <div style={{ fontSize: '12px', color: '#92400E', marginTop: '8px', fontStyle: 'italic' }}>
-                💡 Garde ce lien pour suivre les votes en temps réel !
+                {t('organizer.keepLinkHint')}
               </div>
             </div>
 
@@ -1425,7 +1427,7 @@ body: JSON.stringify({
                 }}
               >
                 <Share2 size={20} />
-                📤 Partager
+                {t('organizer.share')}
               </button>
 
               {showShareMenu && (
@@ -1485,7 +1487,7 @@ body: JSON.stringify({
                       cursor: 'pointer'
                     }}
                   >
-                    📋 Copier le lien
+                    {t('organizer.copyLinkBtn')}
                   </button>
                 </div>
               )}
@@ -1519,7 +1521,7 @@ body: JSON.stringify({
                 fontWeight: '600'
               }}
             >
-              Créer un nouvel événement
+              {t('organizer.createNewEvent')}
             </button>
 
             <button
@@ -1535,7 +1537,7 @@ body: JSON.stringify({
                 marginTop: '8px'
               }}
             >
-              ← Retour à l'accueil
+              {t('organizer.backToHome')}
             </button>
           </div>
         )}
@@ -1547,7 +1549,7 @@ body: JSON.stringify({
         color: 'rgba(255,255,255,0.9)',
         fontSize: '14px'
       }}>
-        <p style={{ margin: '0 0 8px 0' }}>✨ Synkro v4.0 - API Serverless</p>
+        <p style={{ margin: '0 0 8px 0' }}>{t('organizer.version')}</p>
       </div>
 
       {/* Modal d'upgrade */}

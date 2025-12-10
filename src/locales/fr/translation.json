@@ -1,0 +1,643 @@
+{
+  "common": {
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "close": "Fermer",
+    "loading": "Chargement...",
+    "error": "Erreur",
+    "success": "Succès",
+    "confirm": "Confirmer",
+    "back": "Retour",
+    "next": "Suivant",
+    "submit": "Envoyer",
+    "copy": "Copier",
+    "copied": "Copié !",
+    "share": "Partager",
+    "download": "Télécharger",
+    "search": "Rechercher",
+    "noResults": "Aucun résultat",
+    "optional": "optionnel",
+    "required": "obligatoire"
+  },
+
+  "nav": {
+    "home": "Accueil",
+    "pricing": "Tarifs",
+    "dashboard": "Tableau de bord",
+    "login": "Connexion",
+    "signup": "Créer un compte",
+    "logout": "Déconnexion"
+  },
+
+  "landing": {
+    "seo": {
+      "title": "Synkro - Trouvez la date parfaite en 1 minute | Organisation d'événements",
+      "description": "Organisez vos événements sans stress. Synkro trouve automatiquement la meilleure date pour votre groupe. Plus de 47 messages pour un simple dîner, c'est fini !"
+    },
+    "hero": {
+      "tagline": "47 messages pour un dîner ?",
+      "taglineEnd": "C'est fini.",
+      "subtitle": "Trouve la date parfaite pour ton événement",
+      "subtitleHighlight": "en 1 minute",
+      "cta": "Tester maintenant",
+      "emailPlaceholder": "ton@email.com",
+      "earlyAccess": "Accès anticipé",
+      "launchInfo": "Lancement prévu : Novembre 2025 • 100% gratuit pendant la beta",
+      "thankYou": "Merci !",
+      "thankYouMessage": "Tu fais partie des premiers ! On te contacte très bientôt."
+    },
+    "stats": {
+      "time": "< 1 min",
+      "timeLabel": "Pour organiser",
+      "participants": "Illimité",
+      "participantsLabel": "Participants",
+      "stress": "0",
+      "stressLabel": "Prise de tête"
+    },
+    "problem": {
+      "title": "Tu connais ça ?",
+      "groupName": "Groupe \"Dîner entre potes\"",
+      "message1": "On se fait un dîner quand ?",
+      "message2": "Moi je peux les 15, 16 ou 22",
+      "message3": "Attendez je regarde mon agenda...",
+      "message4": "Moi plutôt en mars",
+      "message5": "Donc le 15 ça va ?",
+      "message6": "Ah merde j'ai pas vu, moi non",
+      "message7": "Du coup on fait quoi ??",
+      "conclusion": "... 47 messages plus tard, toujours pas de date"
+    },
+    "howItWorks": {
+      "title": "Comment ça marche ?",
+      "subtitle": "3 étapes, 1 minute, et c'est réglé",
+      "step1": {
+        "title": "Tu proposes 3 dates",
+        "description": "Choisis le type d'événement, Synkro te suggère des dates pertinentes"
+      },
+      "step2": {
+        "title": "Tes potes répondent",
+        "description": "Ils cliquent sur le lien et indiquent leurs dispos en 30 secondes"
+      },
+      "step3": {
+        "title": "Synkro choisit pour vous",
+        "description": "La meilleure date est automatiquement ajoutée à vos agendas"
+      }
+    },
+    "footer": {
+      "tagline": "Une date en 1 minute",
+      "createEvent": "Créer un événement",
+      "madeWith": "Créé avec 💜 en France",
+      "copyright": "© 2025 Synkro • Prototype de test"
+    }
+  },
+
+  "events": {
+    "create": "Créer un événement",
+    "edit": "Modifier l'événement",
+    "delete": "Supprimer l'événement",
+    "share": "Partager l'événement",
+    "title": "Titre de l'événement",
+    "titlePlaceholder": "Ex: Dîner d'anniversaire de Marie",
+    "description": "Description",
+    "descriptionPlaceholder": "Ajoutez des détails sur votre événement...",
+    "dates": "Dates proposées",
+    "addDate": "Ajouter une date",
+    "participants": "Participants",
+    "noParticipants": "Aucun participant pour le moment",
+    "status": {
+      "active": "Actif",
+      "closed": "Fermé",
+      "cancelled": "Annulé"
+    },
+    "types": {
+      "dinner_friends": "Dîner entre amis",
+      "business_lunch": "Déjeuner professionnel",
+      "birthday": "Anniversaire",
+      "wedding": "Mariage",
+      "bachelor_party": "Enterrement de vie de garçon",
+      "bachelorette_party": "Enterrement de vie de jeune fille",
+      "weekend_trip": "Weekend / Voyage",
+      "team_meeting": "Réunion d'équipe",
+      "workshop": "Atelier / Workshop",
+      "sport": "Sport",
+      "rehearsal": "Répétition",
+      "family": "Réunion de famille",
+      "generic": "Autre"
+    }
+  },
+
+  "participant": {
+    "welcome": "Bienvenue !",
+    "welcomeMessage": "Vous êtes invité(e) à participer à cet événement",
+    "yourName": "Votre nom",
+    "yourEmail": "Votre email",
+    "yourAvailability": "Vos disponibilités",
+    "selectDates": "Sélectionnez les dates qui vous conviennent",
+    "available": "✓ Disponible",
+    "notAvailable": "✗ Indisponible",
+    "maybe": "Peut-être",
+    "submitVote": "Valider mes disponibilités",
+    "voteRecorded": "Vos disponibilités ont été enregistrées !",
+    "thankYou": "Merci pour votre participation",
+    "alreadyVoted": "Vous avez déjà voté pour cet événement",
+    "updateVote": "Modifier mon vote",
+    "seo": {
+      "title": "{{title}} - Événement Synkro",
+      "description": "Participez à l'événement \"{{title}}\" organisé par {{organizer}}. Indiquez vos disponibilités en quelques secondes."
+    },
+    "loading": "Chargement...",
+    "errorNotFound": "Cet événement n'existe pas ou a expiré 😕",
+    "errorLoading": "Erreur lors du chargement de l'événement 😕",
+    "checkLinkMessage": "Vérifie que le lien est correct ou contacte l'organisateur.",
+    "backHome": "← Retour à l'accueil",
+    "tapToIndicate": "Tap pour indiquer",
+    "majorityReached": "✅ Majorité atteinte",
+    "popularDate": "🔥 Date populaire",
+    "leading": "👀 En tête",
+    "enterNameError": "Veuillez entrer votre nom avant de continuer",
+    "genericError": "Une erreur est survenue. Veuillez réessayer.",
+    "confirmError": "Une erreur est survenue lors de la confirmation.",
+    "saveError": "Erreur lors de la sauvegarde de tes disponibilités 😕",
+    "thankYouName": "Merci {{name}} ! 🎉",
+    "preferencesRecorded": "Tes préférences ont été enregistrées.",
+    "aiWaitingMessage": "L'IA calculera la meilleure date une fois que tous les participants auront répondu.",
+    "responsesReceived": "Réponses reçues",
+    "voteManually": "Ou voter manuellement sur les dates",
+    "organizedBy": "Organisé par {{name}}",
+    "continueWithoutAccount": "Continuer sans compte",
+    "enterNameEmailHint": "💡 Entre simplement ton nom et email (optionnel)",
+    "firstNamePlaceholder": "Ton prénom",
+    "emailPlaceholder": "Ton email (optionnel, pour confirmation)",
+    "emailOptionalNote": "💌 Ton email est optionnel. Si tu le donnes, tu recevras une confirmation par email.",
+    "continue": "Continuer →",
+    "or": "ou",
+    "whatAvailabilities": "Quelles sont tes disponibilités ?",
+    "tapEachDateHint": "💡 Tape sur chaque date pour indiquer si tu es disponible ou non",
+    "vote": "vote",
+    "votes": "votes",
+    "tipChangeAvailability": "💡 <strong>Astuce :</strong> Tu peux changer d'avis en tapant plusieurs fois sur la même date !",
+    "preferredBudget": "💰 Budget préféré",
+    "selectBudgetRange": "Sélectionne la tranche de budget qui te convient",
+    "popular": "Populaire",
+    "participatePot": "Participer à la cagnotte",
+    "back": "← Retour",
+    "analyzing": "Analyse en cours...",
+    "findingBestDate": "Je cherche la meilleure date pour tout le monde 🤖",
+    "dateConfirmed": "Date confirmée ! 🎉",
+    "eventLabel": "Événement",
+    "locationLabel": "📍 Lieu",
+    "scheduleLabel": "📋 Déroulé prévu",
+    "dateTimeLabel": "📅 Date & Heure",
+    "confirmedParticipants": "👥 Participants confirmés",
+    "addToCalendar": "📅 Ajouter à ton calendrier",
+    "addGoogleCalendar": "Ajouter à Google Calendar",
+    "addOutlookCalendar": "Ajouter à Outlook Calendar",
+    "downloadIcs": "Télécharger .ics (Apple Calendar, autres...)",
+    "reminderTip": "💡 <strong>Astuce :</strong> Tu recevras un email de rappel 24h avant l'événement !",
+    "version": "✨ Synkro v2.1 - Airtable Edition",
+    "calendarOrganizedBy": "Organisé par {{name}}\n\nCréé avec Synkro - https://getsynkro.com",
+    "calendarOrganizedBySimple": "Organisé par {{name}} - Créé avec Synkro"
+  },
+
+  "dashboard": {
+    "title": "Mon Dashboard",
+    "seo": {
+      "title": "Tableau de bord - Synkro",
+      "description": "Gérez vos événements, suivez vos statistiques et accédez à vos analytics."
+    },
+    "loading": "Chargement de vos statistiques...",
+    "backHome": "Accueil",
+    "plan": {
+      "label": "Votre plan",
+      "free": "Gratuit",
+      "pro": "Pro",
+      "enterprise": "Entreprise",
+      "upgrade": "Passer en Pro"
+    },
+    "events": {
+      "thisMonth": "Événements ce mois",
+      "remaining": "Encore {{count}} événement disponible",
+      "remaining_plural": "Encore {{count}} événements disponibles"
+    },
+    "promo": {
+      "title": "Passez en Pro !",
+      "description": "Événements illimités, export CSV, personnalisation et plus",
+      "cta": "Découvrir les offres"
+    },
+    "quickActions": {
+      "title": "Actions rapides",
+      "createEvent": "Créer un événement",
+      "viewOffers": "Voir les offres"
+    },
+    "recentEvents": {
+      "title": "Mes derniers événements",
+      "newEvent": "Nouvel événement",
+      "loading": "Chargement...",
+      "noEvents": "Vous n'avez pas encore créé d'événement",
+      "createFirst": "Créer mon premier événement",
+      "viewAll": "Voir tous mes événements",
+      "untitled": "Événement sans titre",
+      "participant": "participant",
+      "participants": "participants"
+    },
+    "status": {
+      "draft": "Brouillon",
+      "active": "Actif",
+      "completed": "Complété"
+    }
+  },
+
+  "organizer": {
+    "title": "Détails de l'événement",
+    "shareLink": "Lien de partage",
+    "copyLink": "Copier le lien",
+    "linkCopied": "Lien copié dans le presse-papier !",
+    "responses": "Réponses",
+    "bestDate": "Meilleure date",
+    "aiRecommendation": "Recommandation IA",
+    "exportCSV": "Exporter en CSV",
+    "sendReminder": "Envoyer un rappel",
+    "closeEvent": "Clôturer l'événement",
+    "deleteConfirm": "Êtes-vous sûr de vouloir supprimer cet événement ?",
+    "tagline": "Une date en 1 minute ⚡",
+    "limitReached": "🚫 Limite atteinte ! Passez en Pro pour continuer",
+    "eventsCounter": "{{current}}/{{limit}} événements ce mois · Plan Gratuit",
+    "step1Title": "👋 C'est toi qui organises ?",
+    "step1Subtitle": "Dis-nous comment t'appeler pour que tes invités te reconnaissent !",
+    "yourFirstName": "Ton prénom",
+    "firstNamePlaceholder": "Ex: Benjamin",
+    "yourEmail": "📧 Ton email (optionnel)",
+    "emailPlaceholder": "ton.email@example.com",
+    "emailHint": "💡 Pour recevoir un email de confirmation avec le lien à partager",
+    "letsGo": "C'est parti ! →",
+    "step2Title": "Salut {{name}} ! 👋",
+    "step2Subtitle": "Quel événement organises-tu ?",
+    "back": "← Retour",
+    "step3Title": "Nomme ton événement",
+    "customEventPlaceholder": "Ex: Réunion projet X, Pique-nique...",
+    "continue": "Continuer",
+    "votingMethod": "Méthode de vote",
+    "aiQuick": "IA Rapide",
+    "aiQuickDesc": "2 questions (30s)",
+    "manualVote": "Vote Manuel",
+    "manualVoteDesc": "Grille classique",
+    "aiRecommendedHint": "<strong>Recommandé :</strong> L'IA trouve la meilleure date en 30 secondes ! Vos invités répondent à 2 questions simples.",
+    "manualHint": "<strong>Classique :</strong> Vos invités votent manuellement disponible/indisponible sur chaque date.",
+    "whereOptional": "Où ? (optionnel)",
+    "locationPlaceholder": "Ex: Restaurant Le Bistrot, Paris",
+    "scheduleOptional": "Déroulé de la soirée (optionnel)",
+    "schedulePlaceholder": "Ex: 18h apéro, 20h resto, 22h bowling...",
+    "characters": "{{count}}/{{max}} caractères",
+    "selectDates": "Sélectionne {{count}} dates ({{selected}}/{{max}}) :",
+    "selectDatesUnlimited": "Sélectionne tes dates ({{selected}}/∞) :",
+    "unlockMoreDates": "🔒 Proposer plus de dates",
+    "unlimitedDatesPro": "Dates illimitées avec le plan Pro",
+    "unlimitedDates": "Dates illimitées",
+    "times": "Horaires :",
+    "continueArrow": "Continuer →",
+    "step5Title": "Combien de personnes invites-tu ?",
+    "step5Hint": "💡 Optionnel mais recommandé",
+    "step5HintSub": "Permet d'afficher \"4/6 ont répondu\"",
+    "participantsNumber": "Nombre de participants",
+    "participantsPlaceholder": "Ex: 6",
+    "participantsCounter": "{{current}}/{{limit}} participants (plan Gratuit)",
+    "maxParticipants": "50 participants max",
+    "unlimitedParticipants": "Participants illimités",
+    "upgradeToPro": "Passer en Pro",
+    "enableBudgetVote": "💰 Activer le vote de budget",
+    "budgetVoteHint": "Les participants pourront voter pour une tranche de budget",
+    "defineBudgetRanges": "Définir les 3 tranches de budget :",
+    "budgetRangePlaceholder": "Tranche {{index}}",
+    "potLink": "💰 Lien vers la cagnotte (optionnel)",
+    "potLinkPlaceholder": "https://www.leetchi.com/c/ma-cagnotte",
+    "potLinkHint": "Crée ta cagnotte sur Leetchi, Pot Commun ou Lydia puis colle le lien ici",
+    "creating": "⏳ Création en cours...",
+    "createEvent": "Créer l'événement",
+    "skipStep": "Passer cette étape",
+    "eventCreated": "Événement créé ! 🎉",
+    "shareWithInvitees": "Partage ce lien avec tes invités",
+    "adminDashboard": "🔐 Ton dashboard organisateur (privé)",
+    "keepLinkHint": "💡 Garde ce lien pour suivre les votes en temps réel !",
+    "share": "📤 Partager",
+    "copyLinkBtn": "📋 Copier le lien",
+    "linkCopiedAlert": "Lien copié ! 📋",
+    "createNewEvent": "Créer un nouvel événement",
+    "backToHome": "← Retour à l'accueil",
+    "version": "✨ Synkro v4.0 - API Serverless",
+    "errorCreating": "Une erreur est survenue lors de la création de l'événement: {{error}}",
+    "limitReachedMessage": "⚠️ {{message}}\n\nVous avez créé {{current}}/{{limit}} événements ce mois-ci.",
+    "daysShort": ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"],
+    "monthsLong": ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"],
+    "daysInitials": ["D", "L", "M", "M", "J", "V", "S"]
+  },
+
+  "pricing": {
+    "title": "Choisissez votre plan",
+    "subtitle": "Plus de 47 messages pour organiser un simple dîner. Synkro simplifie la coordination de vos événements.",
+    "monthly": "Mensuel",
+    "yearly": "Annuel",
+    "save": "Économisez {{percent}}%",
+    "free": {
+      "name": "Gratuit",
+      "price": "0€",
+      "description": "Pour découvrir Synkro",
+      "features": [
+        "Jusqu'à 3 événements actifs",
+        "10 participants par événement",
+        "Lien de partage",
+        "Export CSV"
+      ],
+      "cta": "Commencer gratuitement"
+    },
+    "pro": {
+      "name": "Pro",
+      "price": "9€",
+      "period": "/mois",
+      "description": "Pour les organisateurs réguliers",
+      "features": [
+        "Événements illimités",
+        "50 participants par événement",
+        "Rappels automatiques",
+        "Analytics avancés",
+        "Personnalisation (couleurs)",
+        "Support prioritaire"
+      ],
+      "cta": "Passer à Pro"
+    },
+    "enterprise": {
+      "name": "Entreprise",
+      "price": "29€",
+      "period": "/mois",
+      "description": "Pour les équipes et entreprises",
+      "features": [
+        "Tout le plan Pro",
+        "Participants illimités",
+        "Logo personnalisé",
+        "Gestion d'équipe",
+        "API access",
+        "SSO (bientôt)",
+        "Support dédié"
+      ],
+      "cta": "Contacter les ventes"
+    }
+  },
+
+  "auth": {
+    "login": "Connexion",
+    "signup": "Inscription",
+    "email": "Email",
+    "password": "Mot de passe",
+    "forgotPassword": "Mot de passe oublié ?",
+    "noAccount": "Pas encore de compte ?",
+    "hasAccount": "Déjà un compte ?",
+    "continueWith": "Continuer avec {{provider}}",
+    "orContinueWith": "Ou continuer avec"
+  },
+
+  "smartQuestions": {
+    "dinner_friends": {
+      "day_preference": {
+        "question": "Pour ce dîner, vous préférez :",
+        "options": {
+          "weekday": "En semaine (lundi-jeudi)",
+          "friday": "Vendredi soir",
+          "weekend": "Weekend (samedi-dimanche)",
+          "any": "Peu importe"
+        }
+      },
+      "time_preference": {
+        "question": "Et niveau horaire :",
+        "options": {
+          "early": "19h-20h (dîner tôt)",
+          "standard": "20h-21h (classique)",
+          "late": "21h+ (tardif)",
+          "any": "Flexible"
+        }
+      }
+    },
+    "business_lunch": {
+      "day_preference": {
+        "question": "Pour ce déjeuner professionnel :",
+        "options": {
+          "monday": "Lundi",
+          "tuesday_thursday": "Mardi à jeudi",
+          "friday": "Vendredi",
+          "any": "N'importe quel jour"
+        }
+      },
+      "duration": {
+        "question": "Durée souhaitée :",
+        "options": {
+          "quick": "1h (rapide)",
+          "standard": "1h30 (standard)",
+          "long": "2h+ (approfondi)",
+          "any": "Flexible"
+        }
+      }
+    },
+    "birthday": {
+      "day_preference": {
+        "question": "Pour cet anniversaire :",
+        "options": {
+          "exact_date": "Le jour exact de l'anniversaire",
+          "weekend_before": "Le weekend avant",
+          "weekend_after": "Le weekend après",
+          "any": "Peu importe"
+        }
+      },
+      "time_preference": {
+        "question": "Plutôt :",
+        "options": {
+          "lunch": "Déjeuner (12h-15h)",
+          "afternoon": "Après-midi (15h-18h)",
+          "evening": "Soirée (19h+)",
+          "any": "Flexible"
+        }
+      }
+    },
+    "bachelor_party": {
+      "duration_preference": {
+        "question": "Durée de l'EVG :",
+        "options": {
+          "one_day": "1 journée",
+          "weekend": "Weekend (2 jours)",
+          "long_weekend": "Long weekend (3-4 jours)",
+          "any": "Flexible"
+        }
+      },
+      "period_preference": {
+        "question": "Période de l'année :",
+        "options": {
+          "spring": "Printemps (mars-mai)",
+          "summer": "Été (juin-août)",
+          "fall": "Automne (sept-nov)",
+          "winter": "Hiver (déc-fév)",
+          "any": "N'importe quand"
+        }
+      }
+    },
+    "bachelorette_party": {
+      "duration_preference": {
+        "question": "Durée de l'EVJF :",
+        "options": {
+          "one_day": "1 journée",
+          "weekend": "Weekend (2 jours)",
+          "long_weekend": "Long weekend (3-4 jours)",
+          "any": "Flexible"
+        }
+      },
+      "period_preference": {
+        "question": "Période de l'année :",
+        "options": {
+          "spring": "Printemps (mars-mai)",
+          "summer": "Été (juin-août)",
+          "fall": "Automne (sept-nov)",
+          "winter": "Hiver (déc-fév)",
+          "any": "N'importe quand"
+        }
+      }
+    },
+    "weekend_trip": {
+      "duration": {
+        "question": "Durée du weekend :",
+        "options": {
+          "short": "Weekend classique (2 jours)",
+          "long": "Long weekend (3-4 jours)",
+          "any": "Flexible"
+        }
+      },
+      "season_preference": {
+        "question": "Saison préférée :",
+        "options": {
+          "spring": "Printemps",
+          "summer": "Été",
+          "fall": "Automne",
+          "winter": "Hiver",
+          "any": "N'importe quand"
+        }
+      }
+    },
+    "team_meeting": {
+      "day_preference": {
+        "question": "Jour le plus pratique :",
+        "options": {
+          "monday": "Lundi (début de semaine)",
+          "mid_week": "Mardi-Mercredi-Jeudi",
+          "friday": "Vendredi (fin de semaine)",
+          "any": "Flexible"
+        }
+      },
+      "time_slot": {
+        "question": "Créneau horaire :",
+        "options": {
+          "morning": "Matin (9h-12h)",
+          "afternoon": "Après-midi (14h-17h)",
+          "end_day": "Fin de journée (17h-19h)",
+          "any": "Flexible"
+        }
+      }
+    },
+    "sport": {
+      "day_preference": {
+        "question": "Quel jour pour le sport :",
+        "options": {
+          "weekday_evening": "Soir de semaine",
+          "saturday_morning": "Samedi matin",
+          "sunday": "Dimanche",
+          "any": "Peu importe"
+        }
+      },
+      "time_preference": {
+        "question": "Horaire préféré :",
+        "options": {
+          "early_morning": "Tôt le matin (7h-9h)",
+          "late_morning": "Fin de matinée (9h-12h)",
+          "evening": "Soirée (18h-21h)",
+          "any": "Flexible"
+        }
+      }
+    },
+    "family": {
+      "day_preference": {
+        "question": "Pour cette réunion familiale :",
+        "options": {
+          "sunday_lunch": "Dimanche midi",
+          "saturday": "Samedi",
+          "weekday": "En semaine",
+          "any": "Flexible"
+        }
+      },
+      "time_preference": {
+        "question": "Moment de la journée :",
+        "options": {
+          "lunch": "Déjeuner (12h-15h)",
+          "afternoon": "Après-midi (15h-18h)",
+          "dinner": "Dîner (19h+)",
+          "any": "Flexible"
+        }
+      }
+    },
+    "generic": {
+      "day_type": {
+        "question": "Type de jour :",
+        "options": {
+          "weekday": "En semaine",
+          "weekend": "Weekend",
+          "any": "Peu importe"
+        }
+      },
+      "time_of_day": {
+        "question": "Moment de la journée :",
+        "options": {
+          "morning": "Matin",
+          "afternoon": "Après-midi",
+          "evening": "Soirée",
+          "any": "Flexible"
+        }
+      }
+    }
+  },
+
+  "emails": {
+    "invitation": {
+      "subject": "{{organizer}} vous invite à {{eventName}}",
+      "greeting": "Bonjour {{name}},",
+      "body": "Vous êtes invité(e) à participer à l'événement \"{{eventName}}\".",
+      "cta": "Indiquer mes disponibilités",
+      "footer": "Cet email a été envoyé via Synkro"
+    },
+    "reminder": {
+      "subject": "Rappel : {{eventName}} - Donnez vos disponibilités",
+      "body": "N'oubliez pas d'indiquer vos disponibilités pour l'événement \"{{eventName}}\".",
+      "cta": "Répondre maintenant"
+    },
+    "confirmation": {
+      "subject": "Vos disponibilités ont été enregistrées",
+      "body": "Merci ! Vos disponibilités pour \"{{eventName}}\" ont bien été enregistrées."
+    }
+  },
+
+  "errors": {
+    "generic": "Une erreur est survenue",
+    "network": "Erreur de connexion. Vérifiez votre connexion internet.",
+    "notFound": "Page non trouvée",
+    "unauthorized": "Vous devez être connecté pour accéder à cette page",
+    "forbidden": "Vous n'avez pas accès à cette ressource",
+    "validation": {
+      "required": "Ce champ est obligatoire",
+      "email": "Email invalide",
+      "minLength": "Minimum {{min}} caractères",
+      "maxLength": "Maximum {{max}} caractères"
+    }
+  },
+
+  "success": {
+    "eventCreated": "Événement créé avec succès !",
+    "eventUpdated": "Événement mis à jour",
+    "eventDeleted": "Événement supprimé",
+    "voteSubmitted": "Vote enregistré !",
+    "reminderSent": "Rappel envoyé",
+    "linkCopied": "Lien copié !"
+  }
+}

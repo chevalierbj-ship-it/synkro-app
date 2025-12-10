@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Calendar, Users, CheckCircle, Clock, Download, Sparkles, MapPin, AlertCircle, ExternalLink, PiggyBank } from 'lucide-react';
 import { getQuestionsForEvent } from '../utils/smartQuestions';
 import { findBestDate } from '../utils/smartScoring';
@@ -9,6 +10,7 @@ import AuthButtons from '../components/AuthButtons';
 import SEOHead, { generateEventSchema } from '../components/SEOHead';
 
 const Participant = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const eventId = searchParams.get('id'); // Récupère l'ID depuis l'URL (?id=xxx)
@@ -47,7 +49,7 @@ const Participant = () => {
       action: 'TEMPLATE',
       text: event.type,
       dates: `${formatGoogleDate(startDate)}/${formatGoogleDate(endDate)}`,
-      details: `Organisé par ${event.organizerName}\n\nCréé avec Synkro - https://getsynkro.com`,
+      details: t('participant.calendarOrganizedBy', { name: event.organizerName }),
       location: event.location || ''
     });
     
@@ -67,7 +69,7 @@ const Participant = () => {
       startdt: startDate.toISOString(),
       enddt: endDate.toISOString(),
       location: event.location || '',
-      body: `Organisé par ${event.organizerName}\n\nCréé avec Synkro`
+      body: t('participant.calendarOrganizedBy', { name: event.organizerName })
     });
     
     window.open(`https://outlook.live.com/calendar/0/deeplink/compose?${params.toString()}`, '_blank');
@@ -86,7 +88,7 @@ const Participant = () => {
       start: startDate.toISOString(),
       end: endDate.toISOString(),
       location: event.location || '',
-      description: `Organisé par ${event.organizerName} - Créé avec Synkro`
+      description: t('participant.calendarOrganizedBySimple', { name: event.organizerName })
     });
     
     window.open(`/api/event-utils?action=generate-ics&${params.toString()}`, '_blank');
@@ -100,9 +102,9 @@ const Participant = () => {
         
         if (!response.ok) {
           if (response.status === 404) {
-            setError("Cet événement n'existe pas ou a expiré 😕");
+            setError(t('participant.errorNotFound'));
           } else {
-            setError("Erreur lors du chargement de l'événement 😕");
+            setError(t('participant.errorLoading'));
           }
           setLoading(false);
           return;
@@ -128,13 +130,13 @@ const Participant = () => {
         setLoading(false);
       } catch (err) {
         console.error('Error fetching event:', err);
-        setError("Erreur lors du chargement de l'événement 😕");
+        setError(t('participant.errorLoading'));
         setLoading(false);
       }
     };
 
     fetchEvent();
-  }, [eventId]);
+  }, [eventId, t]);
 
   const handleAvailabilityToggle = (dateLabel) => {
     setAvailabilities(prev => {
@@ -176,9 +178,9 @@ const Participant = () => {
   };
 
   const getButtonText = (availability) => {
-    if (availability === true) return '✓ Disponible';
-    if (availability === false) return '✗ Indisponible';
-    return 'Tap pour indiquer';
+    if (availability === true) return t('participant.available');
+    if (availability === false) return t('participant.notAvailable');
+    return t('participant.tapToIndicate');
   };
 
   const getBadge = (date) => {
@@ -186,11 +188,11 @@ const Participant = () => {
     const percentage = event.expectedParticipants ? (date.votes / event.expectedParticipants) * 100 : 0;
 
     if (event.expectedParticipants && percentage >= 70) {
-      return { text: '✅ Majorité atteinte', color: '#10B981' };
+      return { text: t('participant.majorityReached'), color: '#10B981' };
     } else if (date.votes === maxVotes && date.votes > 0) {
-      return { text: '🔥 Date populaire', color: '#F59E0B' };
+      return { text: t('participant.popularDate'), color: '#F59E0B' };
     } else if (date.votes > 0) {
-      return { text: '👀 En tête', color: '#8B5CF6' };
+      return { text: t('participant.leading'), color: '#8B5CF6' };
     }
     return null;
   };
@@ -210,7 +212,7 @@ const Participant = () => {
   // 🆕 HANDLER : Completion du flux IA (après les questions)
   const handleAIComplete = async (answers) => {
     if (!userName.trim()) {
-      alert('Veuillez entrer votre nom avant de continuer');
+      alert(t('participant.enterNameError'));
       return;
     }
 
@@ -270,7 +272,7 @@ const Participant = () => {
       setIsAnalyzing(false);
     } catch (error) {
       console.error('Error in AI flow:', error);
-      alert('Une erreur est survenue. Veuillez réessayer.');
+      alert(t('participant.genericError'));
       setIsAnalyzing(false);
     }
   };
@@ -315,7 +317,7 @@ const Participant = () => {
 
     } catch (error) {
       console.error('Error confirming AI recommendation:', error);
-      alert('Une erreur est survenue lors de la confirmation.');
+      alert(t('participant.confirmError'));
       setStep(2);
     }
   };
@@ -371,7 +373,7 @@ const Participant = () => {
 
     } catch (err) {
       console.error('Erreur lors de la sauvegarde:', err);
-      alert('Erreur lors de la sauvegarde de tes disponibilités 😕');
+      alert(t('participant.saveError'));
       setStep(2); // Retour au formulaire en cas d'erreur
     }
   };
@@ -389,7 +391,7 @@ const Participant = () => {
       }}>
         <div style={{ textAlign: 'center', color: 'white' }}>
           <Clock size={48} />
-          <p style={{ marginTop: '20px', fontSize: '18px' }}>Chargement...</p>
+          <p style={{ marginTop: '20px', fontSize: '18px' }}>{t('participant.loading')}</p>
         </div>
       </div>
     );
@@ -419,7 +421,7 @@ const Participant = () => {
             {error}
           </h2>
           <p style={{ color: '#6B7280', marginBottom: '24px' }}>
-            Vérifie que le lien est correct ou contacte l'organisateur.
+            {t('participant.checkLinkMessage')}
           </p>
           <button
             onClick={() => navigate('/')}
@@ -435,7 +437,7 @@ const Participant = () => {
               boxShadow: '0 4px 12px rgba(139, 92, 246, 0.3)'
             }}
           >
-            ← Retour à l'accueil
+            {t('participant.backHome')}
           </button>
         </div>
       </div>
@@ -518,7 +520,7 @@ const Participant = () => {
             color: '#1E1B4B',
             marginBottom: '16px'
           }}>
-            Merci {userName} ! 🎉
+            {t('participant.thankYouName', { name: userName })}
           </h2>
 
           <p style={{
@@ -527,8 +529,8 @@ const Participant = () => {
             marginBottom: '32px',
             lineHeight: '1.6'
           }}>
-            Tes préférences ont été enregistrées.<br />
-            L'IA calculera la meilleure date une fois que tous les participants auront répondu.
+            {t('participant.preferencesRecorded')}<br />
+            {t('participant.aiWaitingMessage')}
           </p>
 
           <div style={{
@@ -539,7 +541,7 @@ const Participant = () => {
             border: '2px solid #E9D5FF'
           }}>
             <div style={{ fontSize: '14px', color: '#6B7280', marginBottom: '8px' }}>
-              Réponses reçues
+              {t('participant.responsesReceived')}
             </div>
             <div style={{ fontSize: '32px', fontWeight: '800', color: '#8B5CF6' }}>
               {event.ai_preferences ? JSON.parse(event.ai_preferences).length : 1} / {event.expectedParticipants || '?'}
@@ -560,7 +562,7 @@ const Participant = () => {
               marginBottom: '16px'
             }}
           >
-            Ou voter manuellement sur les dates
+            {t('participant.voteManually')}
           </button>
 
           <style>{`
@@ -582,8 +584,8 @@ const Participant = () => {
     }}>
       {event && (
         <SEOHead
-          title={`${event.title} - Événement Synkro`}
-          description={`Participez à l'événement "${event.title}" organisé par ${event.organizerName}. Indiquez vos disponibilités en quelques secondes.`}
+          title={t('participant.seo.title', { title: event.title })}
+          description={t('participant.seo.description', { title: event.title, organizer: event.organizerName })}
           type="website"
           canonical={`https://getsynkro.com/participant?id=${eventId}`}
           keywords={['événement', 'participation', event.type, 'disponibilités', 'coordination']}
@@ -652,7 +654,7 @@ const Participant = () => {
                 🎯 {event.type}
               </div>
               <div style={{ fontSize: '18px', fontWeight: '700', color: '#1E1B4B', marginBottom: '8px' }}>
-                Organisé par {event.organizerName}
+                {t('participant.organizedBy', { name: event.organizerName })}
               </div>
               {event.location && (
                 <div style={{ fontSize: '14px', color: '#8B5CF6', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -693,7 +695,7 @@ const Participant = () => {
                 fontWeight: '600',
                 padding: '0 8px'
               }}>
-                ou
+                {t('participant.or')}
               </div>
               <div style={{
                 flex: 1,
@@ -703,17 +705,17 @@ const Participant = () => {
             </div>
 
             <h2 style={{ fontSize: '20px', marginBottom: '12px', color: '#1E1B4B', fontWeight: '700' }}>
-              Continuer sans compte
+              {t('participant.continueWithoutAccount')}
             </h2>
             <p style={{ color: '#6B7280', marginBottom: '24px', fontSize: '14px' }}>
-              💡 Entre simplement ton nom et email (optionnel)
+              {t('participant.enterNameEmailHint')}
             </p>
 
             <input
               type="text"
               value={userName}
               onChange={(e) => setUserName(e.target.value)}
-              placeholder="Ton prénom"
+              placeholder={t('participant.firstNamePlaceholder')}
               style={{
                 width: '100%',
                 padding: '16px',
@@ -738,7 +740,7 @@ const Participant = () => {
               type="email"
               value={userEmail}
               onChange={(e) => setUserEmail(e.target.value)}
-              placeholder="Ton email (optionnel, pour confirmation)"
+              placeholder={t('participant.emailPlaceholder')}
               style={{
                 width: '100%',
                 padding: '16px',
@@ -766,7 +768,7 @@ const Participant = () => {
               textAlign: 'center',
               lineHeight: '1.5'
             }}>
-              💌 Ton email est optionnel. Si tu le donnes, tu recevras une confirmation par email.
+              {t('participant.emailOptionalNote')}
             </div>
 
 
@@ -794,7 +796,7 @@ const Participant = () => {
                 e.target.style.boxShadow = '0 6px 16px rgba(139, 92, 246, 0.3)';
               }}
             >
-              Continuer →
+              {t('participant.continue')}
             </button>
           </div>
         )}
@@ -803,10 +805,10 @@ const Participant = () => {
         {step === 2 && (
           <div>
             <h2 style={{ fontSize: '24px', marginBottom: '12px', color: '#1E1B4B', fontWeight: '700' }}>
-              Quelles sont tes disponibilités ?
+              {t('participant.whatAvailabilities')}
             </h2>
             <p style={{ color: '#6B7280', marginBottom: '28px', fontSize: '15px' }}>
-              💡 Tape sur chaque date pour indiquer si tu es disponible ou non
+              {t('participant.tapEachDateHint')}
             </p>
 
             <div style={{ marginBottom: '32px' }}>
@@ -884,7 +886,7 @@ const Participant = () => {
                         </div>
                         <div style={{ textAlign: 'right' }}>
                           <div style={{ fontSize: '13px', opacity: 0.8, marginBottom: '4px', fontWeight: '600' }}>
-                            {date.votes} {date.votes > 1 ? 'votes' : 'vote'}
+                            {date.votes} {date.votes > 1 ? t('participant.votes') : t('participant.vote')}
                           </div>
                         </div>
                       </div>
@@ -920,25 +922,26 @@ const Participant = () => {
               marginBottom: '24px',
               border: '2px solid #FCD34D'
             }}>
-              <p style={{
-                fontSize: '13px',
-                color: '#92400E',
-                margin: 0,
-                lineHeight: '1.5',
-                fontWeight: '500'
-              }}>
-                💡 <strong>Astuce :</strong> Tu peux changer d'avis en tapant plusieurs fois sur la même date !
-              </p>
+              <p
+                style={{
+                  fontSize: '13px',
+                  color: '#92400E',
+                  margin: 0,
+                  lineHeight: '1.5',
+                  fontWeight: '500'
+                }}
+                dangerouslySetInnerHTML={{ __html: t('participant.tipChangeAvailability') }}
+              />
             </div>
 
             {/* Section Vote Budget */}
             {event.budgetVoteEnabled && event.budgetVotes && (
               <div style={{ marginBottom: '32px' }}>
                 <h3 style={{ fontSize: '18px', marginBottom: '12px', color: '#1E1B4B', fontWeight: '700' }}>
-                  💰 Budget préféré
+                  {t('participant.preferredBudget')}
                 </h3>
                 <p style={{ color: '#6B7280', marginBottom: '16px', fontSize: '14px' }}>
-                  Sélectionne la tranche de budget qui te convient
+                  {t('participant.selectBudgetRange')}
                 </p>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -1007,14 +1010,14 @@ const Participant = () => {
                               borderRadius: '10px',
                               fontWeight: '700'
                             }}>
-                              Populaire
+                              {t('participant.popular')}
                             </span>
                           )}
                           <span style={{
                             fontSize: '13px',
                             opacity: isSelected ? 1 : 0.7
                           }}>
-                            {budgetOption.votes} vote{budgetOption.votes !== 1 ? 's' : ''}
+                            {budgetOption.votes} {budgetOption.votes !== 1 ? t('participant.votes') : t('participant.vote')}
                           </span>
                         </div>
                       </button>
@@ -1058,7 +1061,7 @@ const Participant = () => {
                   }}
                 >
                   <PiggyBank size={20} />
-                  Participer à la cagnotte
+                  {t('participant.participatePot')}
                   <ExternalLink size={16} />
                 </a>
               </div>
@@ -1079,7 +1082,7 @@ const Participant = () => {
                   cursor: 'pointer'
                 }}
               >
-                ← Retour
+                {t('participant.back')}
               </button>
 
               <button
@@ -1101,7 +1104,7 @@ const Participant = () => {
                   boxShadow: canSubmit ? '0 6px 16px rgba(139, 92, 246, 0.3)' : 'none'
                 }}
               >
-                Valider mes disponibilités
+                {t('participant.submitVote')}
               </button>
             </div>
           </div>
@@ -1126,10 +1129,10 @@ const Participant = () => {
             </div>
 
             <h2 style={{ fontSize: '26px', marginBottom: '16px', color: '#1E1B4B', fontWeight: '700' }}>
-              Analyse en cours...
+              {t('participant.analyzing')}
             </h2>
             <p style={{ color: '#6B7280', fontSize: '16px' }}>
-              Je cherche la meilleure date pour tout le monde 🤖
+              {t('participant.findingBestDate')}
             </p>
 
             <style>{`
@@ -1159,7 +1162,7 @@ const Participant = () => {
             </div>
 
             <h2 style={{ fontSize: '28px', marginBottom: '16px', color: '#1E1B4B', fontWeight: '700' }}>
-              Date confirmée ! 🎉
+              {t('participant.dateConfirmed')}
             </h2>
 
             <div style={{
@@ -1172,7 +1175,7 @@ const Participant = () => {
             }}>
               <div style={{ marginBottom: '18px' }}>
                 <div style={{ fontSize: '13px', color: '#6B7280', marginBottom: '6px', fontWeight: '600' }}>
-                  Événement
+                  {t('participant.eventLabel')}
                 </div>
                 <div style={{ fontSize: '19px', fontWeight: '700', color: '#1E1B4B' }}>
                   {event.type}
@@ -1182,7 +1185,7 @@ const Participant = () => {
               {event.location && (
                 <div style={{ marginBottom: '18px' }}>
                   <div style={{ fontSize: '13px', color: '#6B7280', marginBottom: '6px', fontWeight: '600' }}>
-                    📍 Lieu
+                    {t('participant.locationLabel')}
                   </div>
                   <div style={{ fontSize: '16px', fontWeight: '600', color: '#1E1B4B' }}>
                     {event.location}
@@ -1193,7 +1196,7 @@ const Participant = () => {
               {event.eventSchedule && (
                 <div style={{ marginBottom: '18px' }}>
                   <div style={{ fontSize: '13px', color: '#6B7280', marginBottom: '6px', fontWeight: '600' }}>
-                    📋 Déroulé prévu
+                    {t('participant.scheduleLabel')}
                   </div>
                   <div style={{ fontSize: '14px', color: '#1E1B4B', lineHeight: '1.5' }}>
                     {event.eventSchedule}
@@ -1203,7 +1206,7 @@ const Participant = () => {
 
               <div style={{ marginBottom: '18px' }}>
                 <div style={{ fontSize: '13px', color: '#6B7280', marginBottom: '6px', fontWeight: '600' }}>
-                  📅 Date & Heure
+                  {t('participant.dateTimeLabel')}
                 </div>
                 <div style={{ 
                   fontSize: '22px', 
@@ -1218,7 +1221,7 @@ const Participant = () => {
 
               <div>
                 <div style={{ fontSize: '13px', color: '#6B7280', marginBottom: '6px', fontWeight: '600' }}>
-                  👥 Participants confirmés
+                  {t('participant.confirmedParticipants')}
                 </div>
                 <div style={{ fontSize: '15px', color: '#1E1B4B', fontWeight: '500' }}>
                   {event.organizerName || event.organizer}
@@ -1238,14 +1241,14 @@ const Participant = () => {
               margin: '32px auto 0'
             }}>
               
-              <h3 style={{ 
-                fontSize: '18px', 
-                fontWeight: '700', 
+              <h3 style={{
+                fontSize: '18px',
+                fontWeight: '700',
                 color: '#1f2937',
                 marginBottom: '8px',
                 textAlign: 'center'
               }}>
-                📅 Ajouter à ton calendrier
+                {t('participant.addToCalendar')}
               </h3>
 
               {/* Bouton Google Calendar */}
@@ -1282,7 +1285,7 @@ const Participant = () => {
                 }}
               >
                 <Calendar size={20} />
-                Ajouter à Google Calendar
+                {t('participant.addGoogleCalendar')}
               </button>
 
               {/* Bouton Outlook */}
@@ -1319,7 +1322,7 @@ const Participant = () => {
                 }}
               >
                 <Calendar size={20} />
-                Ajouter à Outlook Calendar
+                {t('participant.addOutlookCalendar')}
               </button>
 
               {/* Bouton Télécharger .ics */}
@@ -1348,7 +1351,7 @@ const Participant = () => {
                 }}
               >
                 <Download size={18} />
-                Télécharger .ics (Apple Calendar, autres...)
+                {t('participant.downloadIcs')}
               </button>
 
             </div>
@@ -1360,27 +1363,28 @@ const Participant = () => {
               borderRadius: '14px',
               border: '2px solid #FCD34D'
             }}>
-              <p style={{ 
-                fontSize: '13px', 
-                color: '#92400E',
-                margin: 0,
-                lineHeight: '1.6',
-                fontWeight: '500'
-              }}>
-                💡 <strong>Astuce :</strong> Tu recevras un email de rappel 24h avant l'événement !
-              </p>
+              <p
+                style={{
+                  fontSize: '13px',
+                  color: '#92400E',
+                  margin: 0,
+                  lineHeight: '1.6',
+                  fontWeight: '500'
+                }}
+                dangerouslySetInnerHTML={{ __html: t('participant.reminderTip') }}
+              />
             </div>
           </div>
         )}
       </div>
 
-      <div style={{ 
-        textAlign: 'center', 
+      <div style={{
+        textAlign: 'center',
         marginTop: '40px',
         color: 'rgba(255,255,255,0.9)',
         fontSize: '14px'
       }}>
-        <p style={{ margin: '0 0 8px 0' }}>✨ Synkro v2.1 - Airtable Edition</p>
+        <p style={{ margin: '0 0 8px 0' }}>{t('participant.version')}</p>
       </div>
     </div>
   );

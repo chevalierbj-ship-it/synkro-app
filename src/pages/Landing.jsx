@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Calendar, Clock, Users, Zap, CheckCircle, Sparkles, ArrowRight, MessageSquare } from 'lucide-react';
 import Header from '../components/Header';
 import SEOHead from '../components/SEOHead';
 
 const Landing = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
 
@@ -55,8 +57,8 @@ const Landing = () => {
       color: '#1E1B4B'
     }}>
       <SEOHead
-        title="Synkro - Trouvez la date parfaite en 1 minute | Organisation d'événements"
-        description="Organisez vos événements sans stress. Synkro trouve automatiquement la meilleure date pour votre groupe. Plus de 47 messages pour un simple dîner, c'est fini !"
+        title={t('landing.seo.title')}
+        description={t('landing.seo.description')}
         keywords={seoKeywords}
         type="website"
       />
@@ -114,7 +116,7 @@ const Landing = () => {
               lineHeight: '1.2',
               textShadow: '0 2px 8px rgba(0,0,0,0.15)'
             }}>
-              47 messages pour un dîner ?<br/>C'est fini.
+              {t('landing.hero.tagline')}<br/>{t('landing.hero.taglineEnd')}
             </h2>
 
             <p style={{
@@ -125,8 +127,8 @@ const Landing = () => {
               margin: '0 auto 48px',
               lineHeight: '1.5'
             }}>
-              Trouve la date parfaite pour ton événement<br/>
-              <strong style={{ color: 'white' }}>en 1 minute ⚡</strong>
+              {t('landing.hero.subtitle')}<br/>
+              <strong style={{ color: 'white' }}>{t('landing.hero.subtitleHighlight')} ⚡</strong>
             </p>
 
             <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', marginBottom: '32px', flexWrap: 'wrap' }}>
@@ -157,7 +159,7 @@ const Landing = () => {
                 }}
               >
                 <Sparkles size={20} />
-                Tester maintenant
+                {t('landing.hero.cta')}
               </button>
             </div>
 
@@ -175,7 +177,7 @@ const Landing = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && handleSubmit()}
-                  placeholder="ton@email.com"
+                  placeholder={t('landing.hero.emailPlaceholder')}
                   style={{
                     flex: '1',
                     minWidth: '280px',
@@ -213,7 +215,7 @@ const Landing = () => {
                     e.target.style.boxShadow = '0 8px 24px rgba(0,0,0,0.15)';
                   }}
                 >
-                  Accès anticipé
+                  {t('landing.hero.earlyAccess')}
                   <ArrowRight size={20} />
                 </button>
               </div>
@@ -228,10 +230,10 @@ const Landing = () => {
               }}>
                 <CheckCircle size={48} color="#8B5CF6" style={{ marginBottom: '16px' }} />
                 <h3 style={{ fontSize: '24px', marginBottom: '8px', color: '#1E1B4B' }}>
-                  Merci ! 🎉
+                  {t('landing.hero.thankYou')} 🎉
                 </h3>
                 <p style={{ color: '#6B7280', margin: 0 }}>
-                  Tu fais partie des premiers ! On te contacte très bientôt.
+                  {t('landing.hero.thankYouMessage')}
                 </p>
               </div>
             )}
@@ -241,7 +243,7 @@ const Landing = () => {
               color: 'rgba(255,255,255,0.8)',
               marginTop: '20px'
             }}>
-              🚀 Lancement prévu : Novembre 2025 • 100% gratuit pendant la beta
+              🚀 {t('landing.hero.launchInfo')}
             </p>
           </div>
 
@@ -253,9 +255,9 @@ const Landing = () => {
             margin: '0 auto'
           }}>
             {[
-              { icon: <Zap size={32} />, value: '< 1 min', label: 'Pour organiser' },
-              { icon: <Users size={32} />, value: 'Illimité', label: 'Participants' },
-              { icon: <MessageSquare size={32} />, value: '0', label: 'Prise de tête' }
+              { icon: <Zap size={32} />, value: t('landing.stats.time'), label: t('landing.stats.timeLabel') },
+              { icon: <Users size={32} />, value: t('landing.stats.participants'), label: t('landing.stats.participantsLabel') },
+              { icon: <MessageSquare size={32} />, value: t('landing.stats.stress'), label: t('landing.stats.stressLabel') }
             ].map((stat, i) => (
               <div key={i} style={{
                 background: 'rgba(255,255,255,0.15)',
@@ -293,7 +295,7 @@ const Landing = () => {
         <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: '60px' }}>
             <h2 style={{ fontSize: '42px', fontWeight: '800', marginBottom: '20px', color: '#1E1B4B' }}>
-              Tu connais ça ? 😤
+              {t('landing.problem.title')} 😤
             </h2>
           </div>
 
@@ -305,16 +307,16 @@ const Landing = () => {
             marginBottom: '40px'
           }}>
             <div style={{ fontSize: '16px', lineHeight: '1.8', color: '#92400E' }}>
-              <p style={{ margin: '0 0 12px 0', fontSize: '14px', opacity: 0.8 }}>💬 Groupe "Dîner entre potes"</p>
-              <p style={{ margin: '0 0 12px 0' }}><strong>Tom:</strong> "On se fait un dîner quand ?"</p>
-              <p style={{ margin: '0 0 12px 0' }}><strong>Sarah:</strong> "Moi je peux les 15, 16 ou 22"</p>
-              <p style={{ margin: '0 0 12px 0' }}><strong>Marc:</strong> "Attendez je regarde mon agenda..."</p>
-              <p style={{ margin: '0 0 12px 0' }}><strong>Julie:</strong> "Moi plutôt en mars"</p>
-              <p style={{ margin: '0 0 12px 0' }}><strong>Tom:</strong> "Donc le 15 ça va ?"</p>
-              <p style={{ margin: '0 0 12px 0' }}><strong>Marc:</strong> "Ah merde j'ai pas vu, moi non"</p>
-              <p style={{ margin: '0 0 12px 0' }}><strong>Sarah:</strong> "Du coup on fait quoi ??"</p>
+              <p style={{ margin: '0 0 12px 0', fontSize: '14px', opacity: 0.8 }}>💬 {t('landing.problem.groupName')}</p>
+              <p style={{ margin: '0 0 12px 0' }}><strong>Tom:</strong> "{t('landing.problem.message1')}"</p>
+              <p style={{ margin: '0 0 12px 0' }}><strong>Sarah:</strong> "{t('landing.problem.message2')}"</p>
+              <p style={{ margin: '0 0 12px 0' }}><strong>Marc:</strong> "{t('landing.problem.message3')}"</p>
+              <p style={{ margin: '0 0 12px 0' }}><strong>Julie:</strong> "{t('landing.problem.message4')}"</p>
+              <p style={{ margin: '0 0 12px 0' }}><strong>Tom:</strong> "{t('landing.problem.message5')}"</p>
+              <p style={{ margin: '0 0 12px 0' }}><strong>Marc:</strong> "{t('landing.problem.message6')}"</p>
+              <p style={{ margin: '0 0 12px 0' }}><strong>Sarah:</strong> "{t('landing.problem.message7')}"</p>
               <p style={{ margin: '0', fontStyle: 'italic', fontSize: '14px' }}>
-                ... 47 messages plus tard, toujours pas de date 🤦‍♂️
+                {t('landing.problem.conclusion')} 🤦‍♂️
               </p>
             </div>
           </div>
@@ -329,10 +331,10 @@ const Landing = () => {
         <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: '60px' }}>
             <h2 style={{ fontSize: '42px', fontWeight: '800', marginBottom: '20px', color: '#1E1B4B' }}>
-              Comment ça marche ?
+              {t('landing.howItWorks.title')}
             </h2>
             <p style={{ fontSize: '18px', color: '#6B7280' }}>
-              3 étapes, 1 minute, et c'est réglé ✨
+              {t('landing.howItWorks.subtitle')} ✨
             </p>
           </div>
 
@@ -345,20 +347,20 @@ const Landing = () => {
               {
                 step: '1',
                 icon: <Calendar size={40} />,
-                title: 'Tu proposes 3 dates',
-                description: 'Choisis le type d\'événement, Synkro te suggère des dates pertinentes'
+                title: t('landing.howItWorks.step1.title'),
+                description: t('landing.howItWorks.step1.description')
               },
               {
                 step: '2',
                 icon: <Users size={40} />,
-                title: 'Tes potes répondent',
-                description: 'Ils cliquent sur le lien et indiquent leurs dispos en 30 secondes'
+                title: t('landing.howItWorks.step2.title'),
+                description: t('landing.howItWorks.step2.description')
               },
               {
                 step: '3',
                 icon: <Zap size={40} />,
-                title: 'Synkro choisit pour vous',
-                description: 'La meilleure date est automatiquement ajoutée à vos agendas'
+                title: t('landing.howItWorks.step3.title'),
+                description: t('landing.howItWorks.step3.description')
               }
             ].map((item, i) => (
               <div key={i} style={{
@@ -414,10 +416,10 @@ const Landing = () => {
         <div style={{ marginBottom: '24px' }}>
           <Sparkles size={32} color="white" style={{ marginBottom: '16px' }} />
           <h3 style={{ fontSize: '24px', color: 'white', marginBottom: '8px' }}>Synkro</h3>
-          <p style={{ margin: 0, fontSize: '14px' }}>Une date en 1 minute ⚡</p>
+          <p style={{ margin: 0, fontSize: '14px' }}>{t('landing.footer.tagline')} ⚡</p>
         </div>
-        
-        {/* Navigation Footer - NOUVEAU */}
+
+        {/* Navigation Footer */}
         <div style={{
           display: 'flex',
           gap: '24px',
@@ -438,7 +440,7 @@ const Landing = () => {
             onMouseEnter={(e) => e.target.style.color = 'white'}
             onMouseLeave={(e) => e.target.style.color = 'rgba(255,255,255,0.7)'}
           >
-            Accueil
+            {t('nav.home')}
           </button>
           <button
             onClick={() => navigate('/pricing')}
@@ -453,7 +455,7 @@ const Landing = () => {
             onMouseEnter={(e) => e.target.style.color = 'white'}
             onMouseLeave={(e) => e.target.style.color = 'rgba(255,255,255,0.7)'}
           >
-            Tarifs
+            {t('nav.pricing')}
           </button>
           <button
             onClick={() => navigate('/create')}
@@ -468,15 +470,15 @@ const Landing = () => {
             onMouseEnter={(e) => e.target.style.color = 'white'}
             onMouseLeave={(e) => e.target.style.color = 'rgba(255,255,255,0.7)'}
           >
-            Créer un événement
+            {t('landing.footer.createEvent')}
           </button>
         </div>
-        
+
         <p style={{ fontSize: '14px', margin: '0 0 20px 0' }}>
-          Créé avec 💜 en France
+          {t('landing.footer.madeWith')}
         </p>
         <p style={{ fontSize: '12px', margin: 0 }}>
-          © 2025 Synkro • Prototype de test
+          {t('landing.footer.copyright')}
         </p>
       </footer>
     </div>

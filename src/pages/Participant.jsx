@@ -727,12 +727,12 @@ const Participant = () => {
                 transition: 'all 0.3s'
               }}
               onFocus={(e) => {
-                e.target.style.borderColor = '#8B5CF6';
-                e.target.style.boxShadow = '0 0 0 3px rgba(139, 92, 246, 0.1)';
+                e.currentTarget.style.borderColor = '#8B5CF6';
+                e.currentTarget.style.boxShadow = '0 0 0 3px rgba(139, 92, 246, 0.1)';
               }}
               onBlur={(e) => {
-                e.target.style.borderColor = '#E9D5FF';
-                e.target.style.boxShadow = 'none';
+                e.currentTarget.style.borderColor = '#E9D5FF';
+                e.currentTarget.style.boxShadow = 'none';
               }}
             />
 
@@ -752,12 +752,12 @@ const Participant = () => {
                 transition: 'all 0.3s'
               }}
               onFocus={(e) => {
-                e.target.style.borderColor = '#8B5CF6';
-                e.target.style.boxShadow = '0 0 0 3px rgba(139, 92, 246, 0.1)';
+                e.currentTarget.style.borderColor = '#8B5CF6';
+                e.currentTarget.style.boxShadow = '0 0 0 3px rgba(139, 92, 246, 0.1)';
               }}
               onBlur={(e) => {
-                e.target.style.borderColor = '#E9D5FF';
-                e.target.style.boxShadow = 'none';
+                e.currentTarget.style.borderColor = '#E9D5FF';
+                e.currentTarget.style.boxShadow = 'none';
               }}
             />
 
@@ -788,12 +788,12 @@ const Participant = () => {
                 boxShadow: '0 6px 16px rgba(139, 92, 246, 0.3)'
               }}
               onMouseEnter={(e) => {
-                e.target.style.transform = 'translateY(-2px)';
-                e.target.style.boxShadow = '0 8px 20px rgba(139, 92, 246, 0.4)';
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 8px 20px rgba(139, 92, 246, 0.4)';
               }}
               onMouseLeave={(e) => {
-                e.target.style.transform = 'translateY(0)';
-                e.target.style.boxShadow = '0 6px 16px rgba(139, 92, 246, 0.3)';
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 6px 16px rgba(139, 92, 246, 0.3)';
               }}
             >
               {t('participant.continue')}
@@ -860,14 +860,14 @@ const Participant = () => {
                       }}
                       onMouseEnter={(e) => {
                         if (availability === null) {
-                          e.target.style.borderColor = '#8B5CF6';
-                          e.target.style.boxShadow = '0 4px 12px rgba(139, 92, 246, 0.2)';
+                          e.currentTarget.style.borderColor = '#8B5CF6';
+                          e.currentTarget.style.boxShadow = '0 4px 12px rgba(139, 92, 246, 0.2)';
                         }
                       }}
                       onMouseLeave={(e) => {
                         if (availability === null) {
-                          e.target.style.borderColor = '#E9D5FF';
-                          e.target.style.boxShadow = 'none';
+                          e.currentTarget.style.borderColor = '#E9D5FF';
+                          e.currentTarget.style.boxShadow = 'none';
                         }
                       }}
                     >
@@ -1052,12 +1052,12 @@ const Participant = () => {
                     transition: 'all 0.3s'
                   }}
                   onMouseEnter={(e) => {
-                    e.target.style.transform = 'translateY(-2px)';
-                    e.target.style.boxShadow = '0 8px 20px rgba(16, 185, 129, 0.4)';
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 8px 20px rgba(16, 185, 129, 0.4)';
                   }}
                   onMouseLeave={(e) => {
-                    e.target.style.transform = 'translateY(0)';
-                    e.target.style.boxShadow = '0 6px 16px rgba(16, 185, 129, 0.3)';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 6px 16px rgba(16, 185, 129, 0.3)';
                   }}
                 >
                   <PiggyBank size={20} />
@@ -1272,16 +1272,16 @@ const Participant = () => {
                   boxShadow: '0 2px 8px rgba(139, 92, 246, 0.1)'
                 }}
                 onMouseEnter={(e) => {
-                  e.target.style.background = 'linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)';
-                  e.target.style.color = 'white';
-                  e.target.style.transform = 'translateY(-2px)';
-                  e.target.style.boxShadow = '0 8px 20px rgba(139, 92, 246, 0.3)';
+                  e.currentTarget.style.background = 'linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)';
+                  e.currentTarget.style.color = 'white';
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 8px 20px rgba(139, 92, 246, 0.3)';
                 }}
                 onMouseLeave={(e) => {
-                  e.target.style.background = 'white';
-                  e.target.style.color = '#8B5CF6';
-                  e.target.style.transform = 'translateY(0)';
-                  e.target.style.boxShadow = '0 2px 8px rgba(139, 92, 246, 0.1)';
+                  e.currentTarget.style.background = 'white';
+                  e.currentTarget.style.color = '#8B5CF6';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(139, 92, 246, 0.1)';
                 }}
               >
                 <Calendar size={20} />
@@ -1309,16 +1309,16 @@ const Participant = () => {
                   boxShadow: '0 2px 8px rgba(236, 72, 153, 0.1)'
                 }}
                 onMouseEnter={(e) => {
-                  e.target.style.background = 'linear-gradient(135deg, #EC4899 0%, #DB2777 100%)';
-                  e.target.style.color = 'white';
-                  e.target.style.transform = 'translateY(-2px)';
-                  e.target.style.boxShadow = '0 8px 20px rgba(236, 72, 153, 0.3)';
+                  e.currentTarget.style.background = 'linear-gradient(135deg, #EC4899 0%, #DB2777 100%)';
+                  e.currentTarget.style.color = 'white';
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 8px 20px rgba(236, 72, 153, 0.3)';
                 }}
                 onMouseLeave={(e) => {
-                  e.target.style.background = 'white';
-                  e.target.style.color = '#EC4899';
-                  e.target.style.transform = 'translateY(0)';
-                  e.target.style.boxShadow = '0 2px 8px rgba(236, 72, 153, 0.1)';
+                  e.currentTarget.style.background = 'white';
+                  e.currentTarget.style.color = '#EC4899';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(236, 72, 153, 0.1)';
                 }}
               >
                 <Calendar size={20} />
@@ -1344,10 +1344,10 @@ const Participant = () => {
                   transition: 'all 0.2s ease'
                 }}
                 onMouseEnter={(e) => {
-                  e.target.style.color = '#8B5CF6';
+                  e.currentTarget.style.color = '#8B5CF6';
                 }}
                 onMouseLeave={(e) => {
-                  e.target.style.color = '#6B7280';
+                  e.currentTarget.style.color = '#6B7280';
                 }}
               >
                 <Download size={18} />

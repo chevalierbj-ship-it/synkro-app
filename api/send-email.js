@@ -63,17 +63,17 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'Email service not configured' });
     }
 
-    // Email subjects by language
+    // Email subjects by language (minimiser les emojis pour éviter le spam)
     const subjects = {
       fr: {
-        'organizer-created': '✅ Ton événement Synkro est créé !',
-        'participant-voted': '✅ Tes disponibilités sont enregistrées !',
-        'date-confirmed': '🎉 La date de ton événement est confirmée !'
+        'organizer-created': 'Synkro - Ton événement est créé',
+        'participant-voted': 'Synkro - Tes disponibilités sont enregistrées',
+        'date-confirmed': 'Synkro - La date est confirmée !'
       },
       en: {
-        'organizer-created': '✅ Your Synkro event is created!',
-        'participant-voted': '✅ Your availability has been recorded!',
-        'date-confirmed': '🎉 The date of your event is confirmed!'
+        'organizer-created': 'Synkro - Your event is created',
+        'participant-voted': 'Synkro - Your availability has been recorded',
+        'date-confirmed': 'Synkro - The date is confirmed!'
       }
     };
 
@@ -191,6 +191,7 @@ const emailTranslations = {
       location: 'Lieu',
       participants: 'Participants',
       addCalendar: '📅 Ajouter à mon calendrier',
+      viewEvent: '🔗 Voir l\'événement',
       reminder: '<strong>Rappel :</strong> Tu recevras un email de rappel 24h avant l\'événement !',
       footer: 'Créé avec ❤️ par Synkro',
       tagline: 'Trouve la date parfaite en 1 minute'
@@ -228,6 +229,7 @@ const emailTranslations = {
       location: 'Location',
       participants: 'Participants',
       addCalendar: '📅 Add to my calendar',
+      viewEvent: '🔗 View event',
       reminder: '<strong>Reminder:</strong> You\'ll receive a reminder email 24h before the event!',
       footer: 'Made with ❤️ by Synkro',
       tagline: 'Find the perfect date in 1 minute'
@@ -402,7 +404,7 @@ function getParticipantVotedEmail(data, lang = 'fr') {
 }
 
 function getDateConfirmedEmail(data, lang = 'fr') {
-  const { eventType, finalDate, organizerName, participants, location, calendarLink } = data;
+  const { eventType, finalDate, organizerName, participants, location, calendarLink, eventLink } = data;
   const t = emailTranslations[lang].dateConfirmed;
 
   return `
@@ -461,8 +463,14 @@ function getDateConfirmedEmail(data, lang = 'fr') {
                 </p>
               </div>
 
+              ${eventLink ? `
+              <a href="${eventLink}" style="display: block; background: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%); color: white; text-decoration: none; padding: 18px 32px; border-radius: 12px; font-size: 16px; font-weight: 700; text-align: center; margin-bottom: 12px;">
+                ${t.viewEvent}
+              </a>
+              ` : ''}
+
               ${calendarLink ? `
-              <a href="${calendarLink}" style="display: block; background: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%); color: white; text-decoration: none; padding: 18px 32px; border-radius: 12px; font-size: 16px; font-weight: 700; text-align: center; margin-bottom: 20px;">
+              <a href="${calendarLink}" style="display: block; background: white; color: #8B5CF6; text-decoration: none; padding: 18px 32px; border-radius: 12px; font-size: 16px; font-weight: 700; text-align: center; margin-bottom: 20px; border: 2px solid #8B5CF6;">
                 ${t.addCalendar}
               </a>
               ` : ''}

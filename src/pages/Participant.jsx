@@ -114,6 +114,27 @@ const Participant = () => {
         const eventData = responseData.event; // ✅ Extraire l'événement
         setEvent(eventData);
 
+        // 🆕 Si l'événement a une date confirmée, afficher directement la vue de confirmation
+        if (eventData.confirmedDate || eventData.status === 'completed') {
+          // Créer l'objet selectedDate pour la vue de confirmation
+          const confirmedDateObj = {
+            date: eventData.confirmedDate,
+            time: eventData.confirmedTime || '18:00',
+            label: eventData.confirmedDate
+              ? new Date(eventData.confirmedDate).toLocaleDateString('fr-FR', {
+                  weekday: 'long',
+                  day: 'numeric',
+                  month: 'long',
+                  year: 'numeric'
+                }) + (eventData.confirmedTime ? ` à ${eventData.confirmedTime}` : '')
+              : eventData.dates?.[0]?.label || ''
+          };
+          setSelectedDate(confirmedDateObj);
+          setStep(4); // Afficher directement la page de confirmation
+          setLoading(false);
+          return;
+        }
+
         // 🆕 Détecter si le mode IA est activé
         if (eventData.useAI === true) {
           setIsAIMode(true);

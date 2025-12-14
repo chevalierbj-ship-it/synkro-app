@@ -245,7 +245,7 @@ async function sendReminderToOrganizer({
       body: JSON.stringify({
         from: emailConfig.from,
         to: organizerEmail,
-        subject: `📣 Relance tes participants : ${eventType}`,
+        subject: `Synkro - Relance tes participants : ${eventType}`,
         html: emailHtml
       })
     });

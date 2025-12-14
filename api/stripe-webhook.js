@@ -455,7 +455,7 @@ async function handleCheckoutCompleted({ userId, email, subscriptionId, customer
       await resend.emails.send({
       from: 'Synkro <noreply@getsynkro.com>',
       to: email,
-      subject: `🎉 Bienvenue dans Synkro ${planName} !`,
+      subject: `Synkro - Bienvenue dans le plan ${planName}`,
       html: `
         <!DOCTYPE html>
         <html>
@@ -793,7 +793,7 @@ async function handlePaymentFailed(invoice) {
       await resend.emails.send({
         from: 'Synkro <noreply@getsynkro.com>',
         to: customerEmail,
-        subject: '⚠️ Échec du paiement - Action requise',
+        subject: 'Synkro - Échec du paiement - Action requise',
         html: `
           <!DOCTYPE html>
           <html>
@@ -898,7 +898,7 @@ async function handlePaymentSucceeded(invoice) {
       await resend.emails.send({
         from: 'Synkro <noreply@getsynkro.com>',
         to: customerEmail,
-        subject: '✅ Paiement confirmé - Synkro',
+        subject: 'Synkro - Paiement confirmé',
         html: `
           <!DOCTYPE html>
           <html>

@@ -295,7 +295,7 @@ async function sendInvitationEmail({ email, invitationToken, parentUserName, rol
       body: JSON.stringify({
         from: emailConfig.from,
         to: email,
-        subject: '🎉 Vous êtes invité à rejoindre une équipe sur Synkro',
+        subject: 'Synkro - Vous êtes invité à rejoindre une équipe',
         html: emailHtml
       })
     });

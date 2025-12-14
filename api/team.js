@@ -296,7 +296,11 @@ async function sendInvitationEmail({ email, invitationToken, parentUserName, rol
         from: emailConfig.from,
         to: email,
         subject: 'Synkro - Vous êtes invité à rejoindre une équipe',
-        html: emailHtml
+        html: emailHtml,
+        headers: {
+          'List-Unsubscribe': '<mailto:unsubscribe@getsynkro.com>',
+          'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click'
+        }
       })
     });
 

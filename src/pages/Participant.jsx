@@ -298,18 +298,50 @@ const Participant = () => {
     }
   };
 
+  // 🆕 État pour éviter les double-clics
+  const [isConfirming, setIsConfirming] = useState(false);
+
   // 🆕 HANDLER : Confirmer la date recommandée par l'IA
   const handleAIConfirm = async (selectedDateObj) => {
+    console.log('🎯 handleAIConfirm called with:', selectedDateObj);
+    console.log('📝 userName:', userName);
+    console.log('📧 userEmail:', userEmail);
+
+    // Empêcher les double-clics
+    if (isConfirming) {
+      console.log('⚠️ Already confirming, ignoring click');
+      return;
+    }
+
+    // Validation : vérifier que userName est défini
+    if (!userName || !userName.trim()) {
+      console.error('❌ userName is empty!');
+      alert(t('participant.enterNameError') || 'Veuillez entrer votre nom');
+      setIsAIMode(false);
+      setAiRecommendation(null);
+      setStep(1);
+      return;
+    }
+
+    setIsConfirming(true); // Bloquer les clics supplémentaires
+
     try {
+      // 🔥 IMPORTANT : Désactiver le mode IA AVANT de changer le step
+      // pour que le rendu basé sur step fonctionne
+      setIsAIMode(false);
+      setAiRecommendation(null);
       setStep(3); // Loader
+      console.log('⏳ Step set to 3 (loading)');
 
       // Créer les availabilities : true pour la date sélectionnée, false pour les autres
       const aiAvailabilities = {};
       event.dates.forEach(date => {
         aiAvailabilities[date.label] = (date.label === selectedDateObj.label);
       });
+      console.log('📊 aiAvailabilities:', aiAvailabilities);
 
       // Sauvegarder le vote via l'API normale
+      console.log('📡 Sending API request...');
       const response = await fetch('/api/events?action=update', {
         method: 'POST',
         headers: {
@@ -324,21 +356,29 @@ const Participant = () => {
         })
       });
 
+      console.log('📥 API response status:', response.status);
+
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ API error:', errorText);
         throw new Error('Failed to save vote');
       }
 
       const result = await response.json();
+      console.log('✅ API result:', result);
       setEvent(result.event);
 
       setTimeout(() => {
         setSelectedDate(selectedDateObj);
         setStep(4);
+        setIsConfirming(false);
+        console.log('🎉 Step set to 4 (confirmation)');
       }, 1500);
 
     } catch (error) {
-      console.error('Error confirming AI recommendation:', error);
-      alert(t('participant.confirmError'));
+      console.error('❌ Error confirming AI recommendation:', error);
+      alert(t('participant.confirmError') || 'Erreur lors de la confirmation');
+      setIsConfirming(false);
       setStep(2);
     }
   };

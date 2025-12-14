@@ -246,7 +246,11 @@ async function sendReminderToOrganizer({
         from: emailConfig.from,
         to: organizerEmail,
         subject: `Synkro - Relance tes participants : ${eventType}`,
-        html: emailHtml
+        html: emailHtml,
+        headers: {
+          'List-Unsubscribe': '<mailto:unsubscribe@getsynkro.com>',
+          'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click'
+        }
       })
     });
 

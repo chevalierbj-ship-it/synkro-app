@@ -239,7 +239,16 @@ export default function AIRecommendation({
 
         {/* Bouton confirmer */}
         <button
-          onClick={() => onConfirm(bestDate)}
+          onClick={() => {
+            console.log('🔘 Button "Confirmer cette date" clicked!');
+            console.log('📅 bestDate:', bestDate);
+            console.log('🔧 onConfirm function:', typeof onConfirm);
+            if (typeof onConfirm === 'function') {
+              onConfirm(bestDate);
+            } else {
+              console.error('❌ onConfirm is not a function!');
+            }
+          }}
           style={{
             width: '100%',
             padding: '20px',
@@ -337,7 +346,13 @@ export default function AIRecommendation({
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    onConfirm(alt);
+                    console.log('🔘 Button "Choisir" clicked for:', alt.label);
+                    console.log('📅 alt:', alt);
+                    if (typeof onConfirm === 'function') {
+                      onConfirm(alt);
+                    } else {
+                      console.error('❌ onConfirm is not a function!');
+                    }
                   }}
                   style={{
                     padding: '10px 20px',

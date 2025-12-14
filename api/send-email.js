@@ -122,7 +122,11 @@ export default async function handler(req, res) {
         from: emailConfig.from,
         to: [to],
         subject: subject,
-        html: emailContent
+        html: emailContent,
+        headers: {
+          'List-Unsubscribe': '<mailto:unsubscribe@getsynkro.com>',
+          'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click'
+        }
       })
     });
 

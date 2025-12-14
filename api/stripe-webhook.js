@@ -519,7 +519,11 @@ async function handleCheckoutCompleted({ userId, email, subscriptionId, customer
           </div>
         </body>
         </html>
-      `
+      `,
+      headers: {
+        'List-Unsubscribe': '<mailto:unsubscribe@getsynkro.com>',
+        'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click'
+      }
       });
 
       console.log('✅ Confirmation email sent to:', email);
@@ -751,7 +755,11 @@ async function handleSubscriptionDeleted(subscription) {
             </div>
           </body>
           </html>
-        `
+        `,
+        headers: {
+          'List-Unsubscribe': '<mailto:unsubscribe@getsynkro.com>',
+          'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click'
+        }
         });
 
         console.log('✅ Cancellation email sent to:', customerEmail);
@@ -845,7 +853,11 @@ async function handlePaymentFailed(invoice) {
             </div>
           </body>
           </html>
-        `
+        `,
+        headers: {
+          'List-Unsubscribe': '<mailto:unsubscribe@getsynkro.com>',
+          'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click'
+        }
         });
 
         console.log('✅ Payment failure email sent to:', customerEmail);
@@ -943,7 +955,11 @@ async function handlePaymentSucceeded(invoice) {
             </div>
           </body>
           </html>
-        `
+        `,
+        headers: {
+          'List-Unsubscribe': '<mailto:unsubscribe@getsynkro.com>',
+          'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click'
+        }
         });
 
         console.log('✅ Payment confirmation email sent to:', customerEmail);

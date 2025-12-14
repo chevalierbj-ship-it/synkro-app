@@ -259,7 +259,11 @@ async function createEvent(req, res) {
             from: emailConfig.from,
             to: [eventData.organizerEmail],
             subject: 'Synkro - Ton événement est créé',
-            html: emailHTML
+            html: emailHTML,
+            headers: {
+              'List-Unsubscribe': '<mailto:unsubscribe@getsynkro.com>',
+              'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click'
+            }
           })
         });
 
@@ -760,7 +764,11 @@ async function sendParticipantConfirmationEmail({
         from: emailConfig.from,
         to: participantEmail,
         subject: `Synkro - Vote confirmé : ${eventType}`,
-        html: emailHtml
+        html: emailHtml,
+        headers: {
+          'List-Unsubscribe': '<mailto:unsubscribe@getsynkro.com>',
+          'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click'
+        }
       })
     });
 
@@ -877,7 +885,11 @@ async function sendCelebrationEmail({
         from: emailConfig.from,
         to: allEmails,
         subject: `Synkro - La majorité a voté pour : ${eventType}`,
-        html: emailHtml
+        html: emailHtml,
+        headers: {
+          'List-Unsubscribe': '<mailto:unsubscribe@getsynkro.com>',
+          'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click'
+        }
       })
     });
 

@@ -192,7 +192,8 @@ export function logEnvStatus() {
  * Retourne les parametres pour Resend
  */
 export function getEmailConfig() {
-  const fromAddress = process.env.EMAIL_FROM_ADDRESS || 'onboarding@resend.dev';
+  // Utiliser le domaine custom getsynkro.com par défaut pour éviter le spam
+  const fromAddress = process.env.EMAIL_FROM_ADDRESS || 'noreply@getsynkro.com';
   const fromName = process.env.EMAIL_FROM_NAME || 'Synkro';
 
   return {

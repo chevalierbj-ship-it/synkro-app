@@ -661,7 +661,9 @@ async function sendParticipantConfirmationEmail({
     .map(date => date.label)
     .join(', ');
 
-  const participantLink = `${process.env.VERCEL_URL || 'https://getsynkro.com'}/participant?id=${eventId}`;
+  // Toujours utiliser le domaine production pour les emails
+  const APP_URL = process.env.APP_URL || 'https://getsynkro.com';
+  const participantLink = `${APP_URL}/participant?id=${eventId}`;
 
   const emailHtml = `
 <!DOCTYPE html>

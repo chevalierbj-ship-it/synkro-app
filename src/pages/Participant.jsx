@@ -1325,32 +1325,40 @@ const Participant = () => {
                 {t('participant.addOutlookCalendar')}
               </button>
 
-              {/* Bouton Télécharger .ics */}
+              {/* Bouton Télécharger .ics - Même style que Google/Outlook */}
               <button
                 onClick={() => downloadICS()}
                 style={{
                   width: '100%',
-                  padding: '14px 24px',
-                  background: 'transparent',
-                  color: '#6B7280',
-                  border: 'none',
-                  fontSize: '14px',
+                  padding: '18px 24px',
+                  background: 'white',
+                  color: '#10B981',
+                  border: '2px solid #10B981',
+                  borderRadius: '14px',
+                  fontSize: '16px',
+                  fontWeight: '700',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: '8px',
-                  fontWeight: '600',
-                  transition: 'all 0.2s ease'
+                  gap: '12px',
+                  transition: 'all 0.3s ease',
+                  boxShadow: '0 2px 8px rgba(16, 185, 129, 0.1)'
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.color = '#8B5CF6';
+                  e.currentTarget.style.background = 'linear-gradient(135deg, #10B981 0%, #059669 100%)';
+                  e.currentTarget.style.color = 'white';
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 8px 20px rgba(16, 185, 129, 0.3)';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.color = '#6B7280';
+                  e.currentTarget.style.background = 'white';
+                  e.currentTarget.style.color = '#10B981';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(16, 185, 129, 0.1)';
                 }}
               >
-                <Download size={18} />
+                <Download size={20} />
                 {t('participant.downloadIcs')}
               </button>
 

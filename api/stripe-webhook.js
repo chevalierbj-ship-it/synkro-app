@@ -453,7 +453,7 @@ async function handleCheckoutCompleted({ userId, email, subscriptionId, customer
       const resend = new Resend(RESEND_API_KEY);
 
       await resend.emails.send({
-      from: 'Synkro <noreply@synkro.app>',
+      from: 'Synkro <noreply@getsynkro.com>',
       to: email,
       subject: `🎉 Bienvenue dans Synkro ${planName} !`,
       html: `
@@ -703,7 +703,7 @@ async function handleSubscriptionDeleted(subscription) {
         const resend = new Resend(RESEND_API_KEY);
 
       await resend.emails.send({
-        from: 'Synkro <noreply@synkro.app>',
+        from: 'Synkro <noreply@getsynkro.com>',
         to: customerEmail,
         subject: 'Votre abonnement Synkro a été annulé',
         html: `
@@ -791,7 +791,7 @@ async function handlePaymentFailed(invoice) {
         const resend = new Resend(RESEND_API_KEY);
 
       await resend.emails.send({
-        from: 'Synkro <noreply@synkro.app>',
+        from: 'Synkro <noreply@getsynkro.com>',
         to: customerEmail,
         subject: '⚠️ Échec du paiement - Action requise',
         html: `
@@ -896,7 +896,7 @@ async function handlePaymentSucceeded(invoice) {
         const resend = new Resend(RESEND_API_KEY);
 
       await resend.emails.send({
-        from: 'Synkro <noreply@synkro.app>',
+        from: 'Synkro <noreply@getsynkro.com>',
         to: customerEmail,
         subject: '✅ Paiement confirmé - Synkro',
         html: `

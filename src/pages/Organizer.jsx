@@ -62,18 +62,22 @@ const Organizer = () => {
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
     const daysInMonth = lastDay.getDate();
-    const startingDayOfWeek = firstDay.getDay();
+
+    // Ajuster pour que la semaine commence le lundi (format européen)
+    // getDay() retourne 0 pour dimanche, on veut 0 pour lundi
+    const dayOfWeek = firstDay.getDay();
+    const startingDayOfWeek = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
 
     const days = [];
-    
+
     for (let i = 0; i < startingDayOfWeek; i++) {
       days.push(null);
     }
-    
+
     for (let i = 1; i <= daysInMonth; i++) {
       days.push(new Date(year, month, i));
     }
-    
+
     return days;
   };
 
@@ -902,7 +906,8 @@ body: JSON.stringify({
                   gap: '8px',
                   marginBottom: '12px'
                 }}>
-                  {['D', 'L', 'M', 'M', 'J', 'V', 'S'].map((day, i) => (
+                  {/* Semaine commence le lundi (format européen) */}
+                {['L', 'M', 'M', 'J', 'V', 'S', 'D'].map((day, i) => (
                     <div key={i} style={{
                       textAlign: 'center',
                       fontSize: '12px',

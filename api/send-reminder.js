@@ -1,5 +1,7 @@
 // API : Relancer les participants qui n'ont pas encore voté
 
+import { getEmailConfig } from './_lib/validate-env.js';
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -44,7 +46,9 @@ export default async function handler(req, res) {
     // Donc on va simplement envoyer un email générique à l'organisateur
     // avec le lien à partager
 
-    const participantLink = `${process.env.VERCEL_URL || 'https://getsynkro.com'}/participant?id=${eventId}`;
+    // Toujours utiliser le domaine production pour les emails
+    const APP_URL = process.env.APP_URL || 'https://getsynkro.com';
+    const participantLink = `${APP_URL}/participant?id=${eventId}`;
     const organizerEmail = event.organizerEmail;
 
     if (!organizerEmail) {
@@ -231,6 +235,7 @@ async function sendReminderToOrganizer({
   `;
 
   try {
+    const emailConfig = getEmailConfig();
     const response = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
@@ -238,7 +243,7 @@ async function sendReminderToOrganizer({
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        from: 'Synkro <onboarding@resend.dev>',
+        from: emailConfig.from,
         to: organizerEmail,
         subject: `📣 Relance tes participants : ${eventType}`,
         html: emailHtml

@@ -7,6 +7,8 @@
  * - DELETE ?action=revoke : Révoquer un membre
  */
 
+import { getEmailConfig } from './_lib/validate-env.js';
+
 const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN;
 const AIRTABLE_API_KEY = process.env.AIRTABLE_API_KEY;
 const AIRTABLE_AUTH = AIRTABLE_TOKEN || AIRTABLE_API_KEY;
@@ -204,7 +206,9 @@ async function sendInvitationEmail({ email, invitationToken, parentUserName, rol
     return;
   }
 
-  const invitationLink = `${process.env.VERCEL_URL || 'https://getsynkro.com'}/accept-invitation?token=${invitationToken}`;
+  // Toujours utiliser le domaine production pour les emails
+  const APP_URL = process.env.APP_URL || 'https://getsynkro.com';
+  const invitationLink = `${APP_URL}/accept-invitation?token=${invitationToken}`;
 
   const roleText = {
     admin: 'Administrateur - Accès complet à tous les événements',
@@ -281,6 +285,7 @@ async function sendInvitationEmail({ email, invitationToken, parentUserName, rol
   `;
 
   try {
+    const emailConfig = getEmailConfig();
     const response = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
@@ -288,7 +293,7 @@ async function sendInvitationEmail({ email, invitationToken, parentUserName, rol
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        from: 'Synkro <onboarding@resend.dev>',
+        from: emailConfig.from,
         to: email,
         subject: '🎉 Vous êtes invité à rejoindre une équipe sur Synkro',
         html: emailHtml

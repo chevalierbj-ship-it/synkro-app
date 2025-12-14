@@ -34,7 +34,7 @@ Assurez-vous que votre application est déployée avec le fichier `/api/stripe-w
 
 3. Renseignez l'URL de votre endpoint :
    ```
-   https://synkro-app-bice.vercel.app/api/stripe-webhook
+   https://getsynkro.com/api/stripe-webhook
    ```
    _(Remplacez par votre domaine de production)_
 

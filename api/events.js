@@ -131,7 +131,9 @@ async function getEvent(req, res) {
     budgetVotes: budgetVotes,
     useAI: record.fields.useAI || false,
     ai_preferences: record.fields.ai_preferences || null,
-    cagnotteLink: record.fields.cagnotteLink || null
+    cagnotteLink: record.fields.cagnotteLink || null,
+    confirmedDate: record.fields.confirmedDate || null,
+    confirmedTime: record.fields.confirmedTime || null
   };
 
   return res.status(200).json({
@@ -256,7 +258,7 @@ async function createEvent(req, res) {
           body: JSON.stringify({
             from: emailConfig.from,
             to: [eventData.organizerEmail],
-            subject: '✅ Ton événement Synkro est créé !',
+            subject: 'Synkro - Ton événement est créé',
             html: emailHTML
           })
         });
@@ -757,7 +759,7 @@ async function sendParticipantConfirmationEmail({
       body: JSON.stringify({
         from: emailConfig.from,
         to: participantEmail,
-        subject: `✅ Vote confirmé : ${eventType}`,
+        subject: `Synkro - Vote confirmé : ${eventType}`,
         html: emailHtml
       })
     });
@@ -874,7 +876,7 @@ async function sendCelebrationEmail({
       body: JSON.stringify({
         from: emailConfig.from,
         to: allEmails,
-        subject: `🎊 Super nouvelle ! La majorité a voté pour : ${eventType}`,
+        subject: `Synkro - La majorité a voté pour : ${eventType}`,
         html: emailHtml
       })
     });

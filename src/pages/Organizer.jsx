@@ -1079,22 +1079,32 @@ body: JSON.stringify({
               <input
                 type="number"
                 min="2"
-                max={user.plan === 'gratuit' ? user.participantsLimit : user.plan === 'pro' ? 50 : undefined}
+                max={(() => {
+                  const p = (user.plan || 'gratuit').toLowerCase();
+                  if (p === 'entreprise' || p === 'enterprise') return undefined; // Pas de limite
+                  if (p === 'pro') return 50;
+                  return user.participantsLimit; // gratuit
+                })()}
                 value={expectedParticipants}
                 onChange={(e) => {
                   const value = parseInt(e.target.value) || 0;
+                  // Normaliser le plan pour comparaison case-insensitive
+                  const planLower = (user.plan || 'gratuit').toLowerCase();
+
                   // Limitation selon le plan
-                  if (user.plan === 'gratuit' && value > user.participantsLimit) {
-                    setShowUpgradeModal(true);
-                    setUpgradeFeature('50 participants max');
-                    setUpgradePlan('Pro');
-                    setUpgradePrice('19€/mois');
-                    return;
-                  } else if (user.plan === 'pro' && value > 50) {
+                  if (planLower === 'entreprise' || planLower === 'enterprise') {
+                    // Enterprise = pas de limite de participants
+                  } else if (planLower === 'pro' && value > 50) {
                     setShowUpgradeModal(true);
                     setUpgradeFeature('Participants illimités');
                     setUpgradePlan('Entreprise');
                     setUpgradePrice('49€/mois');
+                    return;
+                  } else if (planLower === 'gratuit' && value > user.participantsLimit) {
+                    setShowUpgradeModal(true);
+                    setUpgradeFeature('50 participants max');
+                    setUpgradePlan('Pro');
+                    setUpgradePrice('19€/mois');
                     return;
                   }
                   setExpectedParticipants(e.target.value);

@@ -69,7 +69,7 @@ User-agent: *
 Allow: /
 Disallow: /api/
 Disallow: /admin/
-Sitemap: https://synkro-app-bice.vercel.app/sitemap.xml
+Sitemap: https://getsynkro.com/sitemap.xml
 ```
 
 #### sitemap.xml
@@ -86,7 +86,7 @@ Sitemap XML avec toutes les pages publiques :
 **Format:**
 ```xml
 <url>
-  <loc>https://synkro-app-bice.vercel.app/</loc>
+  <loc>https://getsynkro.com/</loc>
   <lastmod>2024-12-08</lastmod>
   <changefreq>weekly</changefreq>
   <priority>1.0</priority>
@@ -191,10 +191,10 @@ import OptimizedImage from '../components/OptimizedImage';
 **Open Graph (Facebook):**
 ```html
 <meta property="og:type" content="website">
-<meta property="og:url" content="https://synkro-app-bice.vercel.app/">
+<meta property="og:url" content="https://getsynkro.com/">
 <meta property="og:title" content="...">
 <meta property="og:description" content="...">
-<meta property="og:image" content="https://synkro-app-bice.vercel.app/og-image.jpg">
+<meta property="og:image" content="https://getsynkro.com/og-image.jpg">
 <meta property="og:locale" content="fr_FR">
 ```
 
@@ -276,7 +276,7 @@ Avec toutes ces optimisations :
 ```bash
 # Lighthouse CLI
 npm install -g lighthouse
-lighthouse https://synkro-app-bice.vercel.app --view
+lighthouse https://getsynkro.com --view
 
 # Test Schema.org
 https://search.google.com/test/rich-results

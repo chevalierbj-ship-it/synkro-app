@@ -236,7 +236,7 @@ AIRTABLE_API_KEY=xxx
 AIRTABLE_TOKEN=xxx
 AIRTABLE_EVENTS_TABLE_ID=xxx
 RESEND_API_KEY=xxx
-VERCEL_URL=https://synkro-app-bice.vercel.app
+VERCEL_URL=https://getsynkro.com
 ```
 
 ### Champs Airtable à créer

@@ -302,7 +302,7 @@ console.log('User signed in:', userData);
 
 ➡️ Dans Clerk Dashboard, vérifiez que vos URLs autorisées incluent :
 - `http://localhost:5173` (dev)
-- `https://synkro-app-bice.vercel.app` (prod)
+- `https://getsynkro.com` (prod)
 
 ### La modal ne s'ouvre pas
 

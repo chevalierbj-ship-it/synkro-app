@@ -123,7 +123,7 @@ Les webhooks permettent à Stripe de notifier votre application quand un paiemen
 
 1. Allez sur https://dashboard.stripe.com/webhooks
 2. Cliquez sur **"Add endpoint"**
-3. **Endpoint URL** : `https://synkro-app-bice.vercel.app/api/stripe-webhook`
+3. **Endpoint URL** : `https://getsynkro.com/api/stripe-webhook`
 4. **Events to send** : Sélectionnez :
    - `checkout.session.completed`
    - `customer.subscription.created`

@@ -64,7 +64,7 @@
 
 3. **Renseigner l'URL :**
    ```
-   https://synkro-app-bice.vercel.app/api/stripe-webhook
+   https://getsynkro.com/api/stripe-webhook
    ```
    *(Remplacez par votre domaine Vercel)*
 

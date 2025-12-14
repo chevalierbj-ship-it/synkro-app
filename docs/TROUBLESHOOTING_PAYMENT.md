@@ -51,7 +51,7 @@ Si votre paiement Stripe est validé mais Airtable n'est pas à jour, utilisez l
 
 ```bash
 # Remplacez votre-email@example.com par votre vrai email
-curl "https://synkro-app-bice.vercel.app/api/sync-user-plan?email=votre-email@example.com"
+curl "https://getsynkro.com/api/sync-user-plan?email=votre-email@example.com"
 ```
 
 ### Option 2 : Via le navigateur
@@ -59,7 +59,7 @@ curl "https://synkro-app-bice.vercel.app/api/sync-user-plan?email=votre-email@ex
 1. Ouvrez votre navigateur
 2. Collez cette URL (en remplaçant l'email) :
    ```
-   https://synkro-app-bice.vercel.app/api/sync-user-plan?email=votre-email@example.com
+   https://getsynkro.com/api/sync-user-plan?email=votre-email@example.com
    ```
 3. Vous devriez voir une réponse JSON avec :
    ```json
@@ -102,7 +102,7 @@ Envoyez un email à support@synkro.app avec :
 
 **Solution** :
 1. Allez dans Stripe Dashboard > Developers > Webhooks
-2. Vérifiez qu'il y a un endpoint vers `https://synkro-app-bice.vercel.app/api/stripe-webhook`
+2. Vérifiez qu'il y a un endpoint vers `https://getsynkro.com/api/stripe-webhook`
 3. Vérifiez que ces événements sont activés :
    - `checkout.session.completed`
    - `customer.subscription.created`

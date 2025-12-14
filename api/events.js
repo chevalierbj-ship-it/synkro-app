@@ -782,6 +782,9 @@ async function sendParticipantConfirmationEmail({
   }
 }
 
+// Fonction utilitaire pour le délai (rate limiting Resend)
+const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
 async function sendCelebrationEmail({
   participants,
   eventType,
@@ -806,10 +809,15 @@ async function sendCelebrationEmail({
     ...participants.filter(p => p.email).map(p => p.email)
   ].filter(email => email);
 
-  if (allEmails.length === 0) {
+  // Dédupliquer les emails
+  const uniqueEmails = [...new Set(allEmails)];
+
+  if (uniqueEmails.length === 0) {
     console.log('No emails to send celebration to');
     return;
   }
+
+  console.log(`📧 Sending celebration emails to ${uniqueEmails.length} recipients with rate limiting...`);
 
   const emailHtml = `
 <!DOCTYPE html>
@@ -873,34 +881,52 @@ async function sendCelebrationEmail({
 </html>
   `;
 
-  try {
-    const emailConfig = getEmailConfig();
-    const response = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${RESEND_API_KEY}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        from: emailConfig.from,
-        to: allEmails,
-        subject: `Synkro - La majorité a voté pour : ${eventType}`,
-        html: emailHtml,
-        headers: {
-          'List-Unsubscribe': '<mailto:unsubscribe@getsynkro.com>',
-          'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click'
-        }
-      })
-    });
+  const emailConfig = getEmailConfig();
+  let successCount = 0;
+  let failCount = 0;
 
-    if (!response.ok) {
-      console.error('Failed to send celebration email:', await response.text());
-    } else {
-      console.log('🎉 Celebration email sent to:', allEmails.length, 'recipients');
+  // Envoyer les emails un par un avec un délai de 600ms pour respecter la limite Resend (2/seconde)
+  for (let i = 0; i < uniqueEmails.length; i++) {
+    const email = uniqueEmails[i];
+
+    try {
+      const response = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${RESEND_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          from: emailConfig.from,
+          to: email,
+          subject: `Synkro - La majorité a voté pour : ${eventType}`,
+          html: emailHtml,
+          headers: {
+            'List-Unsubscribe': '<mailto:unsubscribe@getsynkro.com>',
+            'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click'
+          }
+        })
+      });
+
+      if (!response.ok) {
+        console.error(`❌ Failed to send celebration email to ${email}:`, await response.text());
+        failCount++;
+      } else {
+        console.log(`✅ Celebration email ${i + 1}/${uniqueEmails.length} sent to: ${email}`);
+        successCount++;
+      }
+    } catch (error) {
+      console.error(`❌ Error sending celebration email to ${email}:`, error.message);
+      failCount++;
     }
-  } catch (error) {
-    console.error('Error sending celebration email:', error);
+
+    // Attendre 600ms avant le prochain email (respecte la limite 2/seconde de Resend)
+    if (i < uniqueEmails.length - 1) {
+      await delay(600);
+    }
   }
+
+  console.log(`🎉 Celebration emails complete: ${successCount} sent, ${failCount} failed`);
 }
 
 function getOrganizerCreatedEmail(data) {

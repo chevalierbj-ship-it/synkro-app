@@ -298,11 +298,20 @@ const Participant = () => {
     }
   };
 
+  // 🆕 État pour éviter les double-clics
+  const [isConfirming, setIsConfirming] = useState(false);
+
   // 🆕 HANDLER : Confirmer la date recommandée par l'IA
   const handleAIConfirm = async (selectedDateObj) => {
     console.log('🎯 handleAIConfirm called with:', selectedDateObj);
     console.log('📝 userName:', userName);
     console.log('📧 userEmail:', userEmail);
+
+    // Empêcher les double-clics
+    if (isConfirming) {
+      console.log('⚠️ Already confirming, ignoring click');
+      return;
+    }
 
     // Validation : vérifier que userName est défini
     if (!userName || !userName.trim()) {
@@ -314,7 +323,13 @@ const Participant = () => {
       return;
     }
 
+    setIsConfirming(true); // Bloquer les clics supplémentaires
+
     try {
+      // 🔥 IMPORTANT : Désactiver le mode IA AVANT de changer le step
+      // pour que le rendu basé sur step fonctionne
+      setIsAIMode(false);
+      setAiRecommendation(null);
       setStep(3); // Loader
       console.log('⏳ Step set to 3 (loading)');
 
@@ -356,12 +371,14 @@ const Participant = () => {
       setTimeout(() => {
         setSelectedDate(selectedDateObj);
         setStep(4);
+        setIsConfirming(false);
         console.log('🎉 Step set to 4 (confirmation)');
       }, 1500);
 
     } catch (error) {
       console.error('❌ Error confirming AI recommendation:', error);
       alert(t('participant.confirmError') || 'Erreur lors de la confirmation');
+      setIsConfirming(false);
       setStep(2);
     }
   };

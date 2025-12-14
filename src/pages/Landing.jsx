@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Calendar, Clock, Users, Zap, CheckCircle, Sparkles, ArrowRight, MessageSquare } from 'lucide-react';
@@ -10,6 +10,16 @@ const Landing = () => {
   const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
+
+  // Charger le script EcoIndex pour le badge
+  useEffect(() => {
+    if (!document.querySelector('script[src*="ecoindex-badge"]')) {
+      const script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/gh/cnumr/ecoindex_badge@3/assets/js/ecoindex-badge.js';
+      script.defer = true;
+      document.body.appendChild(script);
+    }
+  }, []);
 
   const seoKeywords = [
     'organisation événement',
@@ -534,6 +544,16 @@ const Landing = () => {
         <p style={{ fontSize: '14px', margin: '0 0 20px 0' }}>
           {t('landing.footer.madeWith')}
         </p>
+
+        {/* Badge EcoIndex */}
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          marginBottom: '20px'
+        }}>
+          <div id="ecoindex-badge" data-theme="light"></div>
+        </div>
+
         <p style={{ fontSize: '12px', margin: 0 }}>
           {t('landing.footer.copyright')}
         </p>

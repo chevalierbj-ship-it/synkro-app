@@ -300,16 +300,33 @@ const Participant = () => {
 
   // 🆕 HANDLER : Confirmer la date recommandée par l'IA
   const handleAIConfirm = async (selectedDateObj) => {
+    console.log('🎯 handleAIConfirm called with:', selectedDateObj);
+    console.log('📝 userName:', userName);
+    console.log('📧 userEmail:', userEmail);
+
+    // Validation : vérifier que userName est défini
+    if (!userName || !userName.trim()) {
+      console.error('❌ userName is empty!');
+      alert(t('participant.enterNameError') || 'Veuillez entrer votre nom');
+      setIsAIMode(false);
+      setAiRecommendation(null);
+      setStep(1);
+      return;
+    }
+
     try {
       setStep(3); // Loader
+      console.log('⏳ Step set to 3 (loading)');
 
       // Créer les availabilities : true pour la date sélectionnée, false pour les autres
       const aiAvailabilities = {};
       event.dates.forEach(date => {
         aiAvailabilities[date.label] = (date.label === selectedDateObj.label);
       });
+      console.log('📊 aiAvailabilities:', aiAvailabilities);
 
       // Sauvegarder le vote via l'API normale
+      console.log('📡 Sending API request...');
       const response = await fetch('/api/events?action=update', {
         method: 'POST',
         headers: {
@@ -324,21 +341,27 @@ const Participant = () => {
         })
       });
 
+      console.log('📥 API response status:', response.status);
+
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ API error:', errorText);
         throw new Error('Failed to save vote');
       }
 
       const result = await response.json();
+      console.log('✅ API result:', result);
       setEvent(result.event);
 
       setTimeout(() => {
         setSelectedDate(selectedDateObj);
         setStep(4);
+        console.log('🎉 Step set to 4 (confirmation)');
       }, 1500);
 
     } catch (error) {
-      console.error('Error confirming AI recommendation:', error);
-      alert(t('participant.confirmError'));
+      console.error('❌ Error confirming AI recommendation:', error);
+      alert(t('participant.confirmError') || 'Erreur lors de la confirmation');
       setStep(2);
     }
   };

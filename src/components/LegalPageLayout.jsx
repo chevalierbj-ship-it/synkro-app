@@ -28,6 +28,16 @@ const LegalPageLayout = ({
     return () => window.removeEventListener('scroll', handleScroll);
   }, [showScrollToTop]);
 
+  // Charger le script EcoIndex pour le badge
+  useEffect(() => {
+    if (!document.querySelector('script[src*="ecoindex-badge"]')) {
+      const script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/gh/cnumr/ecoindex_badge@3/assets/js/ecoindex-badge.js';
+      script.defer = true;
+      document.body.appendChild(script);
+    }
+  }, []);
+
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -244,6 +254,15 @@ const LegalPageLayout = ({
           >
             {t('legal.privacy')}
           </button>
+        </div>
+
+        {/* Badge EcoIndex */}
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          marginBottom: '16px'
+        }}>
+          <div id="ecoindex-badge" data-theme="light"></div>
         </div>
 
         <p style={{ fontSize: '12px', margin: 0 }}>

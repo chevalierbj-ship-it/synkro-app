@@ -32,6 +32,20 @@ const Participant = () => {
   const [aiRecommendation, setAiRecommendation] = useState(null);
   const [waitingForOthers, setWaitingForOthers] = useState(false);
 
+  // 🆕 État pour détecter un vote existant
+  const [existingVote, setExistingVote] = useState(null);
+  const [showExistingVote, setShowExistingVote] = useState(false);
+
+  // 🆕 Charger le script EcoIndex pour le badge footer
+  useEffect(() => {
+    if (!document.querySelector('script[src*="ecoindex-badge"]')) {
+      const script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/gh/cnumr/ecoindex_badge@3/assets/js/ecoindex-badge.js';
+      script.defer = true;
+      document.body.appendChild(script);
+    }
+  }, []);
+
   // 🆕 FONCTIONS CALENDRIER
   const addToGoogleCalendar = () => {
     const startDate = new Date(selectedDate.date);
@@ -139,6 +153,27 @@ const Participant = () => {
         if (eventData.useAI === true) {
           setIsAIMode(true);
           setShowAIFlow(true);
+        }
+
+        // 🆕 Vérifier si le participant a déjà voté (via localStorage)
+        const savedParticipantEmail = localStorage.getItem(`synkro_participant_${eventId}`);
+        if (savedParticipantEmail && eventData.participants) {
+          const existingParticipant = eventData.participants.find(
+            p => p.email && p.email.toLowerCase() === savedParticipantEmail.toLowerCase()
+          );
+          if (existingParticipant) {
+            console.log('✅ Participant already voted:', existingParticipant);
+            setExistingVote(existingParticipant);
+            setShowExistingVote(true);
+            setUserName(existingParticipant.name);
+            setUserEmail(existingParticipant.email);
+            // Pré-remplir les availabilities avec les votes existants
+            if (existingParticipant.availabilities) {
+              setAvailabilities(existingParticipant.availabilities);
+            }
+            setLoading(false);
+            return;
+          }
         }
 
         // Initialiser les availabilities avec null pour chaque date
@@ -368,6 +403,11 @@ const Participant = () => {
       console.log('✅ API result:', result);
       setEvent(result.event);
 
+      // 🆕 Sauvegarder l'email du participant dans localStorage
+      if (userEmail.trim()) {
+        localStorage.setItem(`synkro_participant_${eventId}`, userEmail.trim().toLowerCase());
+      }
+
       setTimeout(() => {
         setSelectedDate(selectedDateObj);
         setStep(4);
@@ -419,13 +459,18 @@ const Participant = () => {
       }
 
       const result = await response.json();
-      
+
       // Mettre à jour l'état local avec les nouvelles données
       setEvent(result.event);
 
+      // 🆕 Sauvegarder l'email du participant dans localStorage pour détecter les votes futurs
+      if (userEmail.trim()) {
+        localStorage.setItem(`synkro_participant_${eventId}`, userEmail.trim().toLowerCase());
+      }
+
       // Trouver la meilleure date et afficher le résultat
       setTimeout(() => {
-        const bestDate = result.event.dates.reduce((prev, current) => 
+        const bestDate = result.event.dates.reduce((prev, current) =>
           current.votes > prev.votes ? current : prev
         );
         setSelectedDate(bestDate);
@@ -499,6 +544,184 @@ const Participant = () => {
             }}
           >
             {t('participant.backHome')}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // 🆕 Vue "Déjà voté" - Si le participant a déjà voté pour cet événement
+  if (showExistingVote && existingVote) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 50%, #06B6D4 100%)',
+        padding: '20px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}>
+        <div style={{
+          maxWidth: '500px',
+          width: '100%',
+          background: 'white',
+          borderRadius: '24px',
+          padding: '40px',
+          textAlign: 'center',
+          boxShadow: '0 24px 60px rgba(139, 92, 246, 0.3)'
+        }}>
+          {/* Icône de succès */}
+          <div style={{
+            width: '80px',
+            height: '80px',
+            background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 24px',
+            boxShadow: '0 8px 20px rgba(16, 185, 129, 0.3)'
+          }}>
+            <CheckCircle size={40} color="white" />
+          </div>
+
+          <h1 style={{
+            fontSize: '28px',
+            fontWeight: '800',
+            color: '#1E1B4B',
+            marginBottom: '12px'
+          }}>
+            {t('participant.alreadyVotedTitle') || 'Tu as déjà voté !'} 🎉
+          </h1>
+
+          <p style={{
+            color: '#6B7280',
+            marginBottom: '28px',
+            fontSize: '16px',
+            lineHeight: '1.6'
+          }}>
+            {t('participant.alreadyVotedMessage') || 'Tes préférences ont bien été enregistrées pour cet événement.'}
+          </p>
+
+          {/* Info événement */}
+          <div style={{
+            background: 'linear-gradient(135deg, #F5F3FF 0%, #E9D5FF 100%)',
+            padding: '20px',
+            borderRadius: '16px',
+            marginBottom: '24px',
+            border: '2px solid #E9D5FF'
+          }}>
+            <div style={{ fontSize: '14px', color: '#6B7280', marginBottom: '6px', fontWeight: '600' }}>
+              🎯 {event.type}
+            </div>
+            <div style={{ fontSize: '16px', fontWeight: '700', color: '#1E1B4B' }}>
+              {t('participant.organizedBy', { name: event.organizerName })}
+            </div>
+          </div>
+
+          {/* Récapitulatif des votes */}
+          <div style={{
+            background: '#F9FAFB',
+            padding: '20px',
+            borderRadius: '16px',
+            marginBottom: '24px',
+            textAlign: 'left'
+          }}>
+            <h3 style={{
+              fontSize: '16px',
+              fontWeight: '700',
+              color: '#1E1B4B',
+              marginBottom: '16px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}>
+              📅 {t('participant.yourAvailabilities') || 'Tes disponibilités'}
+            </h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {Object.entries(existingVote.availabilities || {}).map(([label, available]) => (
+                <div
+                  key={label}
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    padding: '10px 14px',
+                    background: available ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                    borderRadius: '10px',
+                    border: `1px solid ${available ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`
+                  }}
+                >
+                  <span style={{ fontSize: '14px', color: '#374151', fontWeight: '500' }}>{label}</span>
+                  <span style={{
+                    fontSize: '13px',
+                    fontWeight: '600',
+                    color: available ? '#059669' : '#DC2626'
+                  }}>
+                    {available ? '✅ ' + (t('participant.available') || 'Disponible') : '❌ ' + (t('participant.notAvailable') || 'Indisponible')}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Statut de l'événement */}
+          <div style={{
+            background: '#F3F4F6',
+            padding: '16px',
+            borderRadius: '12px',
+            marginBottom: '28px'
+          }}>
+            <p style={{ fontSize: '13px', color: '#6B7280', margin: '0 0 4px 0' }}>
+              {t('participant.responsesReceived') || 'Réponses reçues'}
+            </p>
+            <p style={{
+              fontSize: '24px',
+              fontWeight: '800',
+              color: '#8B5CF6',
+              margin: 0
+            }}>
+              {event.totalResponded || 0} / {event.expectedParticipants || '?'}
+            </p>
+          </div>
+
+          {/* Bouton modifier */}
+          <button
+            onClick={() => {
+              setShowExistingVote(false);
+              setStep(1);
+            }}
+            style={{
+              width: '100%',
+              padding: '16px',
+              background: 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)',
+              color: 'white',
+              border: 'none',
+              borderRadius: '14px',
+              fontSize: '16px',
+              fontWeight: '700',
+              cursor: 'pointer',
+              marginBottom: '12px',
+              boxShadow: '0 4px 12px rgba(139, 92, 246, 0.3)'
+            }}
+          >
+            ✏️ {t('participant.modifyPreferences') || 'Modifier mes préférences'}
+          </button>
+
+          {/* Lien retour accueil */}
+          <button
+            onClick={() => navigate('/')}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: '#8B5CF6',
+              fontSize: '14px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              textDecoration: 'underline'
+            }}
+          >
+            ← {t('participant.backHome') || 'Retour à l\'accueil'}
           </button>
         </div>
       </div>
@@ -1443,18 +1666,156 @@ const Participant = () => {
                 dangerouslySetInnerHTML={{ __html: t('participant.reminderTip') }}
               />
             </div>
+
+            {/* 🆕 Bouton retour et CTA Synkro */}
+            <div style={{
+              marginTop: '40px',
+              paddingTop: '32px',
+              borderTop: '1px solid #E5E7EB'
+            }}>
+              {/* Bouton retour accueil */}
+              <button
+                onClick={() => navigate('/')}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#8B5CF6',
+                  fontSize: '15px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                  margin: '0 auto 24px',
+                  padding: '8px 16px'
+                }}
+              >
+                ← {t('participant.backHome') || 'Retour à l\'accueil'}
+              </button>
+
+              {/* CTA Synkro */}
+              <div style={{
+                background: 'linear-gradient(135deg, #F5F3FF 0%, #FDF2F8 100%)',
+                borderRadius: '16px',
+                padding: '28px',
+                textAlign: 'center',
+                border: '2px solid #E9D5FF'
+              }}>
+                <p style={{
+                  color: '#6B7280',
+                  fontSize: '15px',
+                  marginBottom: '16px',
+                  fontWeight: '500'
+                }}>
+                  {t('participant.alsoOrganizing') || 'Tu organises aussi des événements ?'}
+                </p>
+                <button
+                  onClick={() => navigate('/pricing')}
+                  style={{
+                    padding: '16px 32px',
+                    background: 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '14px',
+                    fontSize: '16px',
+                    fontWeight: '700',
+                    cursor: 'pointer',
+                    boxShadow: '0 8px 20px rgba(139, 92, 246, 0.3)',
+                    transition: 'all 0.3s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 12px 28px rgba(139, 92, 246, 0.4)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 8px 20px rgba(139, 92, 246, 0.3)';
+                  }}
+                >
+                  ✨ {t('participant.discoverSynkro') || 'Découvrir Synkro gratuitement'}
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>
 
-      <div style={{
-        textAlign: 'center',
+      {/* 🆕 Footer minimaliste */}
+      <footer style={{
         marginTop: '40px',
-        color: 'rgba(255,255,255,0.9)',
-        fontSize: '14px'
+        paddingTop: '24px',
+        borderTop: '1px solid rgba(255,255,255,0.2)',
+        textAlign: 'center'
       }}>
-        <p style={{ margin: '0 0 8px 0' }}>{t('participant.version')}</p>
-      </div>
+        {/* Liens navigation */}
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          gap: '20px',
+          marginBottom: '16px',
+          flexWrap: 'wrap'
+        }}>
+          <button
+            onClick={() => navigate('/')}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: 'rgba(255,255,255,0.8)',
+              fontSize: '13px',
+              cursor: 'pointer',
+              fontWeight: '500'
+            }}
+          >
+            Accueil
+          </button>
+          <span style={{ color: 'rgba(255,255,255,0.4)' }}>•</span>
+          <button
+            onClick={() => navigate('/pricing')}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: 'rgba(255,255,255,0.8)',
+              fontSize: '13px',
+              cursor: 'pointer',
+              fontWeight: '500'
+            }}
+          >
+            Créer un événement
+          </button>
+          <span style={{ color: 'rgba(255,255,255,0.4)' }}>•</span>
+          <button
+            onClick={() => navigate('/mentions-legales')}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: 'rgba(255,255,255,0.8)',
+              fontSize: '13px',
+              cursor: 'pointer',
+              fontWeight: '500'
+            }}
+          >
+            Mentions légales
+          </button>
+        </div>
+
+        {/* Version */}
+        <p style={{
+          margin: '0 0 16px 0',
+          color: 'rgba(255,255,255,0.7)',
+          fontSize: '13px'
+        }}>
+          {t('participant.version')}
+        </p>
+
+        {/* Badge EcoIndex */}
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center'
+        }}>
+          <div id="ecoindex-badge" data-theme="light"></div>
+        </div>
+      </footer>
     </div>
   );
 };

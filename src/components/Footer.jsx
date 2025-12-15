@@ -5,14 +5,33 @@ import { Sparkles } from 'lucide-react';
 const Footer = () => {
   const navigate = useNavigate();
 
-  // Charger le script EcoIndex pour le badge
+  // Charger et initialiser le script EcoIndex pour le badge
   useEffect(() => {
-    if (!document.querySelector('script[src*="ecoindex-badge"]')) {
-      const script = document.createElement('script');
-      script.src = 'https://cdn.jsdelivr.net/gh/cnumr/ecoindex_badge@3/assets/js/ecoindex-badge.js';
-      script.defer = true;
-      document.body.appendChild(script);
-    }
+    const loadEcoIndexBadge = () => {
+      // Si le script existe déjà, on essaie de réinitialiser le badge
+      if (window.ecoindexBadge) {
+        window.ecoindexBadge.init();
+        return;
+      }
+
+      // Sinon, on charge le script
+      if (!document.querySelector('script[src*="ecoindex-badge"]')) {
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/gh/cnumr/ecoindex_badge@3/assets/js/ecoindex-badge.js';
+        script.defer = true;
+        script.onload = () => {
+          // Initialiser après chargement
+          if (window.ecoindexBadge) {
+            window.ecoindexBadge.init();
+          }
+        };
+        document.body.appendChild(script);
+      }
+    };
+
+    // Petit délai pour s'assurer que le DOM est prêt
+    const timer = setTimeout(loadEcoIndexBadge, 100);
+    return () => clearTimeout(timer);
   }, []);
 
   const linkStyle = {

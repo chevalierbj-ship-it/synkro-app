@@ -591,7 +591,7 @@ const Participant = () => {
             color: '#1E1B4B',
             marginBottom: '12px'
           }}>
-            {t('participant.alreadyVotedTitle') || 'Tu as déjà voté !'} 🎉
+            Tu as déjà voté ! 🎉
           </h1>
 
           <p style={{
@@ -600,7 +600,7 @@ const Participant = () => {
             fontSize: '16px',
             lineHeight: '1.6'
           }}>
-            {t('participant.alreadyVotedMessage') || 'Tes préférences ont bien été enregistrées pour cet événement.'}
+            Tes préférences ont été enregistrées pour cet événement.
           </p>
 
           {/* Info événement */}
@@ -636,7 +636,7 @@ const Participant = () => {
               alignItems: 'center',
               gap: '8px'
             }}>
-              📅 {t('participant.yourAvailabilities') || 'Tes disponibilités'}
+              📅 Tes disponibilités
             </h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {Object.entries(existingVote.availabilities || {}).map(([label, available]) => (
@@ -705,7 +705,7 @@ const Participant = () => {
               boxShadow: '0 4px 12px rgba(139, 92, 246, 0.3)'
             }}
           >
-            ✏️ {t('participant.modifyPreferences') || 'Modifier mes préférences'}
+            ✏️ Modifier mes préférences
           </button>
 
           {/* Lien retour accueil */}
@@ -1708,7 +1708,7 @@ const Participant = () => {
                   marginBottom: '16px',
                   fontWeight: '500'
                 }}>
-                  {t('participant.alsoOrganizing') || 'Tu organises aussi des événements ?'}
+                  Tu organises aussi des événements ?
                 </p>
                 <button
                   onClick={() => navigate('/pricing')}
@@ -1733,7 +1733,7 @@ const Participant = () => {
                     e.currentTarget.style.boxShadow = '0 8px 20px rgba(139, 92, 246, 0.3)';
                   }}
                 >
-                  ✨ {t('participant.discoverSynkro') || 'Découvrir Synkro gratuitement'}
+                  ✨ Découvrir Synkro gratuitement
                 </button>
               </div>
             </div>
@@ -1805,7 +1805,7 @@ const Participant = () => {
           color: 'rgba(255,255,255,0.7)',
           fontSize: '13px'
         }}>
-          {t('participant.version')}
+          ✨ Synkro v2.2
         </p>
 
         {/* Badge EcoIndex */}

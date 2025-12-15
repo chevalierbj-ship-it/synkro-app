@@ -21,6 +21,7 @@ const NotFound = lazy(() => import('./pages/NotFound'));
 const MentionsLegales = lazy(() => import('./pages/MentionsLegales'));
 const CGV = lazy(() => import('./pages/CGV'));
 const PolitiqueConfidentialite = lazy(() => import('./pages/PolitiqueConfidentialite'));
+const Contact = lazy(() => import('./pages/Contact'));
 
 // Composant de chargement pendant le lazy loading
 const LoadingFallback = () => (
@@ -72,6 +73,7 @@ function App() {
               <Route path="/mentions-legales" element={<MentionsLegales />} />
               <Route path="/cgv" element={<CGV />} />
               <Route path="/confidentialite" element={<PolitiqueConfidentialite />} />
+              <Route path="/contact" element={<Contact />} />
               {/* Route 404 - doit être en dernier */}
               <Route path="*" element={<NotFound />} />
             </Routes>

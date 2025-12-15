@@ -195,9 +195,15 @@
     "addOutlookCalendar": "Add to Outlook Calendar",
     "downloadIcs": "Download .ics (Apple Calendar, others...)",
     "reminderTip": "💡 <strong>Tip:</strong> You'll receive a reminder email 24h before the event!",
-    "version": "✨ Synkro v2.1 - Airtable Edition",
+    "version": "✨ Synkro v2.2",
     "calendarOrganizedBy": "Organized by {{name}}\n\nCreated with Synkro - https://getsynkro.com",
-    "calendarOrganizedBySimple": "Organized by {{name}} - Created with Synkro"
+    "calendarOrganizedBySimple": "Organized by {{name}} - Created with Synkro",
+    "alsoOrganizing": "Do you also organize events?",
+    "discoverSynkro": "Discover Synkro for free",
+    "alreadyVotedTitle": "You already voted!",
+    "alreadyVotedMessage": "Your preferences have been saved for this event.",
+    "yourAvailabilities": "Your availabilities",
+    "modifyPreferences": "Modify my preferences"
   },
 
   "dashboard": {

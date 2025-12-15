@@ -721,7 +721,7 @@ const Participant = () => {
               textDecoration: 'underline'
             }}
           >
-            ← {t('participant.backHome') || 'Retour à l\'accueil'}
+            {t('participant.backHome') || '← Retour à l\'accueil'}
           </button>
         </div>
       </div>
@@ -1691,7 +1691,7 @@ const Participant = () => {
                   padding: '8px 16px'
                 }}
               >
-                ← {t('participant.backHome') || 'Retour à l\'accueil'}
+                {t('participant.backHome') || '← Retour à l\'accueil'}
               </button>
 
               {/* CTA Synkro */}

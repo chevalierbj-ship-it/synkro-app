@@ -8,6 +8,7 @@ import SmartQuestionFlow from '../components/SmartQuestionFlow';
 import AIRecommendation from '../components/AIRecommendation';
 import AuthButtons from '../components/AuthButtons';
 import SEOHead, { generateEventSchema } from '../components/SEOHead';
+import Footer from '../components/Footer';
 
 const Participant = () => {
   const { t } = useTranslation();
@@ -35,16 +36,6 @@ const Participant = () => {
   // 🆕 État pour détecter un vote existant
   const [existingVote, setExistingVote] = useState(null);
   const [showExistingVote, setShowExistingVote] = useState(false);
-
-  // 🆕 Charger le script EcoIndex pour le badge footer
-  useEffect(() => {
-    if (!document.querySelector('script[src*="ecoindex-badge"]')) {
-      const script = document.createElement('script');
-      script.src = 'https://cdn.jsdelivr.net/gh/cnumr/ecoindex_badge@3/assets/js/ecoindex-badge.js';
-      script.defer = true;
-      document.body.appendChild(script);
-    }
-  }, []);
 
   // 🆕 FONCTIONS CALENDRIER
   const addToGoogleCalendar = () => {
@@ -1741,81 +1732,8 @@ const Participant = () => {
         )}
       </div>
 
-      {/* 🆕 Footer minimaliste */}
-      <footer style={{
-        marginTop: '40px',
-        paddingTop: '24px',
-        borderTop: '1px solid rgba(255,255,255,0.2)',
-        textAlign: 'center'
-      }}>
-        {/* Liens navigation */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'center',
-          gap: '20px',
-          marginBottom: '16px',
-          flexWrap: 'wrap'
-        }}>
-          <button
-            onClick={() => navigate('/')}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: 'rgba(255,255,255,0.8)',
-              fontSize: '13px',
-              cursor: 'pointer',
-              fontWeight: '500'
-            }}
-          >
-            Accueil
-          </button>
-          <span style={{ color: 'rgba(255,255,255,0.4)' }}>•</span>
-          <button
-            onClick={() => navigate('/pricing')}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: 'rgba(255,255,255,0.8)',
-              fontSize: '13px',
-              cursor: 'pointer',
-              fontWeight: '500'
-            }}
-          >
-            Créer un événement
-          </button>
-          <span style={{ color: 'rgba(255,255,255,0.4)' }}>•</span>
-          <button
-            onClick={() => navigate('/mentions-legales')}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: 'rgba(255,255,255,0.8)',
-              fontSize: '13px',
-              cursor: 'pointer',
-              fontWeight: '500'
-            }}
-          >
-            Mentions légales
-          </button>
-        </div>
-
-        {/* Version */}
-        <p style={{
-          margin: '0 0 16px 0',
-          color: 'rgba(255,255,255,0.7)',
-          fontSize: '13px'
-        }}>
-          ✨ Synkro v2.2
-        </p>
-
-        {/* Badge EcoIndex */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'center'
-        }}>
-          <div id="ecoindex-badge" data-theme="light"></div>
-        </div>
-      </footer>
+      {/* Footer */}
+      <Footer />
     </div>
   );
 };

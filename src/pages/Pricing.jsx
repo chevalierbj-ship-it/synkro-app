@@ -1,24 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Check, X } from 'lucide-react';
 import { useUser } from '@clerk/clerk-react';
 import { useNavigate } from 'react-router-dom';
 import SEOHead from '../components/SEOHead';
+import Footer from '../components/Footer';
 
 export default function Pricing() {
   const [isAnnual, setIsAnnual] = useState(false);
   const [loading, setLoading] = useState(null);
   const { user } = useUser();
   const navigate = useNavigate();
-
-  // Load EcoIndex badge script
-  useEffect(() => {
-    if (!document.querySelector('script[src*="ecoindex-badge"]')) {
-      const script = document.createElement('script');
-      script.src = 'https://cdn.jsdelivr.net/gh/cnumr/ecoindex_badge@3/assets/js/ecoindex-badge.js';
-      script.defer = true;
-      document.body.appendChild(script);
-    }
-  }, []);
 
   // Handle subscription
   const handleSubscribe = async (plan) => {
@@ -919,90 +910,7 @@ export default function Pricing() {
       </div>
 
       {/* Footer */}
-      <footer style={{
-        background: 'linear-gradient(135deg, #1E1B4B 0%, #312E81 100%)',
-        padding: '40px 20px',
-        textAlign: 'center'
-      }}>
-        {/* Navigation Links */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'center',
-          gap: '24px',
-          marginBottom: '20px',
-          flexWrap: 'wrap'
-        }}>
-          <button
-            onClick={() => navigate('/')}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: 'rgba(255,255,255,0.7)',
-              fontSize: '14px',
-              cursor: 'pointer',
-              textDecoration: 'underline'
-            }}
-          >
-            Accueil
-          </button>
-          <button
-            onClick={() => navigate('/mentions-legales')}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: 'rgba(255,255,255,0.7)',
-              fontSize: '14px',
-              cursor: 'pointer',
-              textDecoration: 'underline'
-            }}
-          >
-            Mentions légales
-          </button>
-          <button
-            onClick={() => navigate('/cgv')}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: 'rgba(255,255,255,0.7)',
-              fontSize: '14px',
-              cursor: 'pointer',
-              textDecoration: 'underline'
-            }}
-          >
-            CGV
-          </button>
-          <button
-            onClick={() => navigate('/confidentialite')}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: 'rgba(255,255,255,0.7)',
-              fontSize: '14px',
-              cursor: 'pointer',
-              textDecoration: 'underline'
-            }}
-          >
-            Confidentialité
-          </button>
-        </div>
-
-        {/* Version */}
-        <p style={{
-          margin: '0 0 16px 0',
-          color: 'rgba(255,255,255,0.7)',
-          fontSize: '13px'
-        }}>
-          ✨ Synkro v2.2
-        </p>
-
-        {/* EcoIndex Badge */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'center'
-        }}>
-          <div id="ecoindex-badge" data-theme="light"></div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

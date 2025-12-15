@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Sparkles, ArrowUp, ArrowLeft } from 'lucide-react';
 import SEOHead from './SEOHead';
 import LanguageSwitcher from './LanguageSwitcher';
+import Footer from './Footer';
 
 const LegalPageLayout = ({
   title,
@@ -27,16 +28,6 @@ const LegalPageLayout = ({
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, [showScrollToTop]);
-
-  // Charger le script EcoIndex pour le badge
-  useEffect(() => {
-    if (!document.querySelector('script[src*="ecoindex-badge"]')) {
-      const script = document.createElement('script');
-      script.src = 'https://cdn.jsdelivr.net/gh/cnumr/ecoindex_badge@3/assets/js/ecoindex-badge.js';
-      script.defer = true;
-      document.body.appendChild(script);
-    }
-  }, []);
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -184,91 +175,7 @@ const LegalPageLayout = ({
       </main>
 
       {/* Footer */}
-      <footer style={{
-        padding: '40px 20px',
-        background: 'linear-gradient(135deg, #581c87 0%, #701a75 50%, #831843 100%)',
-        textAlign: 'center',
-        color: 'rgba(255,255,255,0.7)',
-        borderTop: '1px solid rgba(139, 92, 246, 0.3)'
-      }}>
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '8px',
-          marginBottom: '16px'
-        }}>
-          <Sparkles size={24} color="white" />
-          <span style={{ fontSize: '20px', color: 'white', fontWeight: '700' }}>Synkro</span>
-        </div>
-
-        <div style={{
-          display: 'flex',
-          gap: '24px',
-          justifyContent: 'center',
-          marginBottom: '20px',
-          flexWrap: 'wrap'
-        }}>
-          <button
-            onClick={() => navigate('/mentions-legales')}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: 'rgba(255,255,255,0.7)',
-              fontSize: '14px',
-              cursor: 'pointer',
-              transition: 'color 0.3s'
-            }}
-            onMouseEnter={(e) => e.target.style.color = 'white'}
-            onMouseLeave={(e) => e.target.style.color = 'rgba(255,255,255,0.7)'}
-          >
-            {t('legal.mentions')}
-          </button>
-          <button
-            onClick={() => navigate('/cgv')}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: 'rgba(255,255,255,0.7)',
-              fontSize: '14px',
-              cursor: 'pointer',
-              transition: 'color 0.3s'
-            }}
-            onMouseEnter={(e) => e.target.style.color = 'white'}
-            onMouseLeave={(e) => e.target.style.color = 'rgba(255,255,255,0.7)'}
-          >
-            {t('legal.cgv')}
-          </button>
-          <button
-            onClick={() => navigate('/confidentialite')}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: 'rgba(255,255,255,0.7)',
-              fontSize: '14px',
-              cursor: 'pointer',
-              transition: 'color 0.3s'
-            }}
-            onMouseEnter={(e) => e.target.style.color = 'white'}
-            onMouseLeave={(e) => e.target.style.color = 'rgba(255,255,255,0.7)'}
-          >
-            {t('legal.privacy')}
-          </button>
-        </div>
-
-        {/* Badge EcoIndex */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'center',
-          marginBottom: '16px'
-        }}>
-          <div id="ecoindex-badge" data-theme="light"></div>
-        </div>
-
-        <p style={{ fontSize: '12px', margin: 0 }}>
-          {t('landing.footer.copyright')}
-        </p>
-      </footer>
+      <Footer />
 
       {/* Scroll to Top Button */}
       {showScrollToTop && showScrollButton && (

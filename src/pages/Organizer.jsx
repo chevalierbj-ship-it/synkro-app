@@ -144,16 +144,17 @@ const Organizer = () => {
 
   const handleEventTypeSelect = (type) => {
     setEventType(type);
-    if (type !== 'other') {
-      setStep(3);
-    } else {
-      setStep(2);
-    }
+    // Go to step 3 for all types:
+    // - For 'other': shows custom event name input (step === 3 && eventType === 'other')
+    // - For other types: shows calendar (step === 3 && eventType !== 'other' -> auto-redirects to step 4)
+    setStep(3);
+    window.scrollTo({ top: 0, behavior: 'smooth' }); // Reset scroll when changing step
   };
 
   const handleCustomEventSubmit = () => {
     if (customEvent.trim()) {
-      setStep(3);
+      setStep(4); // Go to calendar step after entering custom event name
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
@@ -247,6 +248,7 @@ body: JSON.stringify({
       const fullLink = `${window.location.origin}/participant?id=${result.eventId}`;
       setEventLink(fullLink);
       setStep(6);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       
     } catch (error) {
       console.error('Erreur:', error);
@@ -396,7 +398,12 @@ body: JSON.stringify({
                 type="text"
                 value={organizerName}
                 onChange={(e) => setOrganizerName(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && organizerName.trim() && setStep(2)}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter' && organizerName.trim()) {
+                    setStep(2);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }
+                }}
                 placeholder={t('organizer.firstNamePlaceholder')}
                 autoFocus
                 style={{
@@ -458,7 +465,12 @@ body: JSON.stringify({
             </div>
 
             <button
-              onClick={() => organizerName.trim() && setStep(2)}
+              onClick={() => {
+                if (organizerName.trim()) {
+                  setStep(2);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+              }}
               disabled={!organizerName.trim()}
               style={{
                 width: '100%',
@@ -521,7 +533,10 @@ body: JSON.stringify({
               ))}
             </div>
             <button
-              onClick={() => setStep(1)}
+              onClick={() => {
+                setStep(1);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
               style={{
                 width: '100%',
                 padding: '12px',
@@ -1008,7 +1023,10 @@ body: JSON.stringify({
               )}
 
               <button
-                onClick={() => setStep(5)}
+                onClick={() => {
+                  setStep(5);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
                 disabled={selectedDates.length === 0}
                 style={{
                   width: '100%',
@@ -1035,6 +1053,7 @@ body: JSON.stringify({
                   setStep(2);
                   setLocation('');
                   setSelectedDates([]);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
                 style={{
                   width: '100%',
@@ -1612,6 +1631,7 @@ body: JSON.stringify({
                 setSelectedDates([]);
                 setEventLink('');
                 setShowShareMenu(false);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
               style={{
                 width: '100%',

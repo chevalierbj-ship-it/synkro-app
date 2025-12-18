@@ -57,9 +57,14 @@ export default async function handler(req, res) {
       return await deleteEvent(req, res);
     }
 
+    // GET /api/events?action=calendar-ics&id=xxx - Générer fichier ICS
+    if (req.method === 'GET' && action === 'calendar-ics') {
+      return await generateCalendarICS(req, res);
+    }
+
     return res.status(400).json({
       error: 'Invalid action',
-      message: 'Use action=create|get|update|track|confirm|delete'
+      message: 'Use action=create|get|update|track|confirm|delete|calendar-ics'
     });
 
   } catch (error) {
@@ -498,10 +503,50 @@ async function updateEvent(req, res) {
     );
   }
 
+  // Vérifier si 100% atteint (tous ont voté)
+  const previous100Sent = event.allVotedNotificationSent || false;
+  if (currentPercentage >= 100 && !previous100Sent && expectedParticipants > 0) {
+    const bestDate = updatedDates.reduce((prev, current) =>
+      current.votes > prev.votes ? current : prev
+    );
+
+    // Envoyer email de célébration 100% avec boutons calendrier à tous
+    await sendAllVotedCelebrationEmail({
+      participants: updatedParticipants,
+      eventType: event.type,
+      organizerName: event.organizerName,
+      organizerEmail: event.organizerEmail,
+      location: event.location,
+      eventSchedule: event.eventSchedule,
+      bestDate,
+      totalResponded,
+      expectedParticipants,
+      eventId
+    });
+
+    // Marquer comme notifié pour éviter les envois multiples
+    await fetch(
+      `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}/${airtableRecordId}`,
+      {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          fields: {
+            allVotedNotificationSent: true
+          }
+        })
+      }
+    );
+  }
+
   return res.status(200).json({
     success: true,
     message: 'Vote enregistré avec succès',
     celebrationSent: currentPercentage >= 70 && previousPercentage < 70,
+    allVotedSent: currentPercentage >= 100 && !previous100Sent,
     event: {
       ...event,
       participants: updatedParticipants,
@@ -1341,4 +1386,349 @@ function getOrganizerCreatedEmail(data) {
 </body>
 </html>
   `;
+}
+
+// Générer les liens calendrier
+function generateCalendarLinks(eventName, dateLabel, location, eventSchedule, eventId, duration = 60) {
+  // Parse la date du label (format attendu: "Dimanche 15 juin 2025 - Matin" ou similaire)
+  const APP_URL = process.env.APP_URL || 'https://getsynkro.com';
+
+  // Encoder les paramètres pour les URLs
+  const eventTitle = encodeURIComponent(eventName);
+  const eventDescription = encodeURIComponent(eventSchedule || `Événement organisé via Synkro`);
+  const eventLocation = encodeURIComponent(location || '');
+
+  // Pour simplifier, on utilise une date approximative basée sur le label
+  // L'utilisateur peut ajuster dans son calendrier
+  const now = new Date();
+  const futureDate = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); // +7 jours par défaut
+  const startDate = futureDate;
+  const endDate = new Date(startDate.getTime() + duration * 60000);
+
+  const formatDateGoogle = (date) => {
+    return date.toISOString().replace(/-|:|\.\d{3}/g, '').slice(0, -1) + 'Z';
+  };
+
+  const formatDateOutlook = (date) => {
+    return date.toISOString();
+  };
+
+  return {
+    google: `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${eventTitle}&dates=${formatDateGoogle(startDate)}/${formatDateGoogle(endDate)}&details=${eventDescription}&location=${eventLocation}`,
+
+    outlook: `https://outlook.live.com/calendar/0/deeplink/compose?subject=${eventTitle}&startdt=${formatDateOutlook(startDate)}&enddt=${formatDateOutlook(endDate)}&body=${eventDescription}&location=${eventLocation}`,
+
+    ics: `${APP_URL}/api/events?action=calendar-ics&id=${eventId}`
+  };
+}
+
+// Envoyer email de célébration 100% avec boutons calendrier
+async function sendAllVotedCelebrationEmail({
+  participants,
+  eventType,
+  organizerName,
+  organizerEmail,
+  location,
+  eventSchedule,
+  bestDate,
+  totalResponded,
+  expectedParticipants,
+  eventId
+}) {
+  const RESEND_API_KEY = process.env.RESEND_API_KEY;
+
+  if (!RESEND_API_KEY) {
+    console.error('Resend API key not configured');
+    return;
+  }
+
+  const allEmails = [
+    organizerEmail,
+    ...participants.filter(p => p.email).map(p => p.email)
+  ].filter(email => email);
+
+  // Dédupliquer les emails
+  const uniqueEmails = [...new Set(allEmails)];
+
+  if (uniqueEmails.length === 0) {
+    console.log('No emails to send 100% celebration to');
+    return;
+  }
+
+  console.log(`📧 Sending 100% celebration emails to ${uniqueEmails.length} recipients with calendar buttons...`);
+
+  // Générer les liens calendrier
+  const calendarLinks = generateCalendarLinks(
+    eventType,
+    bestDate.label,
+    location,
+    eventSchedule,
+    eventId
+  );
+
+  const emailHtml = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🎊 100% ont voté !</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: linear-gradient(135deg, #8B5CF6 0%, #EC4899 50%, #06B6D4 100%); min-height: 100vh; padding: 40px 20px;">
+
+  <table role="presentation" style="max-width: 600px; margin: 0 auto; background: white; border-radius: 24px; overflow: hidden; box-shadow: 0 24px 60px rgba(139, 92, 246, 0.3);">
+
+    <tr>
+      <td style="background: linear-gradient(135deg, #10B981 0%, #059669 100%); padding: 40px; text-align: center;">
+        <div style="font-size: 72px; margin-bottom: 16px;">🎉</div>
+        <h1 style="margin: 0; font-size: 36px; color: white; font-weight: 800;">100% ont voté !</h1>
+        <p style="margin: 12px 0 0 0; font-size: 18px; color: rgba(255,255,255,0.95); font-weight: 600;">Tout le monde a répondu 🎊</p>
+      </td>
+    </tr>
+
+    <tr>
+      <td style="padding: 40px;">
+
+        <div style="text-align: center; margin-bottom: 32px;">
+          <div style="background: linear-gradient(135deg, #10B981 0%, #059669 100%); padding: 32px; border-radius: 16px;">
+            <div style="font-size: 64px; color: white; font-weight: 800; line-height: 1; margin-bottom: 8px;">100%</div>
+            <div style="font-size: 16px; color: rgba(255,255,255,0.9); font-weight: 600;">${totalResponded} / ${expectedParticipants} participants ont voté !</div>
+          </div>
+        </div>
+
+        <div style="background: linear-gradient(135deg, #F5F3FF 0%, #E9D5FF 100%); padding: 24px; border-radius: 12px; margin-bottom: 32px;">
+          <div style="font-size: 14px; color: #8B5CF6; font-weight: 700; margin-bottom: 8px;">🎯 ${eventType}</div>
+          <div style="font-size: 20px; color: #1E1B4B; font-weight: 700; margin-bottom: 8px;">Organisé par ${organizerName}</div>
+          ${location ? `<div style="font-size: 14px; color: #8B5CF6; font-weight: 600;">📍 ${location}</div>` : ''}
+        </div>
+
+        <div style="margin-bottom: 32px;">
+          <h2 style="font-size: 20px; color: #1E1B4B; font-weight: 700; margin: 0 0 16px 0; text-align: center;">🏆 Date favorite</h2>
+          <div style="background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%); padding: 24px; border-radius: 12px; text-align: center; border: 3px solid #FCD34D;">
+            <div style="font-size: 28px; color: #92400E; font-weight: 800; margin-bottom: 8px;">${bestDate.label}</div>
+            <div style="font-size: 16px; color: #92400E; font-weight: 600;">${bestDate.votes} vote${bestDate.votes > 1 ? 's' : ''}</div>
+          </div>
+        </div>
+
+        <!-- Boutons Calendrier -->
+        <div style="margin-bottom: 32px;">
+          <h3 style="font-size: 16px; color: #1E1B4B; font-weight: 700; margin: 0 0 16px 0; text-align: center;">📅 Ajoute cet événement à ton agenda</h3>
+
+          <div style="text-align: center; margin-bottom: 12px;">
+            <a href="${calendarLinks.google}" style="display: inline-block; padding: 14px 24px; background: #4285F4; color: white; text-decoration: none; border-radius: 10px; font-size: 15px; font-weight: 700; margin: 4px;">
+              📅 Google Calendar
+            </a>
+          </div>
+
+          <div style="text-align: center; margin-bottom: 12px;">
+            <a href="${calendarLinks.outlook}" style="display: inline-block; padding: 14px 24px; background: #0078D4; color: white; text-decoration: none; border-radius: 10px; font-size: 15px; font-weight: 700; margin: 4px;">
+              📅 Outlook / Hotmail
+            </a>
+          </div>
+
+          <div style="text-align: center;">
+            <a href="${calendarLinks.ics}" style="display: inline-block; padding: 14px 24px; background: #6B7280; color: white; text-decoration: none; border-radius: 10px; font-size: 15px; font-weight: 700; margin: 4px;">
+              📅 Télécharger .ics
+            </a>
+          </div>
+        </div>
+
+        <div style="background: linear-gradient(135deg, #DBEAFE 0%, #BFDBFE 100%); padding: 16px; border-radius: 12px; border: 2px solid #3B82F6;">
+          <p style="margin: 0; font-size: 14px; color: #1E40AF; line-height: 1.6; text-align: center;">
+            💡 L'organisateur peut maintenant confirmer la date finale dans son tableau de bord !
+          </p>
+        </div>
+
+      </td>
+    </tr>
+
+    <tr>
+      <td style="background: #F9FAFB; padding: 24px; text-align: center; border-top: 1px solid #E5E7EB;">
+        <p style="margin: 0 0 12px 0; font-size: 14px; color: #1E1B4B; font-weight: 600;">✨ Félicitations pour cette belle mobilisation !</p>
+        <p style="margin: 0; font-size: 12px; color: #6B7280;">
+          Cet email a été envoyé par <strong style="color: #8B5CF6;">Synkro</strong>
+        </p>
+      </td>
+    </tr>
+
+  </table>
+
+</body>
+</html>
+  `;
+
+  const emailConfig = getEmailConfig();
+  let successCount = 0;
+  let failCount = 0;
+
+  // Envoyer les emails un par un avec un délai de 600ms pour respecter la limite Resend (2/seconde)
+  for (let i = 0; i < uniqueEmails.length; i++) {
+    const email = uniqueEmails[i];
+
+    try {
+      const response = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${RESEND_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          from: emailConfig.from,
+          to: email,
+          subject: `🎉 Synkro - 100% ont voté pour : ${eventType}`,
+          html: emailHtml,
+          headers: {
+            'List-Unsubscribe': '<mailto:unsubscribe@getsynkro.com>',
+            'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click'
+          }
+        })
+      });
+
+      if (!response.ok) {
+        console.error(`❌ Failed to send 100% celebration email to ${email}:`, await response.text());
+        failCount++;
+      } else {
+        console.log(`✅ 100% celebration email ${i + 1}/${uniqueEmails.length} sent to: ${email}`);
+        successCount++;
+      }
+    } catch (error) {
+      console.error(`❌ Error sending 100% celebration email to ${email}:`, error.message);
+      failCount++;
+    }
+
+    // Attendre 600ms avant le prochain email (respecte la limite 2/seconde de Resend)
+    if (i < uniqueEmails.length - 1) {
+      await delay(600);
+    }
+  }
+
+  console.log(`🎉 100% celebration emails complete: ${successCount} sent, ${failCount} failed`);
+}
+
+// ========================================
+// GENERATE CALENDAR ICS - Générer fichier ICS
+// ========================================
+async function generateCalendarICS(req, res) {
+  const { id: eventId } = req.query;
+
+  if (!eventId) {
+    return res.status(400).json({ error: 'Event ID is required' });
+  }
+
+  const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN;
+  const BASE_ID = process.env.AIRTABLE_BASE_ID;
+  const TABLE_ID = process.env.AIRTABLE_EVENTS_TABLE_ID;
+
+  if (!AIRTABLE_TOKEN || !BASE_ID || !TABLE_ID) {
+    return res.status(500).json({ error: 'Database configuration error' });
+  }
+
+  try {
+    // Récupérer l'événement
+    const searchUrl = `https://api.airtable.com/v0/${BASE_ID}/${TABLE_ID}?filterByFormula={eventId}='${eventId}'`;
+
+    const searchResponse = await fetch(searchUrl, {
+      headers: {
+        'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!searchResponse.ok) {
+      return res.status(500).json({ error: 'Database search error' });
+    }
+
+    const searchData = await searchResponse.json();
+
+    if (!searchData.records || searchData.records.length === 0) {
+      return res.status(404).json({ error: 'Event not found' });
+    }
+
+    const record = searchData.records[0];
+    const event = record.fields;
+
+    // Obtenir la meilleure date ou la date confirmée
+    let eventDate;
+    let eventTime = '09:00';
+
+    if (event.confirmedDate) {
+      eventDate = event.confirmedDate;
+      eventTime = event.confirmedTime || '09:00';
+    } else {
+      const dates = event.dates ? JSON.parse(event.dates) : [];
+      if (dates.length > 0) {
+        const bestDate = dates.reduce((prev, current) =>
+          (current.votes || 0) > (prev.votes || 0) ? current : prev
+        );
+        eventDate = bestDate.label;
+        eventTime = bestDate.time || '09:00';
+      } else {
+        return res.status(400).json({ error: 'No dates available for this event' });
+      }
+    }
+
+    // Créer une date approximative pour le calendrier
+    const now = new Date();
+    const futureDate = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+    const [hours, minutes] = eventTime.split(':').map(Number);
+    futureDate.setHours(hours || 9, minutes || 0, 0, 0);
+
+    const startDate = futureDate;
+    const endDate = new Date(startDate.getTime() + 60 * 60 * 1000);
+
+    const formatICSDate = (date) => {
+      const year = date.getUTCFullYear();
+      const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+      const day = String(date.getUTCDate()).padStart(2, '0');
+      const hour = String(date.getUTCHours()).padStart(2, '0');
+      const minute = String(date.getUTCMinutes()).padStart(2, '0');
+      const second = String(date.getUTCSeconds()).padStart(2, '0');
+      return `${year}${month}${day}T${hour}${minute}${second}Z`;
+    };
+
+    const escapeICS = (text) => {
+      if (!text) return '';
+      return text
+        .replace(/\\/g, '\\\\')
+        .replace(/;/g, '\\;')
+        .replace(/,/g, '\\,')
+        .replace(/\n/g, '\\n');
+    };
+
+    const eventName = event.type || 'Événement Synkro';
+    const eventDescription = event.eventSchedule
+      ? `${event.eventSchedule}\\n\\nDate proposée: ${eventDate}\\nOrganisé par ${event.organizerName} via Synkro`
+      : `Date proposée: ${eventDate}\\nOrganisé par ${event.organizerName} via Synkro`;
+
+    const icsContent = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//Synkro//Event//FR',
+      'CALSCALE:GREGORIAN',
+      'METHOD:PUBLISH',
+      'BEGIN:VEVENT',
+      `UID:${eventId}@getsynkro.com`,
+      `DTSTAMP:${formatICSDate(new Date())}`,
+      `DTSTART:${formatICSDate(startDate)}`,
+      `DTEND:${formatICSDate(endDate)}`,
+      `SUMMARY:${escapeICS(eventName)}`,
+      `DESCRIPTION:${escapeICS(eventDescription)}`,
+      event.location ? `LOCATION:${escapeICS(event.location)}` : '',
+      `ORGANIZER;CN=${escapeICS(event.organizerName)}:mailto:${event.organizerEmail || 'noreply@getsynkro.com'}`,
+      'STATUS:CONFIRMED',
+      'END:VEVENT',
+      'END:VCALENDAR'
+    ].filter(line => line).join('\r\n');
+
+    const safeFileName = eventName.replace(/[^a-z0-9]/gi, '_').substring(0, 50);
+
+    res.setHeader('Content-Type', 'text/calendar; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="${safeFileName}.ics"`);
+    return res.status(200).send(icsContent);
+
+  } catch (error) {
+    console.error('Error generating ICS:', error);
+    return res.status(500).json({ error: 'Failed to generate calendar file' });
+  }
 }

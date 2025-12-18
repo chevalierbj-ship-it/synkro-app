@@ -47,9 +47,19 @@ export default async function handler(req, res) {
       return await trackEvent(req, res);
     }
 
+    // POST /api/events?action=confirm - Confirmer une date (organisateur)
+    if (req.method === 'POST' && action === 'confirm') {
+      return await confirmDate(req, res);
+    }
+
+    // DELETE /api/events?action=delete - Supprimer un événement (organisateur)
+    if ((req.method === 'POST' || req.method === 'DELETE') && action === 'delete') {
+      return await deleteEvent(req, res);
+    }
+
     return res.status(400).json({
       error: 'Invalid action',
-      message: 'Use action=create|get|update|track'
+      message: 'Use action=create|get|update|track|confirm|delete'
     });
 
   } catch (error) {
@@ -195,7 +205,8 @@ async function createEvent(req, res) {
         : null,
       cagnotteLink: eventData.cagnotteLink || '',
       useAI: eventData.useAI !== undefined ? eventData.useAI : true,
-      ai_preferences: JSON.stringify([])
+      ai_preferences: JSON.stringify([]),
+      responseDeadline: eventData.responseDeadline || null
     }
   };
 
@@ -640,6 +651,187 @@ async function trackEvent(req, res) {
 }
 
 // ========================================
+// CONFIRM DATE - Confirmer une date (organisateur)
+// ========================================
+async function confirmDate(req, res) {
+  const { eventId, confirmedDate, confirmedTime } = req.body;
+
+  if (!eventId || !confirmedDate) {
+    return res.status(400).json({
+      error: 'Données manquantes',
+      message: 'eventId et confirmedDate sont requis'
+    });
+  }
+
+  const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN;
+  const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
+  const AIRTABLE_TABLE_ID = process.env.AIRTABLE_EVENTS_TABLE_ID;
+
+  if (!AIRTABLE_TOKEN || !AIRTABLE_BASE_ID || !AIRTABLE_TABLE_ID) {
+    console.error('Missing Airtable configuration');
+    return res.status(500).json({ error: 'Server configuration error' });
+  }
+
+  // Récupérer l'événement
+  const searchResponse = await fetch(
+    `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}?filterByFormula={eventId}="${eventId}"`,
+    {
+      headers: {
+        'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
+        'Content-Type': 'application/json'
+      }
+    }
+  );
+
+  if (!searchResponse.ok) {
+    const errorText = await searchResponse.text();
+    console.error('Failed to search event:', errorText);
+    return res.status(500).json({ error: 'Database search error' });
+  }
+
+  const searchData = await searchResponse.json();
+
+  if (!searchData.records || searchData.records.length === 0) {
+    return res.status(404).json({ error: 'Event not found' });
+  }
+
+  const record = searchData.records[0];
+  const event = record.fields;
+
+  // Mettre à jour l'événement avec la date confirmée
+  const updateResponse = await fetch(
+    `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}/${record.id}`,
+    {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        fields: {
+          confirmedDate: confirmedDate,
+          confirmedTime: confirmedTime || null,
+          status: 'completed'
+        }
+      })
+    }
+  );
+
+  if (!updateResponse.ok) {
+    const errorText = await updateResponse.text();
+    console.error('Failed to update event:', errorText);
+    return res.status(500).json({ error: 'Failed to confirm date' });
+  }
+
+  console.log('✅ Date confirmed for event:', eventId, '→', confirmedDate);
+
+  // Envoyer email de confirmation à tous les participants avec email
+  const participants = event.participants ? JSON.parse(event.participants) : [];
+  const participantEmails = participants
+    .filter(p => p.email)
+    .map(p => ({ name: p.name, email: p.email }));
+
+  // Ajouter l'organisateur s'il a un email
+  if (event.organizerEmail) {
+    participantEmails.push({ name: event.organizerName, email: event.organizerEmail });
+  }
+
+  // Envoyer les emails de confirmation
+  if (participantEmails.length > 0) {
+    await sendDateConfirmedEmails({
+      participants: participantEmails,
+      eventType: event.type,
+      organizerName: event.organizerName,
+      location: event.location,
+      eventSchedule: event.eventSchedule,
+      confirmedDate,
+      confirmedTime,
+      eventId
+    });
+  }
+
+  return res.status(200).json({
+    success: true,
+    message: 'Date confirmée avec succès',
+    confirmedDate,
+    confirmedTime: confirmedTime || null
+  });
+}
+
+// ========================================
+// DELETE EVENT - Supprimer un événement
+// ========================================
+async function deleteEvent(req, res) {
+  const { eventId } = req.body;
+
+  if (!eventId) {
+    return res.status(400).json({
+      error: 'Données manquantes',
+      message: 'eventId est requis'
+    });
+  }
+
+  const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN;
+  const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
+  const AIRTABLE_TABLE_ID = process.env.AIRTABLE_EVENTS_TABLE_ID;
+
+  if (!AIRTABLE_TOKEN || !AIRTABLE_BASE_ID || !AIRTABLE_TABLE_ID) {
+    console.error('Missing Airtable configuration');
+    return res.status(500).json({ error: 'Server configuration error' });
+  }
+
+  // Récupérer l'événement pour obtenir l'ID Airtable
+  const searchResponse = await fetch(
+    `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}?filterByFormula={eventId}="${eventId}"`,
+    {
+      headers: {
+        'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
+        'Content-Type': 'application/json'
+      }
+    }
+  );
+
+  if (!searchResponse.ok) {
+    const errorText = await searchResponse.text();
+    console.error('Failed to search event:', errorText);
+    return res.status(500).json({ error: 'Database search error' });
+  }
+
+  const searchData = await searchResponse.json();
+
+  if (!searchData.records || searchData.records.length === 0) {
+    return res.status(404).json({ error: 'Event not found' });
+  }
+
+  const record = searchData.records[0];
+
+  // Supprimer l'événement
+  const deleteResponse = await fetch(
+    `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}/${record.id}`,
+    {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
+        'Content-Type': 'application/json'
+      }
+    }
+  );
+
+  if (!deleteResponse.ok) {
+    const errorText = await deleteResponse.text();
+    console.error('Failed to delete event:', errorText);
+    return res.status(500).json({ error: 'Failed to delete event' });
+  }
+
+  console.log('🗑️ Event deleted:', eventId);
+
+  return res.status(200).json({
+    success: true,
+    message: 'Événement supprimé avec succès'
+  });
+}
+
+// ========================================
 // HELPER FUNCTIONS
 // ========================================
 
@@ -929,6 +1121,144 @@ async function sendCelebrationEmail({
   console.log(`🎉 Celebration emails complete: ${successCount} sent, ${failCount} failed`);
 }
 
+// Envoyer email de confirmation de date à tous les participants
+async function sendDateConfirmedEmails({
+  participants,
+  eventType,
+  organizerName,
+  location,
+  eventSchedule,
+  confirmedDate,
+  confirmedTime,
+  eventId
+}) {
+  const RESEND_API_KEY = process.env.RESEND_API_KEY;
+
+  if (!RESEND_API_KEY) {
+    console.error('Resend API key not configured');
+    return;
+  }
+
+  const APP_URL = process.env.APP_URL || 'https://getsynkro.com';
+  const participantLink = `${APP_URL}/participant?id=${eventId}`;
+
+  const emailHtml = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>📅 Date confirmée !</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: linear-gradient(135deg, #8B5CF6 0%, #EC4899 50%, #06B6D4 100%); min-height: 100vh; padding: 40px 20px;">
+
+  <table role="presentation" style="max-width: 600px; margin: 0 auto; background: white; border-radius: 24px; overflow: hidden; box-shadow: 0 24px 60px rgba(139, 92, 246, 0.3);">
+
+    <tr>
+      <td style="background: linear-gradient(135deg, #10B981 0%, #059669 100%); padding: 40px; text-align: center;">
+        <div style="font-size: 72px; margin-bottom: 16px;">📅</div>
+        <h1 style="margin: 0; font-size: 36px; color: white; font-weight: 800;">Date confirmée !</h1>
+        <p style="margin: 12px 0 0 0; font-size: 18px; color: rgba(255,255,255,0.95); font-weight: 600;">Rendez-vous confirmé 🎉</p>
+      </td>
+    </tr>
+
+    <tr>
+      <td style="padding: 40px;">
+
+        <div style="background: linear-gradient(135deg, #F5F3FF 0%, #E9D5FF 100%); padding: 24px; border-radius: 12px; margin-bottom: 32px;">
+          <div style="font-size: 14px; color: #8B5CF6; font-weight: 700; margin-bottom: 8px;">🎯 ${eventType}</div>
+          <div style="font-size: 20px; color: #1E1B4B; font-weight: 700; margin-bottom: 8px;">Organisé par ${organizerName}</div>
+          ${location ? `<div style="font-size: 14px; color: #8B5CF6; font-weight: 600;">📍 ${location}</div>` : ''}
+          ${eventSchedule ? `<div style="font-size: 13px; color: #6B7280; margin-top: 8px; line-height: 1.5;">📋 ${eventSchedule}</div>` : ''}
+        </div>
+
+        <div style="text-align: center; margin-bottom: 32px;">
+          <h2 style="font-size: 20px; color: #1E1B4B; font-weight: 700; margin: 0 0 16px 0;">🏆 Date retenue</h2>
+          <div style="background: linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%); padding: 24px; border-radius: 12px; border: 3px solid #10B981;">
+            <div style="font-size: 28px; color: #065F46; font-weight: 800; margin-bottom: 8px;">${confirmedDate}</div>
+            ${confirmedTime ? `<div style="font-size: 18px; color: #065F46; font-weight: 600;">🕐 ${confirmedTime}</div>` : ''}
+          </div>
+        </div>
+
+        <div style="text-align: center; margin-bottom: 32px;">
+          <a href="${participantLink}" style="display: inline-block; padding: 18px 32px; background: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%); color: white; text-decoration: none; border-radius: 14px; font-size: 16px; font-weight: 700; box-shadow: 0 8px 20px rgba(139, 92, 246, 0.3);">
+            📅 Ajouter à mon calendrier
+          </a>
+        </div>
+
+        <div style="background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%); padding: 16px; border-radius: 12px; border: 2px solid #FCD34D;">
+          <p style="margin: 0; font-size: 14px; color: #92400E; line-height: 1.6;">
+            💡 Clique sur le lien ci-dessus pour ajouter cet événement à ton calendrier Google, Outlook ou télécharger un fichier .ics !
+          </p>
+        </div>
+
+      </td>
+    </tr>
+
+    <tr>
+      <td style="background: #F9FAFB; padding: 24px; text-align: center; border-top: 1px solid #E5E7EB;">
+        <p style="margin: 0 0 12px 0; font-size: 14px; color: #1E1B4B; font-weight: 600;">✨ À bientôt !</p>
+        <p style="margin: 0; font-size: 12px; color: #6B7280;">
+          Cet email a été envoyé par <strong style="color: #8B5CF6;">Synkro</strong>
+        </p>
+      </td>
+    </tr>
+
+  </table>
+
+</body>
+</html>
+  `;
+
+  const emailConfig = getEmailConfig();
+  let successCount = 0;
+  let failCount = 0;
+
+  console.log(`📧 Sending date confirmation emails to ${participants.length} recipients...`);
+
+  for (let i = 0; i < participants.length; i++) {
+    const participant = participants[i];
+
+    try {
+      const response = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${RESEND_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          from: emailConfig.from,
+          to: participant.email,
+          subject: `Synkro - Date confirmée : ${eventType} le ${confirmedDate}`,
+          html: emailHtml,
+          headers: {
+            'List-Unsubscribe': '<mailto:unsubscribe@getsynkro.com>',
+            'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click'
+          }
+        })
+      });
+
+      if (!response.ok) {
+        console.error(`❌ Failed to send date confirmation email to ${participant.email}:`, await response.text());
+        failCount++;
+      } else {
+        console.log(`✅ Date confirmation email ${i + 1}/${participants.length} sent to: ${participant.email}`);
+        successCount++;
+      }
+    } catch (error) {
+      console.error(`❌ Error sending date confirmation email to ${participant.email}:`, error.message);
+      failCount++;
+    }
+
+    // Attendre 600ms avant le prochain email
+    if (i < participants.length - 1) {
+      await delay(600);
+    }
+  }
+
+  console.log(`📅 Date confirmation emails complete: ${successCount} sent, ${failCount} failed`);
+}
+
 function getOrganizerCreatedEmail(data) {
   const { eventType, eventLink, adminLink, organizerName, dates, location, eventSchedule } = data;
 
@@ -982,12 +1312,18 @@ function getOrganizerCreatedEmail(data) {
                 </p>
               </div>
 
-              <a href="${eventLink}" style="display: block; background: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%); color: white; text-decoration: none; padding: 18px 32px; border-radius: 12px; font-size: 16px; font-weight: 700; text-align: center; margin-bottom: 16px;">
+              <!-- Lien participant pour copier -->
+              <div style="background: #F5F3FF; padding: 16px; border-radius: 10px; margin-bottom: 16px; border: 2px solid #E9D5FF;">
+                <p style="color: #6B7280; margin: 0 0 8px 0; font-size: 13px; font-weight: 600;">🔗 Lien à partager avec tes invités :</p>
+                <p style="color: #8B5CF6; margin: 0; font-size: 14px; word-break: break-all; font-family: monospace;">${eventLink}</p>
+              </div>
+
+              <a href="${adminLink}" style="display: block; background: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%); color: white; text-decoration: none; padding: 18px 32px; border-radius: 12px; font-size: 16px; font-weight: 700; text-align: center; margin-bottom: 16px;">
                 📤 Partager avec mes invités
               </a>
 
               <a href="${adminLink}" style="display: block; background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); color: white; text-decoration: none; padding: 18px 32px; border-radius: 12px; font-size: 16px; font-weight: 700; text-align: center; margin-bottom: 20px;">
-                🔐 Accéder à mon dashboard
+                🔐 Voir le tableau de bord
               </a>
 
             </td>

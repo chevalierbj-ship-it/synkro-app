@@ -57,9 +57,14 @@ export default async function handler(req, res) {
       return await deleteEvent(req, res);
     }
 
+    // GET /api/events?action=calendar-ics&id=xxx - Générer fichier ICS
+    if (req.method === 'GET' && action === 'calendar-ics') {
+      return await generateCalendarICS(req, res);
+    }
+
     return res.status(400).json({
       error: 'Invalid action',
-      message: 'Use action=create|get|update|track|confirm|delete'
+      message: 'Use action=create|get|update|track|confirm|delete|calendar-ics'
     });
 
   } catch (error) {
@@ -1413,7 +1418,7 @@ function generateCalendarLinks(eventName, dateLabel, location, eventSchedule, ev
 
     outlook: `https://outlook.live.com/calendar/0/deeplink/compose?subject=${eventTitle}&startdt=${formatDateOutlook(startDate)}&enddt=${formatDateOutlook(endDate)}&body=${eventDescription}&location=${eventLocation}`,
 
-    ics: `${APP_URL}/api/calendar-ics?eventId=${eventId}`
+    ics: `${APP_URL}/api/events?action=calendar-ics&id=${eventId}`
   };
 }
 
@@ -1598,4 +1603,132 @@ async function sendAllVotedCelebrationEmail({
   }
 
   console.log(`🎉 100% celebration emails complete: ${successCount} sent, ${failCount} failed`);
+}
+
+// ========================================
+// GENERATE CALENDAR ICS - Générer fichier ICS
+// ========================================
+async function generateCalendarICS(req, res) {
+  const { id: eventId } = req.query;
+
+  if (!eventId) {
+    return res.status(400).json({ error: 'Event ID is required' });
+  }
+
+  const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN;
+  const BASE_ID = process.env.AIRTABLE_BASE_ID;
+  const TABLE_ID = process.env.AIRTABLE_EVENTS_TABLE_ID;
+
+  if (!AIRTABLE_TOKEN || !BASE_ID || !TABLE_ID) {
+    return res.status(500).json({ error: 'Database configuration error' });
+  }
+
+  try {
+    // Récupérer l'événement
+    const searchUrl = `https://api.airtable.com/v0/${BASE_ID}/${TABLE_ID}?filterByFormula={eventId}='${eventId}'`;
+
+    const searchResponse = await fetch(searchUrl, {
+      headers: {
+        'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!searchResponse.ok) {
+      return res.status(500).json({ error: 'Database search error' });
+    }
+
+    const searchData = await searchResponse.json();
+
+    if (!searchData.records || searchData.records.length === 0) {
+      return res.status(404).json({ error: 'Event not found' });
+    }
+
+    const record = searchData.records[0];
+    const event = record.fields;
+
+    // Obtenir la meilleure date ou la date confirmée
+    let eventDate;
+    let eventTime = '09:00';
+
+    if (event.confirmedDate) {
+      eventDate = event.confirmedDate;
+      eventTime = event.confirmedTime || '09:00';
+    } else {
+      const dates = event.dates ? JSON.parse(event.dates) : [];
+      if (dates.length > 0) {
+        const bestDate = dates.reduce((prev, current) =>
+          (current.votes || 0) > (prev.votes || 0) ? current : prev
+        );
+        eventDate = bestDate.label;
+        eventTime = bestDate.time || '09:00';
+      } else {
+        return res.status(400).json({ error: 'No dates available for this event' });
+      }
+    }
+
+    // Créer une date approximative pour le calendrier
+    const now = new Date();
+    const futureDate = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+    const [hours, minutes] = eventTime.split(':').map(Number);
+    futureDate.setHours(hours || 9, minutes || 0, 0, 0);
+
+    const startDate = futureDate;
+    const endDate = new Date(startDate.getTime() + 60 * 60 * 1000);
+
+    const formatICSDate = (date) => {
+      const year = date.getUTCFullYear();
+      const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+      const day = String(date.getUTCDate()).padStart(2, '0');
+      const hour = String(date.getUTCHours()).padStart(2, '0');
+      const minute = String(date.getUTCMinutes()).padStart(2, '0');
+      const second = String(date.getUTCSeconds()).padStart(2, '0');
+      return `${year}${month}${day}T${hour}${minute}${second}Z`;
+    };
+
+    const escapeICS = (text) => {
+      if (!text) return '';
+      return text
+        .replace(/\\/g, '\\\\')
+        .replace(/;/g, '\\;')
+        .replace(/,/g, '\\,')
+        .replace(/\n/g, '\\n');
+    };
+
+    const eventName = event.type || 'Événement Synkro';
+    const eventDescription = event.eventSchedule
+      ? `${event.eventSchedule}\\n\\nDate proposée: ${eventDate}\\nOrganisé par ${event.organizerName} via Synkro`
+      : `Date proposée: ${eventDate}\\nOrganisé par ${event.organizerName} via Synkro`;
+
+    const icsContent = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//Synkro//Event//FR',
+      'CALSCALE:GREGORIAN',
+      'METHOD:PUBLISH',
+      'BEGIN:VEVENT',
+      `UID:${eventId}@getsynkro.com`,
+      `DTSTAMP:${formatICSDate(new Date())}`,
+      `DTSTART:${formatICSDate(startDate)}`,
+      `DTEND:${formatICSDate(endDate)}`,
+      `SUMMARY:${escapeICS(eventName)}`,
+      `DESCRIPTION:${escapeICS(eventDescription)}`,
+      event.location ? `LOCATION:${escapeICS(event.location)}` : '',
+      `ORGANIZER;CN=${escapeICS(event.organizerName)}:mailto:${event.organizerEmail || 'noreply@getsynkro.com'}`,
+      'STATUS:CONFIRMED',
+      'END:VEVENT',
+      'END:VCALENDAR'
+    ].filter(line => line).join('\r\n');
+
+    const safeFileName = eventName.replace(/[^a-z0-9]/gi, '_').substring(0, 50);
+
+    res.setHeader('Content-Type', 'text/calendar; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="${safeFileName}.ics"`);
+    return res.status(200).send(icsContent);
+
+  } catch (error) {
+    console.error('Error generating ICS:', error);
+    return res.status(500).json({ error: 'Failed to generate calendar file' });
+  }
 }

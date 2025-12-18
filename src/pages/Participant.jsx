@@ -37,6 +37,9 @@ const Participant = () => {
   const [existingVote, setExistingVote] = useState(null);
   const [showExistingVote, setShowExistingVote] = useState(false);
 
+  // 🆕 État pour la date limite de réponse
+  const [isDeadlinePassed, setIsDeadlinePassed] = useState(false);
+
   // 🆕 FONCTIONS CALENDRIER
   const addToGoogleCalendar = () => {
     const startDate = new Date(selectedDate.date);
@@ -144,6 +147,14 @@ const Participant = () => {
         if (eventData.useAI === true) {
           setIsAIMode(true);
           setShowAIFlow(true);
+        }
+
+        // 🆕 Vérifier si la date limite de réponse est passée
+        if (eventData.responseDeadline) {
+          const deadlineDate = new Date(eventData.responseDeadline);
+          if (deadlineDate < new Date()) {
+            setIsDeadlinePassed(true);
+          }
         }
 
         // 🆕 Vérifier si le participant a déjà voté (via localStorage)
@@ -720,7 +731,8 @@ const Participant = () => {
   }
 
   // 🆕 MODE IA : Afficher le flux de questions intelligentes
-  if (isAIMode && showAIFlow && userName) {
+  // 🔧 FIX: Ajout de step >= 2 pour éviter le redirect immédiat quand l'utilisateur tape son nom
+  if (isAIMode && showAIFlow && userName && step >= 2) {
     return (
       <div style={{
         minHeight: '100vh',
@@ -942,8 +954,76 @@ const Participant = () => {
                   📋 {event.eventSchedule}
                 </div>
               )}
+
+              {/* 🆕 Afficher la date limite si définie */}
+              {event.responseDeadline && !isDeadlinePassed && (
+                <div style={{
+                  marginTop: '12px',
+                  padding: '10px 14px',
+                  background: 'linear-gradient(135deg, #E0E7FF 0%, #C7D2FE 100%)',
+                  borderRadius: '10px',
+                  border: '2px solid #A5B4FC',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}>
+                  <Clock size={16} color="#1E40AF" />
+                  <span style={{ fontSize: '13px', color: '#1E40AF', fontWeight: '600' }}>
+                    ⏰ Réponds avant le {new Date(event.responseDeadline).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                </div>
+              )}
             </div>
 
+            {/* 🆕 Si la date limite est passée, afficher un message */}
+            {isDeadlinePassed ? (
+              <div style={{
+                background: 'linear-gradient(135deg, #FEE2E2 0%, #FECACA 100%)',
+                padding: '32px',
+                borderRadius: '16px',
+                textAlign: 'center',
+                border: '2px solid #EF4444'
+              }}>
+                <div style={{
+                  width: '70px',
+                  height: '70px',
+                  background: 'linear-gradient(135deg, #EF4444 0%, #DC2626 100%)',
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 20px'
+                }}>
+                  <AlertCircle size={36} color="white" />
+                </div>
+                <h2 style={{ fontSize: '22px', fontWeight: '700', color: '#991B1B', marginBottom: '12px' }}>
+                  Les votes sont clôturés
+                </h2>
+                <p style={{ color: '#991B1B', fontSize: '14px', marginBottom: '16px', lineHeight: '1.6' }}>
+                  La date limite de réponse était le {new Date(event.responseDeadline).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}
+                </p>
+                <p style={{ color: '#6B7280', fontSize: '13px' }}>
+                  L'organisateur confirmera bientôt la date retenue. Reviens plus tard pour voir le résultat.
+                </p>
+                <button
+                  onClick={() => navigate('/')}
+                  style={{
+                    marginTop: '24px',
+                    padding: '14px 28px',
+                    background: 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '12px',
+                    fontSize: '15px',
+                    fontWeight: '700',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Retour à l'accueil
+                </button>
+              </div>
+            ) : (
+            <>
             {/* Boutons d'authentification */}
             <AuthButtons
               onAuthSuccess={(userData) => {
@@ -1073,6 +1153,8 @@ const Participant = () => {
             >
               {t('participant.continue')}
             </button>
+            </>
+            )}
           </div>
         )}
 
@@ -1437,7 +1519,9 @@ const Participant = () => {
             </div>
 
             <h2 style={{ fontSize: '28px', marginBottom: '16px', color: '#1E1B4B', fontWeight: '700' }}>
-              {t('participant.dateConfirmed')}
+              {event.confirmedDate || event.status === 'completed'
+                ? t('participant.dateConfirmed')
+                : t('participant.voteRegistered') || 'Vote enregistré ! 🎉'}
             </h2>
 
             <div style={{
@@ -1481,10 +1565,12 @@ const Participant = () => {
 
               <div style={{ marginBottom: '18px' }}>
                 <div style={{ fontSize: '13px', color: '#6B7280', marginBottom: '6px', fontWeight: '600' }}>
-                  {t('participant.dateTimeLabel')}
+                  {event.confirmedDate || event.status === 'completed'
+                    ? t('participant.dateTimeLabel')
+                    : t('participant.favoriteDateLabel') || '⭐ Date favorite'}
                 </div>
-                <div style={{ 
-                  fontSize: '22px', 
+                <div style={{
+                  fontSize: '22px',
                   fontWeight: '700',
                   background: 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)',
                   WebkitBackgroundClip: 'text',
@@ -1492,6 +1578,11 @@ const Participant = () => {
                 }}>
                   {selectedDate.label}
                 </div>
+                {!(event.confirmedDate || event.status === 'completed') && (
+                  <div style={{ fontSize: '13px', color: '#6B7280', marginTop: '8px' }}>
+                    {selectedDate.votes} vote{selectedDate.votes !== 1 ? 's' : ''} • En attente de confirmation par l'organisateur
+                  </div>
+                )}
               </div>
 
               <div>
@@ -1505,157 +1596,167 @@ const Participant = () => {
               </div>
             </div>
 
-            {/* 🆕 BOUTONS CALENDRIER */}
-            <div style={{ 
-              marginTop: '32px', 
-              display: 'flex', 
-              flexDirection: 'column', 
-              gap: '12px',
-              width: '100%',
-              maxWidth: '500px',
-              margin: '32px auto 0'
-            }}>
-              
-              <h3 style={{
-                fontSize: '18px',
-                fontWeight: '700',
-                color: '#1f2937',
-                marginBottom: '8px',
-                textAlign: 'center'
+            {/* 🆕 BOUTONS CALENDRIER - Uniquement si date confirmée */}
+            {(event.confirmedDate || event.status === 'completed') && (
+              <div style={{
+                marginTop: '32px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px',
+                width: '100%',
+                maxWidth: '500px',
+                margin: '32px auto 0'
               }}>
-                {t('participant.addToCalendar')}
-              </h3>
 
-              {/* Bouton Google Calendar */}
-              <button
-                onClick={() => addToGoogleCalendar()}
-                style={{
-                  width: '100%',
-                  padding: '18px 24px',
-                  background: 'white',
-                  color: '#8B5CF6',
-                  border: '2px solid #8B5CF6',
-                  borderRadius: '14px',
-                  fontSize: '16px',
+                <h3 style={{
+                  fontSize: '18px',
                   fontWeight: '700',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '12px',
-                  transition: 'all 0.3s ease',
-                  boxShadow: '0 2px 8px rgba(139, 92, 246, 0.1)'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)';
-                  e.currentTarget.style.color = 'white';
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.boxShadow = '0 8px 20px rgba(139, 92, 246, 0.3)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'white';
-                  e.currentTarget.style.color = '#8B5CF6';
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(139, 92, 246, 0.1)';
-                }}
-              >
-                <Calendar size={20} />
-                {t('participant.addGoogleCalendar')}
-              </button>
+                  color: '#1f2937',
+                  marginBottom: '8px',
+                  textAlign: 'center'
+                }}>
+                  {t('participant.addToCalendar')}
+                </h3>
 
-              {/* Bouton Outlook */}
-              <button
-                onClick={() => addToOutlook()}
-                style={{
-                  width: '100%',
-                  padding: '18px 24px',
-                  background: 'white',
-                  color: '#EC4899',
-                  border: '2px solid #EC4899',
-                  borderRadius: '14px',
-                  fontSize: '16px',
-                  fontWeight: '700',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '12px',
-                  transition: 'all 0.3s ease',
-                  boxShadow: '0 2px 8px rgba(236, 72, 153, 0.1)'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'linear-gradient(135deg, #EC4899 0%, #DB2777 100%)';
-                  e.currentTarget.style.color = 'white';
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.boxShadow = '0 8px 20px rgba(236, 72, 153, 0.3)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'white';
-                  e.currentTarget.style.color = '#EC4899';
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(236, 72, 153, 0.1)';
-                }}
-              >
-                <Calendar size={20} />
-                {t('participant.addOutlookCalendar')}
-              </button>
+                {/* Bouton Google Calendar */}
+                <button
+                  onClick={() => addToGoogleCalendar()}
+                  style={{
+                    width: '100%',
+                    padding: '18px 24px',
+                    background: 'white',
+                    color: '#8B5CF6',
+                    border: '2px solid #8B5CF6',
+                    borderRadius: '14px',
+                    fontSize: '16px',
+                    fontWeight: '700',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '12px',
+                    transition: 'all 0.3s ease',
+                    boxShadow: '0 2px 8px rgba(139, 92, 246, 0.1)'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = 'linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)';
+                    e.currentTarget.style.color = 'white';
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 8px 20px rgba(139, 92, 246, 0.3)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'white';
+                    e.currentTarget.style.color = '#8B5CF6';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 2px 8px rgba(139, 92, 246, 0.1)';
+                  }}
+                >
+                  <Calendar size={20} />
+                  {t('participant.addGoogleCalendar')}
+                </button>
 
-              {/* Bouton Télécharger .ics - Même style que Google/Outlook */}
-              <button
-                onClick={() => downloadICS()}
-                style={{
-                  width: '100%',
-                  padding: '18px 24px',
-                  background: 'white',
-                  color: '#10B981',
-                  border: '2px solid #10B981',
-                  borderRadius: '14px',
-                  fontSize: '16px',
-                  fontWeight: '700',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '12px',
-                  transition: 'all 0.3s ease',
-                  boxShadow: '0 2px 8px rgba(16, 185, 129, 0.1)'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'linear-gradient(135deg, #10B981 0%, #059669 100%)';
-                  e.currentTarget.style.color = 'white';
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.boxShadow = '0 8px 20px rgba(16, 185, 129, 0.3)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'white';
-                  e.currentTarget.style.color = '#10B981';
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(16, 185, 129, 0.1)';
-                }}
-              >
-                <Download size={20} />
-                {t('participant.downloadIcs')}
-              </button>
+                {/* Bouton Outlook */}
+                <button
+                  onClick={() => addToOutlook()}
+                  style={{
+                    width: '100%',
+                    padding: '18px 24px',
+                    background: 'white',
+                    color: '#EC4899',
+                    border: '2px solid #EC4899',
+                    borderRadius: '14px',
+                    fontSize: '16px',
+                    fontWeight: '700',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '12px',
+                    transition: 'all 0.3s ease',
+                    boxShadow: '0 2px 8px rgba(236, 72, 153, 0.1)'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = 'linear-gradient(135deg, #EC4899 0%, #DB2777 100%)';
+                    e.currentTarget.style.color = 'white';
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 8px 20px rgba(236, 72, 153, 0.3)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'white';
+                    e.currentTarget.style.color = '#EC4899';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 2px 8px rgba(236, 72, 153, 0.1)';
+                  }}
+                >
+                  <Calendar size={20} />
+                  {t('participant.addOutlookCalendar')}
+                </button>
 
-            </div>
+                {/* Bouton Télécharger .ics - Même style que Google/Outlook */}
+                <button
+                  onClick={() => downloadICS()}
+                  style={{
+                    width: '100%',
+                    padding: '18px 24px',
+                    background: 'white',
+                    color: '#10B981',
+                    border: '2px solid #10B981',
+                    borderRadius: '14px',
+                    fontSize: '16px',
+                    fontWeight: '700',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '12px',
+                    transition: 'all 0.3s ease',
+                    boxShadow: '0 2px 8px rgba(16, 185, 129, 0.1)'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = 'linear-gradient(135deg, #10B981 0%, #059669 100%)';
+                    e.currentTarget.style.color = 'white';
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 8px 20px rgba(16, 185, 129, 0.3)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'white';
+                    e.currentTarget.style.color = '#10B981';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 2px 8px rgba(16, 185, 129, 0.1)';
+                  }}
+                >
+                  <Download size={20} />
+                  {t('participant.downloadIcs')}
+                </button>
 
+              </div>
+            )}
+
+            {/* Message contextuel selon l'état de confirmation */}
             <div style={{
               marginTop: '32px',
               padding: '18px',
-              background: 'linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%)',
+              background: event.confirmedDate || event.status === 'completed'
+                ? 'linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%)'
+                : 'linear-gradient(135deg, #E0E7FF 0%, #C7D2FE 100%)',
               borderRadius: '14px',
-              border: '2px solid #FCD34D'
+              border: event.confirmedDate || event.status === 'completed'
+                ? '2px solid #FCD34D'
+                : '2px solid #A5B4FC'
             }}>
               <p
                 style={{
                   fontSize: '13px',
-                  color: '#92400E',
+                  color: event.confirmedDate || event.status === 'completed' ? '#92400E' : '#1E40AF',
                   margin: 0,
                   lineHeight: '1.6',
                   fontWeight: '500'
                 }}
-                dangerouslySetInnerHTML={{ __html: t('participant.reminderTip') }}
-              />
+              >
+                {event.confirmedDate || event.status === 'completed'
+                  ? <span dangerouslySetInnerHTML={{ __html: t('participant.reminderTip') }} />
+                  : '💡 L\'organisateur te préviendra dès que la date sera officiellement confirmée. Tu recevras un email avec les détails.'}
+              </p>
             </div>
 
             {/* 🆕 Bouton retour et CTA Synkro */}

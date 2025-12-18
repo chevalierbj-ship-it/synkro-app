@@ -42,6 +42,10 @@ const Organizer = () => {
   // 🆕 Mode IA vs Manuel
   const [useAI, setUseAI] = useState(true); // Par défaut: IA activée
 
+  // 🆕 Date limite de réponse
+  const [responseDeadline, setResponseDeadline] = useState('');
+  const [hasDeadline, setHasDeadline] = useState(false);
+
   const eventTypes = [
     { id: 'dinner', label: '🍽️ Dîner/Soirée', suggestion: 'Vendredi ou samedi soir, 19h30-21h', defaultTime: '20:00' },
     { id: 'lunch', label: '☕ Déjeuner pro', suggestion: 'Mardi-jeudi, 12h-14h', defaultTime: '12:30' },
@@ -189,6 +193,7 @@ body: JSON.stringify({
   budgetRanges: budgetVoteEnabled ? budgetRanges : [],
   cagnotteLink: budgetVoteEnabled ? cagnotteLink : '',
   useAI: useAI, // 🆕 Mode IA activé ou non
+  responseDeadline: hasDeadline && responseDeadline ? responseDeadline : null, // 🆕 Date limite
   dates: dates
 })
       });
@@ -1178,6 +1183,89 @@ body: JSON.stringify({
                       Passer en Pro
                     </button>
                   )}
+                </div>
+              )}
+            </div>
+
+            {/* 🆕 Date limite de réponse (optionnel) */}
+            <div style={{
+              marginBottom: '24px',
+              background: 'linear-gradient(135deg, #E0E7FF 0%, #C7D2FE 100%)',
+              padding: '20px',
+              borderRadius: '12px',
+              border: '2px solid #A5B4FC'
+            }}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: hasDeadline ? '16px' : '0'
+              }}>
+                <div>
+                  <div style={{ fontSize: '15px', fontWeight: '700', color: '#1E40AF', marginBottom: '4px' }}>
+                    ⏰ Date limite de réponse
+                  </div>
+                  <div style={{ fontSize: '13px', color: '#1E40AF' }}>
+                    Les participants ne pourront plus voter après cette date
+                  </div>
+                </div>
+                <button
+                  onClick={() => setHasDeadline(!hasDeadline)}
+                  style={{
+                    width: '52px',
+                    height: '28px',
+                    borderRadius: '14px',
+                    border: 'none',
+                    background: hasDeadline
+                      ? 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)'
+                      : '#D1D5DB',
+                    cursor: 'pointer',
+                    position: 'relative',
+                    transition: 'background 0.3s'
+                  }}
+                >
+                  <div style={{
+                    width: '22px',
+                    height: '22px',
+                    borderRadius: '50%',
+                    background: 'white',
+                    position: 'absolute',
+                    top: '3px',
+                    left: hasDeadline ? '27px' : '3px',
+                    transition: 'left 0.3s',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                  }}></div>
+                </button>
+              </div>
+
+              {hasDeadline && (
+                <div>
+                  <input
+                    type="datetime-local"
+                    value={responseDeadline}
+                    onChange={(e) => setResponseDeadline(e.target.value)}
+                    min={new Date().toISOString().slice(0, 16)}
+                    style={{
+                      width: '100%',
+                      padding: '14px',
+                      fontSize: '15px',
+                      border: '2px solid #A5B4FC',
+                      borderRadius: '8px',
+                      boxSizing: 'border-box',
+                      outline: 'none',
+                      background: 'white',
+                      fontFamily: 'inherit'
+                    }}
+                    onFocus={(e) => e.target.style.borderColor = '#8B5CF6'}
+                    onBlur={(e) => e.target.style.borderColor = '#A5B4FC'}
+                  />
+                  <div style={{
+                    marginTop: '8px',
+                    fontSize: '12px',
+                    color: '#3730A3'
+                  }}>
+                    💡 Conseil : Définissez une deadline quelques jours avant la date de l'événement
+                  </div>
                 </div>
               )}
             </div>

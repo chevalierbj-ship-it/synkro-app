@@ -27,6 +27,16 @@ const Admin = () => {
   const [isSendingReminder, setIsSendingReminder] = useState(false);
   const [reminderSuccess, setReminderSuccess] = useState(false);
 
+  // 🆕 État pour confirmation de date
+  const [showConfirmDateModal, setShowConfirmDateModal] = useState(false);
+  const [dateToConfirm, setDateToConfirm] = useState(null);
+  const [isConfirmingDate, setIsConfirmingDate] = useState(false);
+  const [confirmSuccess, setConfirmSuccess] = useState(false);
+
+  // 🆕 État pour suppression d'événement
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const intervalRef = useRef(null);
   const countdownRef = useRef(null);
 
@@ -172,6 +182,77 @@ const Admin = () => {
   };
 
   const participantLink = `${window.location.origin}/participant?id=${eventId}`;
+
+  // 🆕 FONCTION : Confirmer une date
+  const confirmDate = async () => {
+    if (isConfirmingDate || !dateToConfirm) return;
+
+    setIsConfirmingDate(true);
+    setConfirmSuccess(false);
+
+    try {
+      const response = await fetch('/api/events?action=confirm', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          eventId,
+          confirmedDate: dateToConfirm.label
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Erreur lors de la confirmation');
+      }
+
+      setConfirmSuccess(true);
+      setShowConfirmDateModal(false);
+      fetchEvent(); // Recharger les données
+
+      setTimeout(() => {
+        setConfirmSuccess(false);
+      }, 5000);
+
+    } catch (error) {
+      console.error('Error confirming date:', error);
+      alert('Erreur lors de la confirmation. Réessayez.');
+    } finally {
+      setIsConfirmingDate(false);
+      setDateToConfirm(null);
+    }
+  };
+
+  // 🆕 FONCTION : Supprimer un événement
+  const deleteEventHandler = async () => {
+    if (isDeleting) return;
+
+    setIsDeleting(true);
+
+    try {
+      const response = await fetch('/api/events?action=delete', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ eventId })
+      });
+
+      if (!response.ok) {
+        throw new Error('Erreur lors de la suppression');
+      }
+
+      // Rediriger vers l'accueil après suppression
+      navigate('/');
+
+    } catch (error) {
+      console.error('Error deleting event:', error);
+      alert('Erreur lors de la suppression. Réessayez.');
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteModal(false);
+    }
+  };
 
   const copyLink = () => {
     navigator.clipboard.writeText(participantLink);
@@ -660,51 +741,132 @@ const Admin = () => {
           </div>
         )}
 
+        {/* Badge confirmation réussie */}
+        {confirmSuccess && (
+          <div style={{
+            background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+            padding: '16px',
+            borderRadius: '12px',
+            marginBottom: '20px',
+            animation: 'flash 0.5s ease-in-out',
+            boxShadow: '0 4px 12px rgba(16, 185, 129, 0.4)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'white', fontWeight: '700', fontSize: '15px' }}>
+              <CheckCircle size={20} />
+              Date confirmée avec succès ! 📅
+            </div>
+            <div style={{ color: 'rgba(255,255,255,0.9)', fontSize: '13px', marginTop: '6px' }}>
+              Les participants ont été notifiés par email
+            </div>
+          </div>
+        )}
+
         {/* Résultats par date */}
         <div style={{ marginBottom: '28px' }}>
-          <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#1E1B4B', marginBottom: '16px' }}>
-            📅 Votes par date
-          </h3>
-          {event.dates && event.dates.map((date, index) => (
-            <div key={index} style={{
-              background: 'white',
-              border: '2px solid #E9D5FF',
-              borderRadius: '12px',
-              padding: '16px',
-              marginBottom: '12px'
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                <span style={{ fontSize: '15px', fontWeight: '600', color: '#1E1B4B' }}>
-                  {date.label}
-                </span>
-                <span style={{ fontSize: '16px', fontWeight: '700', color: '#8B5CF6' }}>
-                  {date.votes} vote{date.votes !== 1 ? 's' : ''}
-                </span>
-              </div>
-              
-              <div style={{
-                width: '100%',
-                height: '8px',
-                background: '#E9D5FF',
-                borderRadius: '20px',
-                overflow: 'hidden',
-                marginBottom: '8px'
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#1E1B4B', margin: 0 }}>
+              📅 Votes par date
+            </h3>
+            {event.confirmedDate && (
+              <span style={{
+                fontSize: '12px',
+                background: '#10B981',
+                color: 'white',
+                padding: '4px 12px',
+                borderRadius: '12px',
+                fontWeight: '700'
               }}>
-                <div style={{
-                  width: event.expectedParticipants > 0 ? `${Math.min(getDatePercentage(date), 100)}%` : `${Math.min((date.votes / (event.totalResponded || 1)) * 100, 100)}%`,
-                  height: '100%',
-                  background: date.votes === bestDate.votes ? 'linear-gradient(90deg, #10B981 0%, #059669 100%)' : 'linear-gradient(90deg, #8B5CF6 0%, #EC4899 100%)',
-                  transition: 'width 0.5s ease'
-                }}></div>
-              </div>
-
-              {date.voters && date.voters.length > 0 && (
-                <div style={{ fontSize: '12px', color: '#6B7280' }}>
-                  👥 {date.voters.join(', ')}
+                ✓ Date confirmée
+              </span>
+            )}
+          </div>
+          {event.dates && event.dates.map((date, index) => {
+            const isConfirmed = event.confirmedDate === date.label;
+            return (
+              <div key={index} style={{
+                background: isConfirmed ? 'linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%)' : 'white',
+                border: isConfirmed ? '2px solid #10B981' : '2px solid #E9D5FF',
+                borderRadius: '12px',
+                padding: '16px',
+                marginBottom: '12px'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '15px', fontWeight: '600', color: '#1E1B4B' }}>
+                      {date.label}
+                    </span>
+                    {isConfirmed && (
+                      <span style={{
+                        fontSize: '11px',
+                        background: '#10B981',
+                        color: 'white',
+                        padding: '2px 8px',
+                        borderRadius: '10px',
+                        fontWeight: '700'
+                      }}>
+                        ✓ Confirmée
+                      </span>
+                    )}
+                  </div>
+                  <span style={{ fontSize: '16px', fontWeight: '700', color: isConfirmed ? '#059669' : '#8B5CF6' }}>
+                    {date.votes} vote{date.votes !== 1 ? 's' : ''}
+                  </span>
                 </div>
-              )}
-            </div>
-          ))}
+
+                <div style={{
+                  width: '100%',
+                  height: '8px',
+                  background: isConfirmed ? '#A7F3D0' : '#E9D5FF',
+                  borderRadius: '20px',
+                  overflow: 'hidden',
+                  marginBottom: '8px'
+                }}>
+                  <div style={{
+                    width: event.expectedParticipants > 0 ? `${Math.min(getDatePercentage(date), 100)}%` : `${Math.min((date.votes / (event.totalResponded || 1)) * 100, 100)}%`,
+                    height: '100%',
+                    background: isConfirmed || date.votes === bestDate.votes ? 'linear-gradient(90deg, #10B981 0%, #059669 100%)' : 'linear-gradient(90deg, #8B5CF6 0%, #EC4899 100%)',
+                    transition: 'width 0.5s ease'
+                  }}></div>
+                </div>
+
+                {date.voters && date.voters.length > 0 && (
+                  <div style={{ fontSize: '12px', color: '#6B7280', marginBottom: event.confirmedDate ? '0' : '12px' }}>
+                    👥 {date.voters.join(', ')}
+                  </div>
+                )}
+
+                {/* Bouton Confirmer - uniquement si pas encore confirmé */}
+                {!event.confirmedDate && (
+                  <button
+                    onClick={() => {
+                      setDateToConfirm(date);
+                      setShowConfirmDateModal(true);
+                    }}
+                    style={{
+                      marginTop: '8px',
+                      padding: '10px 16px',
+                      background: date.votes === bestDate.votes
+                        ? 'linear-gradient(135deg, #10B981 0%, #059669 100%)'
+                        : 'white',
+                      color: date.votes === bestDate.votes ? 'white' : '#8B5CF6',
+                      border: date.votes === bestDate.votes ? 'none' : '2px solid #8B5CF6',
+                      borderRadius: '8px',
+                      fontSize: '13px',
+                      fontWeight: '700',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    <CheckCircle size={16} />
+                    Confirmer cette date
+                  </button>
+                )}
+              </div>
+            );
+          })}
         </div>
 
         {/* Résultats du vote budget */}
@@ -952,12 +1114,45 @@ const Admin = () => {
           </div>
         </div>
 
+        {/* 🆕 ZONE DANGER : Supprimer l'événement */}
+        <div style={{
+          marginTop: '32px',
+          paddingTop: '24px',
+          borderTop: '1px solid #E5E7EB'
+        }}>
+          <h3 style={{ fontSize: '16px', fontWeight: '700', color: '#EF4444', marginBottom: '12px' }}>
+            ⚠️ Zone de danger
+          </h3>
+          <button
+            onClick={() => setShowDeleteModal(true)}
+            style={{
+              width: '100%',
+              padding: '14px',
+              background: 'white',
+              color: '#EF4444',
+              border: '2px solid #EF4444',
+              borderRadius: '12px',
+              fontSize: '14px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              transition: 'all 0.2s'
+            }}
+          >
+            🗑️ Supprimer cet événement
+          </button>
+        </div>
+
         {/* Bouton retour */}
         <button
           onClick={() => navigate('/')}
           style={{
             width: '100%',
             padding: '14px',
+            marginTop: '16px',
             background: 'transparent',
             color: '#6B7280',
             border: 'none',
@@ -969,6 +1164,259 @@ const Admin = () => {
           ← Retour à l'accueil
         </button>
       </div>
+
+      {/* 🆕 MODAL : Confirmation de date */}
+      {showConfirmDateModal && dateToConfirm && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0,0,0,0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          padding: '20px'
+        }}>
+          <div style={{
+            background: 'white',
+            borderRadius: '20px',
+            padding: '32px',
+            maxWidth: '450px',
+            width: '100%',
+            boxShadow: '0 24px 60px rgba(0,0,0,0.3)'
+          }}>
+            <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+              <div style={{
+                width: '70px',
+                height: '70px',
+                background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 16px'
+              }}>
+                <CheckCircle size={36} color="white" />
+              </div>
+              <h2 style={{ fontSize: '24px', fontWeight: '700', color: '#1E1B4B', marginBottom: '8px' }}>
+                Confirmer cette date ?
+              </h2>
+              <p style={{ color: '#6B7280', fontSize: '14px', margin: 0 }}>
+                Cette action est irréversible
+              </p>
+            </div>
+
+            <div style={{
+              background: 'linear-gradient(135deg, #F5F3FF 0%, #E9D5FF 100%)',
+              padding: '20px',
+              borderRadius: '12px',
+              marginBottom: '24px',
+              textAlign: 'center'
+            }}>
+              <div style={{ fontSize: '12px', color: '#6B7280', marginBottom: '8px' }}>Date sélectionnée</div>
+              <div style={{
+                fontSize: '22px',
+                fontWeight: '700',
+                background: 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent'
+              }}>
+                {dateToConfirm.label}
+              </div>
+              <div style={{ fontSize: '13px', color: '#6B7280', marginTop: '8px' }}>
+                {dateToConfirm.votes} vote{dateToConfirm.votes !== 1 ? 's' : ''}
+              </div>
+            </div>
+
+            <div style={{
+              background: '#FEF3C7',
+              padding: '16px',
+              borderRadius: '10px',
+              marginBottom: '24px',
+              border: '2px solid #FCD34D'
+            }}>
+              <p style={{ margin: 0, fontSize: '13px', color: '#92400E', lineHeight: '1.6' }}>
+                ⚠️ En confirmant, tous les participants avec email seront notifiés et pourront ajouter l'événement à leur calendrier.
+              </p>
+            </div>
+
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button
+                onClick={() => {
+                  setShowConfirmDateModal(false);
+                  setDateToConfirm(null);
+                }}
+                style={{
+                  flex: 1,
+                  padding: '14px',
+                  background: 'white',
+                  color: '#6B7280',
+                  border: '2px solid #E5E7EB',
+                  borderRadius: '12px',
+                  fontSize: '15px',
+                  fontWeight: '600',
+                  cursor: 'pointer'
+                }}
+              >
+                Annuler
+              </button>
+              <button
+                onClick={confirmDate}
+                disabled={isConfirmingDate}
+                style={{
+                  flex: 1,
+                  padding: '14px',
+                  background: isConfirmingDate
+                    ? '#D1D5DB'
+                    : 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '12px',
+                  fontSize: '15px',
+                  fontWeight: '700',
+                  cursor: isConfirmingDate ? 'not-allowed' : 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px'
+                }}
+              >
+                {isConfirmingDate ? (
+                  <>Confirmation...</>
+                ) : (
+                  <>
+                    <CheckCircle size={18} />
+                    Confirmer
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 🆕 MODAL : Confirmation suppression */}
+      {showDeleteModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0,0,0,0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          padding: '20px'
+        }}>
+          <div style={{
+            background: 'white',
+            borderRadius: '20px',
+            padding: '32px',
+            maxWidth: '450px',
+            width: '100%',
+            boxShadow: '0 24px 60px rgba(0,0,0,0.3)'
+          }}>
+            <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+              <div style={{
+                width: '70px',
+                height: '70px',
+                background: 'linear-gradient(135deg, #EF4444 0%, #DC2626 100%)',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 16px'
+              }}>
+                <AlertCircle size={36} color="white" />
+              </div>
+              <h2 style={{ fontSize: '24px', fontWeight: '700', color: '#1E1B4B', marginBottom: '8px' }}>
+                Supprimer l'événement ?
+              </h2>
+              <p style={{ color: '#6B7280', fontSize: '14px', margin: 0 }}>
+                Cette action est définitive et irréversible
+              </p>
+            </div>
+
+            <div style={{
+              background: 'linear-gradient(135deg, #FEE2E2 0%, #FECACA 100%)',
+              padding: '20px',
+              borderRadius: '12px',
+              marginBottom: '24px',
+              border: '2px solid #EF4444'
+            }}>
+              <div style={{ fontSize: '15px', fontWeight: '600', color: '#991B1B', marginBottom: '8px' }}>
+                🎯 {event.type}
+              </div>
+              <div style={{ fontSize: '13px', color: '#991B1B' }}>
+                {event.totalResponded || 0} participant{(event.totalResponded || 0) !== 1 ? 's' : ''} ont voté
+              </div>
+            </div>
+
+            <div style={{
+              background: '#FEF3C7',
+              padding: '16px',
+              borderRadius: '10px',
+              marginBottom: '24px',
+              border: '2px solid #FCD34D'
+            }}>
+              <p style={{ margin: 0, fontSize: '13px', color: '#92400E', lineHeight: '1.6' }}>
+                ⚠️ Toutes les données de l'événement seront perdues : votes, participants, préférences...
+              </p>
+            </div>
+
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                style={{
+                  flex: 1,
+                  padding: '14px',
+                  background: 'white',
+                  color: '#6B7280',
+                  border: '2px solid #E5E7EB',
+                  borderRadius: '12px',
+                  fontSize: '15px',
+                  fontWeight: '600',
+                  cursor: 'pointer'
+                }}
+              >
+                Annuler
+              </button>
+              <button
+                onClick={deleteEventHandler}
+                disabled={isDeleting}
+                style={{
+                  flex: 1,
+                  padding: '14px',
+                  background: isDeleting
+                    ? '#D1D5DB'
+                    : 'linear-gradient(135deg, #EF4444 0%, #DC2626 100%)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '12px',
+                  fontSize: '15px',
+                  fontWeight: '700',
+                  cursor: isDeleting ? 'not-allowed' : 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px'
+                }}
+              >
+                {isDeleting ? (
+                  <>Suppression...</>
+                ) : (
+                  <>🗑️ Supprimer</>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Animations CSS */}
       <style>{`

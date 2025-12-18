@@ -1128,7 +1128,10 @@ const Participant = () => {
 
 
             <button
-              onClick={() => setStep(2)}
+              onClick={() => {
+                setStep(2);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
               style={{
                 width: '100%',
                 padding: '18px',
@@ -1426,7 +1429,10 @@ const Participant = () => {
 
             <div style={{ display: 'flex', gap: '12px' }}>
               <button
-                onClick={() => setStep(1)}
+                onClick={() => {
+                  setStep(1);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
                 style={{
                   flex: 1,
                   padding: '18px',
